@@ -15,11 +15,17 @@ function DentistAnalyticsPage() {
   const [isOutcomesLoading, setIsOutcomesLoading] = useState(true);
   const [currentRiskIndex, setCurrentRiskIndex] = useState(0);
   const [currentOutcomeIndex, setCurrentOutcomeIndex] = useState(0);
-  
+
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [modalData, setModalData] = useState(null);
   const [modalLoading, setModalLoading] = useState(false);
   const [activePatient, setActivePatient] = useState(null);
+
+  const [riskStratification, setRiskStratification] = useState(null);
+  const [isStratLoading, setIsStratLoading] = useState(true);
+  const [selectedBranch, setSelectedBranch] = useState("Main Branch");
+
+  const [stratPatientsModal, setStratPatientsModal] = useState({ isOpen: false, riskLevel: "", patients: [], loading: false });
 
   // --- HARDCODED DEMO DATA (Requirements 4, 5) ---
   const [noShowPredictions] = useState([
@@ -75,7 +81,7 @@ function DentistAnalyticsPage() {
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify(analyticsData)
       });
-      
+
       if (predictRes.ok) {
         const data = await predictRes.json();
         setTreatmentOutcomes([data]);
@@ -136,9 +142,49 @@ function DentistAnalyticsPage() {
     }
   };
 
+  const fetchRiskStratification = useCallback(async (branchName) => {
+    setIsStratLoading(true);
+    try {
+      const response = await fetch("http://localhost:8080/api/dentist/dashboard/risk-stratification", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ branch: branchName, timeframe_days: 30 })
+      });
+      if (response.ok) {
+        const data = await response.json();
+        setRiskStratification(data);
+      }
+    } catch (error) {
+      console.error("Failed to fetch risk stratification:", error);
+    } finally {
+      setIsStratLoading(false);
+    }
+  }, []);
+
+  const handleStratBarClick = async (riskLevel) => {
+    if (!riskStratification || !riskStratification.id) return;
+    setStratPatientsModal({ isOpen: true, riskLevel, patients: [], loading: true });
+    try {
+      const response = await fetch(`http://localhost:8080/api/dentist/dashboard/risk-stratification/${riskStratification.id}/patients?risk_level=${riskLevel}`);
+      if (response.ok) {
+        const data = await response.json();
+        setStratPatientsModal(prev => ({ ...prev, patients: data, loading: false }));
+      } else {
+        setStratPatientsModal(prev => ({ ...prev, loading: false }));
+      }
+    } catch (error) {
+      console.error("Failed to fetch strat patients:", error);
+      setStratPatientsModal(prev => ({ ...prev, loading: false }));
+    }
+  };
+
   useEffect(() => {
     fetchRiskQueue();
   }, [fetchRiskQueue]);
+
+  useEffect(() => {
+    fetchRiskStratification(selectedBranch);
+  }, [fetchRiskStratification, selectedBranch]);
 
   useEffect(() => {
     if (highRiskQueue.length > 0 && highRiskQueue[currentRiskIndex]) {
@@ -166,7 +212,7 @@ function DentistAnalyticsPage() {
           <div style={styles.mainLayout}>
             {/* LEFT COLUMN: Predictive Risk & Treatment Outcomes */}
             <div style={{ display: 'flex', flexDirection: 'column', gap: '30px' }}>
-              
+
               {/* 1 & 3. Predictive Risk Queue (DYNAMIC) */}
               <div style={styles.queueCard}>
                 <div style={styles.cardHeader}>
@@ -176,15 +222,15 @@ function DentistAnalyticsPage() {
                       Refresh <ChevronRight size={14} />
                     </span>
                     <div style={{ display: 'flex', gap: '5px' }}>
-                      <button 
+                      <button
                         disabled={highRiskQueue.length === 0 || currentRiskIndex === 0}
                         onClick={() => setCurrentRiskIndex(i => i - 1)}
-                        style={{...styles.navButton, opacity: (highRiskQueue.length === 0 || currentRiskIndex === 0) ? 0.5 : 1}}
+                        style={{ ...styles.navButton, opacity: (highRiskQueue.length === 0 || currentRiskIndex === 0) ? 0.5 : 1 }}
                       >Back</button>
-                      <button 
+                      <button
                         disabled={highRiskQueue.length === 0 || currentRiskIndex >= highRiskQueue.length - 1}
                         onClick={() => setCurrentRiskIndex(i => i + 1)}
-                        style={{...styles.navButton, opacity: (highRiskQueue.length === 0 || currentRiskIndex >= highRiskQueue.length - 1) ? 0.5 : 1}}
+                        style={{ ...styles.navButton, opacity: (highRiskQueue.length === 0 || currentRiskIndex >= highRiskQueue.length - 1) ? 0.5 : 1 }}
                       >Next</button>
                     </div>
                   </div>
@@ -246,7 +292,7 @@ function DentistAnalyticsPage() {
               </div>
 
               {/* 2. Treatment Outcome Predictions (DYNAMIC) */}
-              <div 
+              <div
                 style={{ ...styles.insightsCard, display: 'flex', flexDirection: 'column', cursor: 'pointer', transition: 'transform 0.2s' }}
                 onClick={() => {
                   if (treatmentOutcomes && treatmentOutcomes.length > 0) {
@@ -260,7 +306,7 @@ function DentistAnalyticsPage() {
                     <h3 style={styles.cardTitleWhite}>2. Treatment Outcome Predictions</h3>
                   </div>
                 </div>
-                
+
                 {isOutcomesLoading ? (
                   <p style={{ color: 'white', textAlign: 'center', margin: 'auto' }}>Loading predictions...</p>
                 ) : treatmentOutcomes && treatmentOutcomes.length > 0 ? (
@@ -287,27 +333,46 @@ function DentistAnalyticsPage() {
 
             {/* RIGHT COLUMN: Clinic Operations & Population Group */}
             <div style={{ display: 'flex', flexDirection: 'column', gap: '30px' }}>
-              
+
               {/* 4. Clinic Risk Stratification */}
               <div style={styles.whiteCard}>
-                <div style={{ display: 'flex', alignItems: 'center', gap: '10px', marginBottom: '20px' }}>
-                  <Users size={20} color="#001166" />
-                  <h3 style={styles.cardTitleBlack}>4. Clinic Risk Stratification</h3>
+                <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '20px' }}>
+                  <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
+                    <Users size={20} color="#001166" />
+                    <h3 style={styles.cardTitleBlack}>4. Clinic Risk Stratification</h3>
+                  </div>
+
                 </div>
-                <div style={styles.barChartContainer}>
-                  <div style={styles.barRow}>
-                    <span style={styles.barLabel}>Low Risk (70%) - Routine Care</span>
-                    <div style={styles.barTrack}><div style={{ ...styles.barFill, width: '70%', background: '#10b981' }}></div></div>
+                <select
+                  value={selectedBranch}
+                  onChange={(e) => setSelectedBranch(e.target.value)}
+                  style={{ padding: '6px 12px', borderRadius: '8px', border: '1px solid #ccc', backgroundColor: '#f9fafb', fontSize: '13px', color: '#333', outline: 'none', cursor: 'pointer' }}
+                >
+                  <option value="Main Branch">Main Branch</option>
+                  <option value="Gil Puyat, Pasay">Gil Puyat</option>
+                  <option value="Pasay, Sta. Ana, Manila">Pasay, Sta. Ana, Manila</option>
+                  <option value="Angeles, Pampanga">Angeles, Pampanga</option>
+                </select>
+                {isStratLoading ? (
+                  <p style={{ color: '#666', textAlign: 'center', margin: 'auto' }}>Loading stratification...</p>
+                ) : riskStratification ? (
+                  <div style={styles.barChartContainer}>
+                    <div style={{ ...styles.barRow, cursor: 'pointer' }} onClick={() => handleStratBarClick('Low')}>
+                      <span style={styles.barLabel}>Low Risk ({riskStratification.low_risk_pct.toFixed(1)}%) - {riskStratification.low_risk_count} patients</span>
+                      <div style={styles.barTrack}><div style={{ ...styles.barFill, width: `${riskStratification.low_risk_pct}%`, background: '#10b981' }}></div></div>
+                    </div>
+                    <div style={{ ...styles.barRow, cursor: 'pointer' }} onClick={() => handleStratBarClick('Medium')}>
+                      <span style={styles.barLabel}>Medium Risk ({riskStratification.medium_risk_pct.toFixed(1)}%) - {riskStratification.medium_risk_count} patients</span>
+                      <div style={styles.barTrack}><div style={{ ...styles.barFill, width: `${riskStratification.medium_risk_pct}%`, background: '#f59e0b' }}></div></div>
+                    </div>
+                    <div style={{ ...styles.barRow, cursor: 'pointer' }} onClick={() => handleStratBarClick('High')}>
+                      <span style={styles.barLabel}>High Risk ({riskStratification.high_risk_pct.toFixed(1)}%) - {riskStratification.high_risk_count} patients</span>
+                      <div style={styles.barTrack}><div style={{ ...styles.barFill, width: `${riskStratification.high_risk_pct}%`, background: '#ef4444' }}></div></div>
+                    </div>
                   </div>
-                  <div style={styles.barRow}>
-                    <span style={styles.barLabel}>Medium Risk (20%) - Monitor</span>
-                    <div style={styles.barTrack}><div style={{ ...styles.barFill, width: '20%', background: '#f59e0b' }}></div></div>
-                  </div>
-                  <div style={styles.barRow}>
-                    <span style={styles.barLabel}>High Risk (10%) - Urgent Intervention</span>
-                    <div style={styles.barTrack}><div style={{ ...styles.barFill, width: '10%', background: '#ef4444' }}></div></div>
-                  </div>
-                </div>
+                ) : (
+                  <p style={{ color: '#666', textAlign: 'center', margin: 'auto' }}>No stratification data available.</p>
+                )}
               </div>
 
               {/* 5. No-Show Flight Risk */}
@@ -394,6 +459,69 @@ function DentistAnalyticsPage() {
           </div>
         )}
 
+        {/* Stratification Patients Modal */}
+        {stratPatientsModal.isOpen && (
+          <div style={styles.modalOverlay}>
+            <div style={styles.modalContent}>
+              <div style={styles.modalHeader}>
+                <div>
+                  <h2 style={{ margin: 0, color: "#001166" }}>{stratPatientsModal.riskLevel} Risk Patients</h2>
+                  <p style={{ margin: 0, color: "#666", fontSize: "14px" }}>
+                    Patients assessed as {stratPatientsModal.riskLevel} risk level
+                  </p>
+                </div>
+                <X
+                  size={24}
+                  style={{ cursor: "pointer", color: "#666" }}
+                  onClick={() => setStratPatientsModal({ isOpen: false, riskLevel: "", patients: [], loading: false })}
+                />
+              </div>
+
+              <div style={styles.modalBody}>
+                {stratPatientsModal.loading ? (
+                  <p style={{ textAlign: "center", padding: "40px" }}>Loading Patients...</p>
+                ) : stratPatientsModal.patients.length > 0 ? (
+                  <table style={{ width: "100%", borderCollapse: "collapse", textAlign: "left" }}>
+                    <thead>
+                      <tr style={{ backgroundColor: "#001166", color: "white" }}>
+                        <th style={{ padding: "12px 15px" }}>ID</th>
+                        <th style={{ padding: "12px 15px" }}>Patient Name</th>
+                        <th style={{ padding: "12px 15px" }}>Risk Score</th>
+                        <th style={{ padding: "12px 15px" }}>Last Visit</th>
+                      </tr>
+                    </thead>
+                    <tbody>
+                      {stratPatientsModal.patients.map((patient, index) => (
+                        <tr key={index} style={{ borderBottom: "1px solid #eee" }}>
+                          <td style={{ padding: "12px 15px", color: "#333", fontWeight: "600" }}>{patient.patient_id}</td>
+                          <td style={{ padding: "12px 15px", color: "#001166", fontWeight: "600" }}>{patient.full_name}</td>
+                          <td style={{ padding: "12px 15px" }}>
+                            <span style={{
+                              padding: "4px 8px",
+                              borderRadius: "12px",
+                              fontSize: "12px",
+                              fontWeight: "700",
+                              backgroundColor: patient.risk_score > 60 ? "#fef2f2" : patient.risk_score > 30 ? "#fffbeb" : "#ecfdf5",
+                              color: patient.risk_score > 60 ? "#ef4444" : patient.risk_score > 30 ? "#f59e0b" : "#10b981"
+                            }}>
+                              {patient.risk_score}
+                            </span>
+                          </td>
+                          <td style={{ padding: "12px 15px", color: "#666" }}>
+                            {patient.last_visit_date ? new Date(patient.last_visit_date).toLocaleDateString() : 'N/A'}
+                          </td>
+                        </tr>
+                      ))}
+                    </tbody>
+                  </table>
+                ) : (
+                  <p style={{ textAlign: "center", padding: "40px", color: "#666" }}>No patients found for this risk level.</p>
+                )}
+              </div>
+            </div>
+          </div>
+        )}
+
       </div>
     </AdminLayout>
   );
@@ -447,7 +575,7 @@ const styles = {
   probBadge: { backgroundColor: '#fef2f2', color: '#dc2626', padding: '4px 10px', borderRadius: '20px', fontSize: '12px', fontWeight: '700', border: '1px solid #fecaca' },
   reminderBtn: { backgroundColor: '#001166', color: 'white', border: 'none', padding: '6px 12px', borderRadius: '6px', fontSize: '11px', fontWeight: '600', cursor: 'pointer' },
 
-  queueCard: { background: 'white', borderRadius: '20px', padding: '30px', boxShadow: '0 4px 15px rgba(0,0,0,0.03)', height: '100%'},
+  queueCard: { background: 'white', borderRadius: '20px', padding: '30px', boxShadow: '0 4px 15px rgba(0,0,0,0.03)', height: '100%' },
   cardHeader: { display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '10px' },
   viewAll: { fontSize: '13px', color: '#4f46e5', fontWeight: '600', cursor: 'pointer', display: 'flex', alignItems: 'center' },
   queueDesc: { fontSize: '13px', color: '#666', marginBottom: '25px' },
