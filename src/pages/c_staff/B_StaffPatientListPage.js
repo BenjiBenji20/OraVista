@@ -7,16 +7,16 @@ function StaffPatientList() {
   const navigate = useNavigate();
   // UPDATED: Added state management to mirror Admin functionality
   const [patients, setPatients] = useState([]);
-  const [filteredPatients, setFilteredPatients] = useState([]); 
+  const [filteredPatients, setFilteredPatients] = useState([]);
   const [loading, setLoading] = useState(true);
-  const [searchQuery, setSearchQuery] = useState(""); 
+  const [searchQuery, setSearchQuery] = useState("");
 
   useEffect(() => {
     const fetchPatients = async () => {
       try {
-        const response = await fetch('http://localhost:5000/api/patients');
+        const response = await fetch('https://oravista-server-temporary-754963692967.asia-southeast1.run.app/api/patients');
         const data = await response.json();
-        
+
         if (Array.isArray(data)) {
           const patientData = data.map((patient) => ({
             dbId: patient.id,
@@ -27,7 +27,7 @@ function StaffPatientList() {
             lastVisit: patient.lastVisit ? new Date(patient.lastVisit).toLocaleDateString() : 'No Visits'
           }));
           setPatients(patientData);
-          setFilteredPatients(patientData); 
+          setFilteredPatients(patientData);
         }
       } catch (err) {
         console.error("Error fetching patients:", err);
@@ -60,10 +60,10 @@ function StaffPatientList() {
         <header style={styles.header}>
           <div style={styles.searchBox}>
             <Search size={18} color="rgba(255,255,255,0.6)" />
-            <input 
-              type="text" 
-              placeholder="Search patients, appointments..." 
-              style={styles.searchInput} 
+            <input
+              type="text"
+              placeholder="Search patients, appointments..."
+              style={styles.searchInput}
             />
           </div>
           <div style={styles.headerActions}>
@@ -91,10 +91,10 @@ function StaffPatientList() {
           <div style={styles.tableControls}>
             <div style={styles.innerSearch}>
               <Search size={16} color="#999" style={styles.innerSearchIcon} />
-              <input 
-                type="text" 
-                placeholder="Search by name, ID, or contact..." 
-                style={styles.innerSearchInput} 
+              <input
+                type="text"
+                placeholder="Search by name, ID, or contact..."
+                style={styles.innerSearchInput}
                 value={searchQuery}
                 onChange={(e) => setSearchQuery(e.target.value)}
               />
@@ -123,8 +123,8 @@ function StaffPatientList() {
                 </thead>
                 <tbody>
                   {filteredPatients.length > 0 ? filteredPatients.map((patient) => (
-                    <tr 
-                      key={patient.id} 
+                    <tr
+                      key={patient.id}
                       style={styles.tbodyRow}
                       onClick={() => handleRowClick(patient.dbId)}
                     >
@@ -164,13 +164,13 @@ function StaffPatientList() {
 
 const styles = {
   container: { display: 'flex', flexDirection: 'column', width: '100%' },
-  header: { 
-    height: '80px', background: '#001166', display: 'flex', alignItems: 'center', 
-    justifyContent: 'space-between', padding: '0 40px', position: 'sticky', top: 0, zIndex: 10 
+  header: {
+    height: '80px', background: '#001166', display: 'flex', alignItems: 'center',
+    justifyContent: 'space-between', padding: '0 40px', position: 'sticky', top: 0, zIndex: 10
   },
-  searchBox: { 
-    display: 'flex', alignItems: 'center', background: 'rgba(255,255,255,0.1)', 
-    padding: '10px 20px', borderRadius: '12px', width: '350px' 
+  searchBox: {
+    display: 'flex', alignItems: 'center', background: 'rgba(255,255,255,0.1)',
+    padding: '10px 20px', borderRadius: '12px', width: '350px'
   },
   searchInput: { border: 'none', background: 'transparent', marginLeft: '10px', outline: 'none', width: '100%', color: 'white' },
   headerActions: { display: 'flex', alignItems: 'center', gap: '25px' },
@@ -189,9 +189,9 @@ const styles = {
   innerSearch: { position: 'relative', width: '300px' },
   innerSearchIcon: { position: 'absolute', left: '12px', top: '10px' },
   innerSearchInput: { width: '100%', padding: '10px 15px 10px 40px', borderRadius: '8px', border: '1px solid #ddd', outline: 'none' },
-  addButton: { 
-    backgroundColor: '#001166', color: 'white', border: 'none', padding: '10px 20px', 
-    borderRadius: '8px', fontWeight: '600', display: 'flex', alignItems: 'center', cursor: 'pointer' 
+  addButton: {
+    backgroundColor: '#001166', color: 'white', border: 'none', padding: '10px 20px',
+    borderRadius: '8px', fontWeight: '600', display: 'flex', alignItems: 'center', cursor: 'pointer'
   },
 
   tableContainer: { backgroundColor: '#001166', borderRadius: '15px', overflow: 'hidden', boxShadow: '0 10px 30px rgba(0,0,0,0.1)' },

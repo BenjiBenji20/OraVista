@@ -2,11 +2,11 @@ import React, { useState, useEffect } from 'react';
 import { User, Lock, Eye, EyeOff, AlertCircle, CheckCircle2, X, Square, CheckSquare } from 'lucide-react';
 
 function LoginPage() {
-  const [loginAs, setLoginAs] = useState('Admin'); 
+  const [loginAs, setLoginAs] = useState('Admin');
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [showPassword, setShowPassword] = useState(false);
-  
+
   // State handles specific field errors, general errors are removed
   const [errors, setErrors] = useState({ email: '', password: '' });
 
@@ -16,7 +16,7 @@ function LoginPage() {
   const [forgotEmail, setForgotEmail] = useState("");
   const [otpSent, setOtpSent] = useState("");
   const [otpInput, setOtpInput] = useState("");
-  const [otpStep, setOtpStep] = useState("email"); 
+  const [otpStep, setOtpStep] = useState("email");
   const [otpMessage, setOtpMessage] = useState("");
   const [isOtpLoading, setIsOtpLoading] = useState(false);
 
@@ -24,7 +24,7 @@ function LoginPage() {
   const [newPassword, setNewPassword] = useState("");
   const [confirmNewPassword, setConfirmNewPassword] = useState("");
   const [showNewPassword, setShowNewPassword] = useState(false);
-  
+
   // --- FEEDBACK MODAL STATE ---
   const [feedbackModal, setFeedbackModal] = useState({ show: false, message: "", type: "error" });
 
@@ -57,11 +57,11 @@ function LoginPage() {
   const closeFeedback = () => {
     setFeedbackModal({ ...feedbackModal, show: false });
     if (feedbackModal.type === "success" && feedbackModal.message.includes("updated")) {
-       setShowResetModal(false);
-       setForgotEmail("");
-       setNewPassword("");
-       setConfirmNewPassword("");
-       setOtpStep("email");
+      setShowResetModal(false);
+      setForgotEmail("");
+      setNewPassword("");
+      setConfirmNewPassword("");
+      setOtpStep("email");
     }
   };
 
@@ -76,25 +76,25 @@ function LoginPage() {
     setIsOtpLoading(true);
 
     try {
-        const response = await fetch("http://localhost:5000/api/send-otp", {
-             method: "POST",
-             headers: { "Content-Type": "application/json" },
-             body: JSON.stringify({ email: forgotEmail, action: "forgot_password" })
-        });
-        
-        const data = await response.json();
-        
-        if (response.ok) {
-            setOtpSent(data.generatedOtp); 
-            setOtpStep("verify");
-            setOtpMessage("Code sent! Check your email.");
-        } else {
-            setOtpMessage(data.message || "Failed to send OTP.");
-        }
+      const response = await fetch("https://oravista-server-temporary-754963692967.asia-southeast1.run.app/api/send-otp", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ email: forgotEmail, action: "forgot_password" })
+      });
+
+      const data = await response.json();
+
+      if (response.ok) {
+        setOtpSent(data.generatedOtp);
+        setOtpStep("verify");
+        setOtpMessage("Code sent! Check your email.");
+      } else {
+        setOtpMessage(data.message || "Failed to send OTP.");
+      }
     } catch (err) {
-        setOtpMessage("Failed to process request. Ensure backend is running.");
+      setOtpMessage("Failed to process request. Ensure backend is running.");
     } finally {
-        setIsOtpLoading(false);
+      setIsOtpLoading(false);
     }
   };
 
@@ -111,8 +111,8 @@ function LoginPage() {
 
   const handlePasswordReset = async () => {
     if (!isPasswordValid) {
-        showFeedback("Password does not meet all requirements.", "error");
-        return;
+      showFeedback("Password does not meet all requirements.", "error");
+      return;
     }
     if (newPassword !== confirmNewPassword) {
       showFeedback("Passwords do not match.", "error");
@@ -120,26 +120,26 @@ function LoginPage() {
     }
 
     try {
-        const response = await fetch("http://localhost:5000/api/reset-password-by-email", {
-            method: "PUT",
-            headers: { "Content-Type": "application/json" },
-            body: JSON.stringify({ email: forgotEmail, newPassword: newPassword }),
-        });
+      const response = await fetch("https://oravista-server-temporary-754963692967.asia-southeast1.run.app/api/reset-password-by-email", {
+        method: "PUT",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ email: forgotEmail, newPassword: newPassword }),
+      });
 
-        if (response.ok) {
-            showFeedback("Password updated successfully! You can now login.", "success");
-        } else {
-            const data = await response.json();
-            showFeedback(data.message || "Failed to update password.", "error");
-        }
+      if (response.ok) {
+        showFeedback("Password updated successfully! You can now login.", "success");
+      } else {
+        const data = await response.json();
+        showFeedback(data.message || "Failed to update password.", "error");
+      }
     } catch (error) {
-        showFeedback("Server error. Check backend connection.", "error");
+      showFeedback("Server error. Check backend connection.", "error");
     }
   };
 
   const handleLogin = async (e) => {
     e.preventDefault();
-    
+
     // Reset errors
     let currentErrors = { email: '', password: '' };
     let hasError = false;
@@ -163,19 +163,19 @@ function LoginPage() {
 
     try {
       console.log("1. Sending login request...");
-      const response = await fetch('http://localhost:5000/api/login', {
+      const response = await fetch('https://oravista-server-temporary-754963692967.asia-southeast1.run.app/api/login', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ email, password }),
       });
 
       const data = await response.json();
-      console.log("2. Server Response:", data); 
+      console.log("2. Server Response:", data);
 
       if (response.ok) {
         if (!data.user.role) {
-            setErrors({ email: "Server Error: Missing role data.", password: '' });
-            return;
+          setErrors({ email: "Server Error: Missing role data.", password: '' });
+          return;
         }
 
         const dbRole = data.user.role.toLowerCase();
@@ -185,7 +185,7 @@ function LoginPage() {
 
         if (dbRole === selectedRole) {
           localStorage.setItem('user', JSON.stringify(data.user));
-          
+
           if (dbRole === 'admin') window.location.href = '/admin/dashboard';
           else if (dbRole === 'staff') window.location.href = '/staff/dashboard';
           else if (dbRole === 'dentist') window.location.href = '/dentist/dashboard';
@@ -228,26 +228,26 @@ function LoginPage() {
 
   return (
     <div style={styles.container}>
-      
+
       {/* FEEDBACK POPUP MODAL */}
       {feedbackModal.show && (
         <div style={{ ...modalOverlayStyle, zIndex: 3000 }}>
-           <div style={{ ...modalContentStyle, padding: "30px", maxWidth: "350px" }}>
-             <div style={{ 
-                backgroundColor: feedbackModal.type === "success" ? "#e6f4ea" : "#fdecea", 
-                width: "60px", height: "60px", borderRadius: "50%", 
-                display: "flex", justifyContent: "center", alignItems: "center", margin: "0 auto 15px" 
-             }}>
-               {feedbackModal.type === "success" ? <CheckCircle2 size={32} color="#28a745" /> : <AlertCircle size={32} color="#ff4d4d" />}
-             </div>
-             <h3 style={{ color: brandBlue, fontWeight: "800", marginBottom: "10px", margin: 0 }}>
-               {feedbackModal.type === "success" ? "Success!" : "Attention"}
-             </h3>
-             <p style={{ color: "#666", fontSize: "14px", marginBottom: "20px" }}>{feedbackModal.message}</p>
-             <button onClick={closeFeedback} style={{ width: "100%", padding: "12px", backgroundColor: brandBlue, color: "white", border: "none", borderRadius: "10px", fontWeight: "700", cursor: "pointer" }}>
-               Okay
-             </button>
-           </div>
+          <div style={{ ...modalContentStyle, padding: "30px", maxWidth: "350px" }}>
+            <div style={{
+              backgroundColor: feedbackModal.type === "success" ? "#e6f4ea" : "#fdecea",
+              width: "60px", height: "60px", borderRadius: "50%",
+              display: "flex", justifyContent: "center", alignItems: "center", margin: "0 auto 15px"
+            }}>
+              {feedbackModal.type === "success" ? <CheckCircle2 size={32} color="#28a745" /> : <AlertCircle size={32} color="#ff4d4d" />}
+            </div>
+            <h3 style={{ color: brandBlue, fontWeight: "800", marginBottom: "10px", margin: 0 }}>
+              {feedbackModal.type === "success" ? "Success!" : "Attention"}
+            </h3>
+            <p style={{ color: "#666", fontSize: "14px", marginBottom: "20px" }}>{feedbackModal.message}</p>
+            <button onClick={closeFeedback} style={{ width: "100%", padding: "12px", backgroundColor: brandBlue, color: "white", border: "none", borderRadius: "10px", fontWeight: "700", cursor: "pointer" }}>
+              Okay
+            </button>
+          </div>
         </div>
       )}
 
@@ -258,39 +258,39 @@ function LoginPage() {
             <X size={24} onClick={() => { setShowForgotModal(false); setOtpStep("email"); setOtpMessage(""); }} style={{ position: "absolute", right: "20px", top: "20px", cursor: "pointer", color: "#999" }} />
             <h2 style={{ color: brandBlue, fontWeight: "800", marginBottom: "10px", margin: 0 }}>Forgot Password?</h2>
             <p style={{ fontSize: "13px", color: "#666", marginBottom: "20px" }}>
-                {otpStep === "email" ? "Enter your email to receive a verification code." : "Enter the code sent to your email."}
+              {otpStep === "email" ? "Enter your email to receive a verification code." : "Enter the code sent to your email."}
             </p>
 
             {otpStep === "email" ? (
-                <>
-                    <input 
-                        type="email" 
-                        placeholder="Enter your email" 
-                        value={forgotEmail} 
-                        onChange={(e) => setForgotEmail(e.target.value)}
-                        style={{ ...inputStyle(false), marginBottom: "15px" }}
-                    />
-                    <button onClick={sendOTP} disabled={isOtpLoading} style={{ width: "100%", padding: "12px", backgroundColor: brandBlue, color: "white", border: "none", borderRadius: "10px", fontWeight: "700", cursor: "pointer", opacity: isOtpLoading ? 0.7 : 1 }}>
-                        {isOtpLoading ? "Sending..." : "Send Code"}
-                    </button>
-                </>
+              <>
+                <input
+                  type="email"
+                  placeholder="Enter your email"
+                  value={forgotEmail}
+                  onChange={(e) => setForgotEmail(e.target.value)}
+                  style={{ ...inputStyle(false), marginBottom: "15px" }}
+                />
+                <button onClick={sendOTP} disabled={isOtpLoading} style={{ width: "100%", padding: "12px", backgroundColor: brandBlue, color: "white", border: "none", borderRadius: "10px", fontWeight: "700", cursor: "pointer", opacity: isOtpLoading ? 0.7 : 1 }}>
+                  {isOtpLoading ? "Sending..." : "Send Code"}
+                </button>
+              </>
             ) : (
-                <>
-                    <input 
-                        type="text" 
-                        placeholder="Enter 6-digit code" 
-                        value={otpInput} 
-                        onChange={(e) => setOtpInput(e.target.value)}
-                        style={{ ...inputStyle(false), marginBottom: "15px", letterSpacing: "5px", textAlign: "center", fontSize: "18px" }}
-                        maxLength="6"
-                    />
-                    <button onClick={verifyOTP} style={{ width: "100%", padding: "12px", backgroundColor: "#28a745", color: "white", border: "none", borderRadius: "10px", fontWeight: "700", cursor: "pointer" }}>
-                        Verify Code
-                    </button>
-                    <p onClick={() => setOtpStep("email")} style={{ marginTop: "15px", fontSize: "12px", color: brandBlue, cursor: "pointer", textDecoration: "underline" }}>
-                        Resend Code
-                    </p>
-                </>
+              <>
+                <input
+                  type="text"
+                  placeholder="Enter 6-digit code"
+                  value={otpInput}
+                  onChange={(e) => setOtpInput(e.target.value)}
+                  style={{ ...inputStyle(false), marginBottom: "15px", letterSpacing: "5px", textAlign: "center", fontSize: "18px" }}
+                  maxLength="6"
+                />
+                <button onClick={verifyOTP} style={{ width: "100%", padding: "12px", backgroundColor: "#28a745", color: "white", border: "none", borderRadius: "10px", fontWeight: "700", cursor: "pointer" }}>
+                  Verify Code
+                </button>
+                <p onClick={() => setOtpStep("email")} style={{ marginTop: "15px", fontSize: "12px", color: brandBlue, cursor: "pointer", textDecoration: "underline" }}>
+                  Resend Code
+                </p>
+              </>
             )}
             {otpMessage && <p style={{ color: otpMessage.includes("sent") ? "green" : "red", fontSize: "12px", marginTop: "10px", fontWeight: "600" }}>{otpMessage}</p>}
           </div>
@@ -303,48 +303,48 @@ function LoginPage() {
           <div style={modalContentStyle}>
             <X size={24} onClick={() => setShowResetModal(false)} style={{ position: "absolute", right: "20px", top: "20px", cursor: "pointer", color: "#999" }} />
             <h2 style={{ color: brandBlue, fontWeight: "800", marginBottom: "20px", margin: 0 }}>Reset Password</h2>
-            
+
             <div style={{ marginBottom: "15px", textAlign: "left" }}>
-                <label style={labelStyle}>New Password</label>
-                <div style={{ position: "relative" }}>
-                    <input 
-                        type={showNewPassword ? "text" : "password"} 
-                        value={newPassword} 
-                        onChange={(e) => setNewPassword(e.target.value)}
-                        style={inputStyle(false)}
-                        placeholder="Enter new password"
-                    />
-                     <span onClick={() => setShowNewPassword(!showNewPassword)} style={{ position: "absolute", right: "15px", top: "12px", cursor: "pointer", color: brandBlue }}>
-                        {showNewPassword ? <EyeOff size={18} /> : <Eye size={18} />}
-                    </span>
-                </div>
+              <label style={labelStyle}>New Password</label>
+              <div style={{ position: "relative" }}>
+                <input
+                  type={showNewPassword ? "text" : "password"}
+                  value={newPassword}
+                  onChange={(e) => setNewPassword(e.target.value)}
+                  style={inputStyle(false)}
+                  placeholder="Enter new password"
+                />
+                <span onClick={() => setShowNewPassword(!showNewPassword)} style={{ position: "absolute", right: "15px", top: "12px", cursor: "pointer", color: brandBlue }}>
+                  {showNewPassword ? <EyeOff size={18} /> : <Eye size={18} />}
+                </span>
+              </div>
             </div>
 
             <div style={{ marginBottom: "20px", textAlign: "left" }}>
-                <label style={labelStyle}>Confirm Password</label>
-                <input 
-                    type="password" 
-                    value={confirmNewPassword} 
-                    onChange={(e) => setConfirmNewPassword(e.target.value)}
-                    style={inputStyle(false)}
-                    placeholder="Confirm new password"
-                />
+              <label style={labelStyle}>Confirm Password</label>
+              <input
+                type="password"
+                value={confirmNewPassword}
+                onChange={(e) => setConfirmNewPassword(e.target.value)}
+                style={inputStyle(false)}
+                placeholder="Confirm new password"
+              />
             </div>
 
             {/* REAL TIME CONDITIONS GRID */}
             <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "10px", textAlign: "left", marginBottom: "25px" }}>
-                <RequirementItem met={passwordCriteria.lower} label="One lowercase" />
-                <RequirementItem met={passwordCriteria.upper} label="One uppercase" />
-                <RequirementItem met={passwordCriteria.number} label="One number" />
-                <RequirementItem met={passwordCriteria.special} label="One special character" />
-                <RequirementItem met={passwordCriteria.length} label="8 characters minimum" />
+              <RequirementItem met={passwordCriteria.lower} label="One lowercase" />
+              <RequirementItem met={passwordCriteria.upper} label="One uppercase" />
+              <RequirementItem met={passwordCriteria.number} label="One number" />
+              <RequirementItem met={passwordCriteria.special} label="One special character" />
+              <RequirementItem met={passwordCriteria.length} label="8 characters minimum" />
             </div>
 
-            <button 
-                onClick={handlePasswordReset} 
-                style={{ width: "100%", padding: "12px", backgroundColor: brandBlue, color: "white", border: "none", borderRadius: "10px", fontWeight: "700", cursor: "pointer", opacity: !isPasswordValid ? 0.7 : 1 }}
+            <button
+              onClick={handlePasswordReset}
+              style={{ width: "100%", padding: "12px", backgroundColor: brandBlue, color: "white", border: "none", borderRadius: "10px", fontWeight: "700", cursor: "pointer", opacity: !isPasswordValid ? 0.7 : 1 }}
             >
-                Change Password
+              Change Password
             </button>
           </div>
         </div>
@@ -397,8 +397,8 @@ function LoginPage() {
 
           <button type="submit" style={styles.loginButton}>Login</button>
         </form>
-        <p 
-          style={styles.forgotPassword} 
+        <p
+          style={styles.forgotPassword}
           onClick={() => setShowForgotModal(true)}
         >
           Forgot password?

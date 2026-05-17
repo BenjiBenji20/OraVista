@@ -26,7 +26,7 @@ function BillingsPage() {
   const fetchBillings = useCallback(async (userId) => {
     try {
       // Reusing the appointments API since it contains amounts, refs, and statuses!
-      const response = await fetch(`http://localhost:5000/api/user-appointments/${userId}`);
+      const response = await fetch(`https://oravista-server-temporary-754963692967.asia-southeast1.run.app/api/user-appointments/${userId}`);
       if (response.ok) {
         const data = await response.json();
         setBillings(data);
@@ -83,7 +83,7 @@ function BillingsPage() {
       <div style={{ width: sidebarWidth, backgroundColor: "#001166", height: "100vh", color: "white", padding: "20px 15px", position: "fixed", transition: "width 0.3s ease", zIndex: 1000, display: "flex", flexDirection: "column", boxSizing: "border-box" }}>
         <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: "40px" }}>
           {!isCollapsed && <h2 style={{ fontSize: "28px", fontWeight: "800", margin: 0 }}>OraVista</h2>}
-          <div onClick={() => setIsCollapsed(!isCollapsed)} style={{ cursor: "pointer" }}>{isCollapsed ? <Menu size={24}/> : <X size={24}/>}</div>
+          <div onClick={() => setIsCollapsed(!isCollapsed)} style={{ cursor: "pointer" }}>{isCollapsed ? <Menu size={24} /> : <X size={24} />}</div>
         </div>
         <nav style={{ flexGrow: 1 }}>
           <div style={getNavItemStyle("/dashboard")} onClick={() => navigate("/dashboard")}><LayoutDashboard size={20} style={{ flexShrink: 0 }} /> {!isCollapsed && "Dashboard"}</div>
@@ -106,7 +106,7 @@ function BillingsPage() {
           {/* UPDATED HEADER: Now uses userData.firstName */}
           <h1 style={{ color: "#001166", fontSize: "48px", fontWeight: "800", marginBottom: "10px" }}>{userData.firstName}'s Billing</h1>
           <p style={{ color: "#001166", fontWeight: "600", marginBottom: "40px" }}>Manage your payments and transaction history.</p>
-          
+
           {/* Summary Cards */}
           <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "30px", marginBottom: "40px" }}>
             <div style={{ backgroundColor: "#fff3cd", padding: "30px", borderRadius: "20px", display: "flex", alignItems: "center", gap: "20px", border: "1px solid #ffe69c" }}>
@@ -132,17 +132,19 @@ function BillingsPage() {
 
           {/* Toggle Tabs */}
           <div style={{ display: "flex", gap: "15px", marginBottom: "30px" }}>
-            <button 
+            <button
               onClick={() => setActiveTab("pending")}
-              style={{ padding: "12px 30px", borderRadius: "30px", border: "none", fontWeight: "700", cursor: "pointer", transition: "all 0.3s",
+              style={{
+                padding: "12px 30px", borderRadius: "30px", border: "none", fontWeight: "700", cursor: "pointer", transition: "all 0.3s",
                 backgroundColor: activeTab === "pending" ? "#001166" : "#e8ebf5",
                 color: activeTab === "pending" ? "white" : "#001166"
               }}>
               Pending Transactions
             </button>
-            <button 
+            <button
               onClick={() => setActiveTab("history")}
-              style={{ padding: "12px 30px", borderRadius: "30px", border: "none", fontWeight: "700", cursor: "pointer", transition: "all 0.3s",
+              style={{
+                padding: "12px 30px", borderRadius: "30px", border: "none", fontWeight: "700", cursor: "pointer", transition: "all 0.3s",
                 backgroundColor: activeTab === "history" ? "#001166" : "#e8ebf5",
                 color: activeTab === "history" ? "white" : "#001166"
               }}>
@@ -171,9 +173,9 @@ function BillingsPage() {
                       ₱{parseFloat(item.amount || 0).toLocaleString()}
                     </div>
                     <div style={{ textAlign: "center" }}>
-                      <span style={{ 
+                      <span style={{
                         padding: "6px 15px", borderRadius: "20px", fontSize: "12px", fontWeight: "700", color: "white",
-                        backgroundColor: activeTab === "pending" ? "#ffc107" : "#10b981" 
+                        backgroundColor: activeTab === "pending" ? "#ffc107" : "#10b981"
                       }}>
                         {activeTab === "pending" ? "Unpaid" : "Paid"}
                       </span>

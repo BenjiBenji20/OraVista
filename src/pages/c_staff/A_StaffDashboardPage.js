@@ -7,29 +7,29 @@ function StaffDashboard() {
   const [appointments, setAppointments] = useState([]);
   const [stats, setStats] = useState({
     todayCount: 0,
-    availableDentists: 3, 
-    totalDentists: 3,     
-    monthPatients: 0, 
-    loading: true 
+    availableDentists: 3,
+    totalDentists: 3,
+    monthPatients: 0,
+    loading: true
   });
 
   useEffect(() => {
     const fetchDashboardData = async () => {
       try {
         // Fetching from your Node.js server
-        const response = await fetch('http://localhost:5000/api/dashboard/stats');
-        
+        const response = await fetch('https://oravista-server-temporary-754963692967.asia-southeast1.run.app/api/dashboard/stats');
+
         if (!response.ok) {
-           throw new Error('Failed to fetch dashboard data');
+          throw new Error('Failed to fetch dashboard data');
         }
 
         const data = await response.json();
-        
+
         // Update stats mirroring Admin logic
         setStats({
           todayCount: data.todayCount,
-          availableDentists: 3, 
-          totalDentists: 3,     
+          availableDentists: 3,
+          totalDentists: 3,
           monthPatients: data.monthPatients,
           loading: false
         });
@@ -77,7 +77,7 @@ function StaffDashboard() {
         {/* DASHBOARD CONTENT */}
         <div style={styles.content}>
           <div style={styles.gridTop}>
-            
+
             {/* CARD 1: TODAY'S APPOINTMENTS */}
             <div style={styles.card}>
               <p style={styles.cardLabel}>Today's Appointments</p>
@@ -86,7 +86,7 @@ function StaffDashboard() {
                 <div
                   style={{
                     ...styles.progressFill,
-                    width: `${Math.min((stats.todayCount / 20) * 100, 100)}%`, 
+                    width: `${Math.min((stats.todayCount / 20) * 100, 100)}%`,
                   }}
                 ></div>
               </div>
@@ -155,21 +155,21 @@ function StaffDashboard() {
             {/* TODAY'S SCHEDULE LIST */}
             <div style={{ ...styles.listCard, background: "#001166" }}>
               <p style={styles.sectionTitle}>Today's Schedule</p>
-              
+
               {stats.loading ? (
-                <p style={{color: 'white', opacity: 0.6}}>Loading schedule...</p>
+                <p style={{ color: 'white', opacity: 0.6 }}>Loading schedule...</p>
               ) : appointments.length > 0 ? (
                 appointments.map((item, idx) => (
                   <div key={idx} style={styles.scheduleRow}>
-                    <span style={{flex: 1}}>{item.time} - {item.patientName}</span>
+                    <span style={{ flex: 1 }}>{item.time} - {item.patientName}</span>
                     <span style={{
-                        fontSize: '11px', 
-                        padding: '2px 8px', 
-                        borderRadius: '10px',
-                        background: item.status === 'Confirmed' ? '#e6fffa' : '#fff7ed',
-                        color: item.status === 'Confirmed' ? '#047857' : '#c2410c'
+                      fontSize: '11px',
+                      padding: '2px 8px',
+                      borderRadius: '10px',
+                      background: item.status === 'Confirmed' ? '#e6fffa' : '#fff7ed',
+                      color: item.status === 'Confirmed' ? '#047857' : '#c2410c'
                     }}>
-                        {item.status}
+                      {item.status}
                     </span>
                   </div>
                 ))

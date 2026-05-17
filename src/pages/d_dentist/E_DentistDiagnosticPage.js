@@ -5,12 +5,12 @@ import { Search, Bell, MessageSquare, User, ZoomIn, RotateCw, Copy, FileText, Up
 function DentistDiagnostics() {
   // State Management
   const [imageUploaded, setImageUploaded] = useState(false);
-  const [selectedFile, setSelectedFile] = useState(null); 
+  const [selectedFile, setSelectedFile] = useState(null);
   const [isAnalyzing, setIsAnalyzing] = useState(false);
   const [analysisComplete, setAnalysisComplete] = useState(false);
   const [showAI, setShowAI] = useState(true);
   const [findings, setFindings] = useState([]);
-  
+
   // States for saving the diagnosis to the database
   const [clinicalNotes, setClinicalNotes] = useState("");
   const [isSaving, setIsSaving] = useState(false);
@@ -22,7 +22,7 @@ function DentistDiagnostics() {
     if (file) {
       setSelectedFile(file);
       setImageUploaded(true);
-      
+
       setAnalysisComplete(false);
       setFindings([]);
       setClinicalNotes("");
@@ -34,7 +34,7 @@ function DentistDiagnostics() {
       alert("Please upload a real image first.");
       return;
     }
-    
+
     setIsAnalyzing(true);
 
     try {
@@ -69,18 +69,18 @@ function DentistDiagnostics() {
   const handleSaveDiagnosis = async () => {
     setIsSaving(true);
     try {
-      const response = await fetch('http://localhost:5000/api/save-diagnosis', {
+      const response = await fetch('https://oravista-server-temporary-754963692967.asia-southeast1.run.app/api/save-diagnosis', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
-          patient_id: 1, 
+          patient_id: 1,
           clinical_notes: clinicalNotes,
           ai_findings: findings
         })
       });
 
       const data = await response.json();
-      
+
       if (data.status === 'success') {
         alert("Success! The AI results and your notes have been saved to the patient's record.");
       } else {
@@ -136,48 +136,48 @@ function DentistDiagnostics() {
               <p style={styles.infoLabel}>Case Type</p>
               <p style={styles.infoVal}>Panoramic X-Ray</p>
             </div>
-            <div style={{...styles.infoCol, border: 'none'}}>
+            <div style={{ ...styles.infoCol, border: 'none' }}>
               <p style={styles.infoLabel}>Scan Date</p>
               <p style={styles.infoVal}>Feb 15, 2026</p>
             </div>
           </div>
 
           <div style={styles.mainGrid}>
-            
+
             {/* LEFT COLUMN: Viewer + AI Insights */}
             <div style={styles.leftPanel}>
               <div style={styles.viewerCard}>
                 <div style={styles.viewerHeader}>
                   <h3 style={styles.sectionTitle}>Image Analysis</h3>
                   <div style={styles.viewerActions}>
-                    <button style={styles.vBtn}><ZoomIn size={14}/> Zoom</button>
-                    <button style={styles.vBtn}><RotateCw size={14}/> Rotate</button>
-                    <button style={styles.vBtn}><Copy size={14}/> Compare</button>
+                    <button style={styles.vBtn}><ZoomIn size={14} /> Zoom</button>
+                    <button style={styles.vBtn}><RotateCw size={14} /> Rotate</button>
+                    <button style={styles.vBtn}><Copy size={14} /> Compare</button>
                   </div>
                 </div>
-                
+
                 <div style={styles.xrayImageArea}>
-                  <input 
-                    type="file" 
-                    accept="image/png, image/jpeg" 
-                    style={{ display: 'none' }} 
-                    ref={fileInputRef} 
-                    onChange={handleFileChange} 
+                  <input
+                    type="file"
+                    accept="image/png, image/jpeg"
+                    style={{ display: 'none' }}
+                    ref={fileInputRef}
+                    onChange={handleFileChange}
                   />
 
                   {!imageUploaded ? (
                     <div style={styles.uploadArea} onClick={() => fileInputRef.current.click()}>
-                      <UploadCloud size={48} color="rgba(255,255,255,0.4)" style={{marginBottom: '15px'}} />
-                      <p style={{color: 'white', fontWeight: 'bold', fontSize: '16px'}}>Upload X-Ray or Intraoral Scan</p>
-                      <p style={{color: 'rgba(255,255,255,0.5)', fontSize: '13px', marginTop: '5px'}}>Click to browse (JPG, PNG)</p>
+                      <UploadCloud size={48} color="rgba(255,255,255,0.4)" style={{ marginBottom: '15px' }} />
+                      <p style={{ color: 'white', fontWeight: 'bold', fontSize: '16px' }}>Upload X-Ray or Intraoral Scan</p>
+                      <p style={{ color: 'rgba(255,255,255,0.5)', fontSize: '13px', marginTop: '5px' }}>Click to browse (JPG, PNG)</p>
                     </div>
                   ) : (
                     <div style={styles.simulatedXray}>
                       {selectedFile ? (
-                        <img 
-                          src={URL.createObjectURL(selectedFile)} 
-                          alt="Patient X-Ray" 
-                          style={{ width: '100%', height: '100%', objectFit: 'fill', borderRadius: '10px' }} 
+                        <img
+                          src={URL.createObjectURL(selectedFile)}
+                          alt="Patient X-Ray"
+                          style={{ width: '100%', height: '100%', objectFit: 'fill', borderRadius: '10px' }}
                         />
                       ) : (
                         <>
@@ -187,8 +187,8 @@ function DentistDiagnostics() {
                       )}
 
                       {analysisComplete && showAI && findings.map(finding => (
-                        <div 
-                          key={finding.id} 
+                        <div
+                          key={finding.id}
                           style={{
                             ...styles.boundingBox,
                             top: finding.coordinates.top,
@@ -200,7 +200,7 @@ function DentistDiagnostics() {
                         >
                           {(finding.status === 'pending' || finding.status === 'verified') && (
                             <span style={{
-                              ...styles.boxLabel, 
+                              ...styles.boxLabel,
                               backgroundColor: finding.status === 'verified' ? '#10b981' : '#ef4444'
                             }}>
                               {finding.confidence}%
@@ -220,25 +220,25 @@ function DentistDiagnostics() {
               {/* MOVED: AI Insights Card is now below the viewer */}
               <div style={styles.insightsCard}>
                 <h3 style={styles.sectionTitle}>AI Insight Analysis</h3>
-                
+
                 {!imageUploaded ? (
-                  <p style={{color: 'rgba(255,255,255,0.5)', fontSize: '14px', marginTop: '20px'}}>Upload an image to begin the CNN analysis.</p>
+                  <p style={{ color: 'rgba(255,255,255,0.5)', fontSize: '14px', marginTop: '20px' }}>Upload an image to begin the CNN analysis.</p>
                 ) : !analysisComplete && !isAnalyzing ? (
-                  <div style={{marginTop: '20px'}}>
-                    <p style={{color: 'white', fontSize: '14px', marginBottom: '15px'}}>Image ingested successfully. Ready for pathology detection.</p>
+                  <div style={{ marginTop: '20px' }}>
+                    <p style={{ color: 'white', fontSize: '14px', marginBottom: '15px' }}>Image ingested successfully. Ready for pathology detection.</p>
                     <button style={styles.analyzeBtn} onClick={runAIAnalysis}>
                       <Target size={16} /> Run Diagnostics
                     </button>
                   </div>
                 ) : isAnalyzing ? (
-                  <div style={{marginTop: '20px', textAlign: 'center'}}>
-                    <p style={{color: '#10b981', fontSize: '14px', fontWeight: 'bold'}}>Analyzing visual data...</p>
+                  <div style={{ marginTop: '20px', textAlign: 'center' }}>
+                    <p style={{ color: '#10b981', fontSize: '14px', fontWeight: 'bold' }}>Analyzing visual data...</p>
                   </div>
                 ) : (
-                  <div style={{marginTop: '15px'}}>
-                    <div style={{display: 'flex', justifyContent: 'space-between', marginBottom: '15px', alignItems: 'center'}}>
-                      <span style={{fontSize: '12px', color: 'rgba(255,255,255,0.6)'}}>{findings.length} findings detected</span>
-                      <button 
+                  <div style={{ marginTop: '15px' }}>
+                    <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '15px', alignItems: 'center' }}>
+                      <span style={{ fontSize: '12px', color: 'rgba(255,255,255,0.6)' }}>{findings.length} findings detected</span>
+                      <button
                         style={styles.toggleBtn}
                         onClick={() => setShowAI(!showAI)}
                       >
@@ -250,7 +250,7 @@ function DentistDiagnostics() {
                     <div style={styles.findingsGrid}>
                       {findings.map((insight) => (
                         <div key={insight.id} style={{
-                          ...styles.insightBox, 
+                          ...styles.insightBox,
                           opacity: insight.status === 'rejected' ? 0.4 : 1,
                           borderLeft: insight.status === 'verified' ? '3px solid #10b981' : (insight.status === 'rejected' ? '3px solid #6b7280' : 'none')
                         }}>
@@ -258,20 +258,20 @@ function DentistDiagnostics() {
                           <p style={styles.insightText}>
                             {insight.title ? insight.title.replace(/YOLO Detection/gi, "AI Finding") : "AI Finding"}
                           </p>
-                          <div style={{display: 'flex', justifyContent: 'space-between', alignItems: 'center'}}>
+                          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
                             <span style={{
                               ...styles.confBadge,
                               backgroundColor: insight.status === 'verified' ? '#10b981' : (insight.status === 'rejected' ? '#6b7280' : '#f59e0b')
                             }}>{insight.confidence}% Confidence</span>
-                            
+
                             {insight.status === 'pending' && (
-                              <div style={{display: 'flex', gap: '8px'}}>
-                                <button style={styles.actionBtnCheck} onClick={() => handleValidate(insight.id, 'verified')}><CheckCircle size={14} color="#10b981"/></button>
-                                <button style={styles.actionBtnCross} onClick={() => handleValidate(insight.id, 'rejected')}><X size={14} color="#ef4444"/></button>
+                              <div style={{ display: 'flex', gap: '8px' }}>
+                                <button style={styles.actionBtnCheck} onClick={() => handleValidate(insight.id, 'verified')}><CheckCircle size={14} color="#10b981" /></button>
+                                <button style={styles.actionBtnCross} onClick={() => handleValidate(insight.id, 'rejected')}><X size={14} color="#ef4444" /></button>
                               </div>
                             )}
-                            {insight.status === 'verified' && <span style={{fontSize: '11px', color: '#10b981', fontWeight: 'bold'}}>Verified</span>}
-                            {insight.status === 'rejected' && <span style={{fontSize: '11px', color: '#ef4444', fontWeight: 'bold'}}>Rejected</span>}
+                            {insight.status === 'verified' && <span style={{ fontSize: '11px', color: '#10b981', fontWeight: 'bold' }}>Verified</span>}
+                            {insight.status === 'rejected' && <span style={{ fontSize: '11px', color: '#ef4444', fontWeight: 'bold' }}>Rejected</span>}
                           </div>
                         </div>
                       ))}
@@ -285,16 +285,16 @@ function DentistDiagnostics() {
             <div style={styles.sidePanel}>
               <div style={styles.notesCard}>
                 <h3 style={styles.sectionTitle}>Clinical Notes</h3>
-                <textarea 
-                  placeholder="Enter final diagnosis and recommendations here. AI findings are supportive only." 
+                <textarea
+                  placeholder="Enter final diagnosis and recommendations here. AI findings are supportive only."
                   style={styles.textarea}
                   disabled={!analysisComplete}
                   value={clinicalNotes}
                   onChange={(e) => setClinicalNotes(e.target.value)}
                 />
-                <button 
+                <button
                   style={{
-                    ...styles.saveBtn, 
+                    ...styles.saveBtn,
                     opacity: analysisComplete && !isSaving ? 1 : 0.5,
                     cursor: analysisComplete && !isSaving ? 'pointer' : 'not-allowed'
                   }}
@@ -336,7 +336,7 @@ const styles = {
   infoVal: { fontSize: '15px', fontWeight: 'bold' },
 
   mainGrid: { display: 'grid', gridTemplateColumns: '1.8fr 1fr', gap: '25px' },
-  
+
   // NEW: Structural containers
   leftPanel: { display: 'flex', flexDirection: 'column', gap: '25px' },
   sidePanel: { display: 'flex', flexDirection: 'column', gap: '20px', height: '100%' },
@@ -346,7 +346,7 @@ const styles = {
   sectionTitle: { fontSize: '16px', fontWeight: 'bold', margin: 0 },
   viewerActions: { display: 'flex', gap: '10px' },
   vBtn: { background: 'rgba(255,255,255,0.1)', border: '1px solid rgba(255,255,255,0.2)', color: 'white', padding: '6px 12px', borderRadius: '8px', fontSize: '12px', display: 'flex', alignItems: 'center', gap: '5px', cursor: 'pointer' },
-  
+
   xrayImageArea: { height: '500px', background: 'rgba(255,255,255,0.02)', borderRadius: '12px', display: 'flex', alignItems: 'center', justifyContent: 'center', overflow: 'hidden' },
   uploadArea: { display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', border: '2px dashed rgba(255,255,255,0.2)', borderRadius: '12px', width: '90%', height: '90%', cursor: 'pointer', transition: 'background 0.2s' },
   simulatedXray: { width: '80%', height: '80%', backgroundColor: '#000833', borderRadius: '10px', display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', position: 'relative', boxShadow: '0 0 50px rgba(0,0,0,0.5)' },
@@ -357,14 +357,14 @@ const styles = {
   scannerLine: { position: 'absolute', top: 0, left: 0, width: '100%', height: '3px', backgroundColor: '#10b981', boxShadow: '0 0 15px #10b981', animation: 'scan 2s linear infinite' },
 
   insightsCard: { background: '#001166', borderRadius: '15px', padding: '25px', color: 'white' },
-  
+
   // NEW: Grid layout so multiple findings flow horizontally
   findingsGrid: { display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(220px, 1fr))', gap: '15px' },
-  
+
   insightBox: { background: 'rgba(255,255,255,0.05)', borderRadius: '10px', padding: '15px', transition: 'all 0.3s' },
   insightText: { fontSize: '13px', margin: '0 0 12px 0', lineHeight: '1.4' },
   confBadge: { fontSize: '10px', padding: '3px 8px', borderRadius: '10px', fontWeight: 'bold' },
-  
+
   analyzeBtn: { backgroundColor: '#10b981', color: 'white', border: 'none', padding: '10px 20px', borderRadius: '8px', fontSize: '13px', fontWeight: 'bold', display: 'flex', alignItems: 'center', gap: '8px', cursor: 'pointer', width: '100%', justifyContent: 'center' },
   toggleBtn: { background: 'rgba(255,255,255,0.1)', border: 'none', color: 'white', fontSize: '11px', padding: '4px 10px', borderRadius: '4px', cursor: 'pointer' },
   actionBtnCheck: { background: 'rgba(16, 185, 129, 0.1)', border: '1px solid rgba(16, 185, 129, 0.3)', borderRadius: '4px', padding: '4px', cursor: 'pointer', display: 'flex' },

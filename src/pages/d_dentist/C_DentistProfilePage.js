@@ -19,7 +19,7 @@ function DentistProfile() {
         if (!dentistId) return;
 
         // Fetching dentist-specific data from your backend
-        const response = await fetch(`http://localhost:5000/api/dentist-profile/${dentistId}`);
+        const response = await fetch(`https://oravista-server-temporary-754963692967.asia-southeast1.run.app/api/dentist-profile/${dentistId}`);
         const data = await response.json();
 
         setDentistData(data.profile);
@@ -183,7 +183,7 @@ const styles = {
 
   dashboardGrid: { display: 'grid', gridTemplateColumns: '1fr 1.5fr', gridTemplateRows: 'auto auto', gap: '25px' },
   card: { backgroundColor: '#001166', borderRadius: '15px', padding: '30px', color: 'white' },
-  
+
   profileTop: { textAlign: 'center', borderBottom: '1px solid rgba(255,255,255,0.1)', paddingBottom: '25px', marginBottom: '25px' },
   avatarLarge: { width: '100px', height: '100px', borderRadius: '50%', background: '#E8EAF6', margin: '0 auto 20px', textAlign: 'center' },
   dentistName: { fontSize: '18px', fontWeight: 'bold', margin: 0 },

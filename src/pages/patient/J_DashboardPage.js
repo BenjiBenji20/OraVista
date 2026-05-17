@@ -47,7 +47,7 @@ function DashboardPage() {
 
   const fetchAppointments = useCallback(async (userId) => {
     try {
-      const response = await fetch(`http://localhost:5000/api/user-appointments/${userId}`);
+      const response = await fetch(`https://oravista-server-temporary-754963692967.asia-southeast1.run.app/api/user-appointments/${userId}`);
       if (response.ok) {
         const data = await response.json();
         setAppointments(data);
@@ -69,7 +69,7 @@ function DashboardPage() {
 
     const randomIndex = Math.floor(Math.random() * dentalFacts.length);
     setFunFact(dentalFacts[randomIndex]);
-  }, [fetchAppointments]); 
+  }, [fetchAppointments]);
 
   const handleLogout = () => {
     localStorage.removeItem("user");
@@ -218,9 +218,9 @@ function DashboardPage() {
                 <Search style={{ position: "absolute", left: "15px", top: "12px", color: "#666" }} size={20} />
                 <input type="text" placeholder="Search here..." style={{ padding: "12px 15px 12px 45px", borderRadius: "25px", border: "none", backgroundColor: "#f0f2f5", width: "300px", fontSize: "14px" }} />
               </div>
-              
+
               <Mail color="#001166" size={24} cursor="pointer" onClick={() => alert("Inbox is currently empty.")} />
-              
+
               <div style={{ position: "relative" }}>
                 <div style={{ cursor: "pointer", position: "relative" }} onClick={() => setShowNotifications(!showNotifications)}>
                   <Bell color="#001166" size={24} />
@@ -245,7 +245,7 @@ function DashboardPage() {
           </div>
 
           <div style={{ display: "grid", gridTemplateColumns: "repeat(3, 1fr)", gap: "25px" }}>
-            
+
             <div style={cardStyle}>
               <h3 style={{ margin: 0, fontSize: "20px" }}>Upcoming Appointment</h3>
               <div style={{ flexGrow: 1, display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center", marginTop: "10px" }}>

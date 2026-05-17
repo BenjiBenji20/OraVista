@@ -51,7 +51,7 @@ function RecordsPage() {
   const fetchRecords = useCallback(async (userId) => {
     setIsLoading(true);
     try {
-      const response = await fetch(`http://localhost:5000/api/patient-records/${userId}`);
+      const response = await fetch(`https://oravista-server-temporary-754963692967.asia-southeast1.run.app/api/patient-records/${userId}`);
       if (response.ok) {
         const data = await response.json();
         setRecords(Array.isArray(data) ? data : []);
@@ -70,8 +70,8 @@ function RecordsPage() {
     setIsDataLoading(true);
     try {
       const [analyticsRes, riskRes] = await Promise.all([
-        fetch(`http://localhost:8080/api/patient/get/${userId}/analytics`),
-        fetch(`http://localhost:8080/api/patient/get/${userId}/oral-health-risk`)
+        fetch(`https://oravista-ai-engine-temporary-754963692967.asia-southeast1.run.app/api/patient/get/${userId}/analytics`),
+        fetch(`https://oravista-ai-engine-temporary-754963692967.asia-southeast1.run.app/api/patient/get/${userId}/oral-health-risk`)
       ]);
       if (analyticsRes.ok) setAnalyticsData(await analyticsRes.json());
       if (riskRes.ok) setRiskData(await riskRes.json());
@@ -116,7 +116,7 @@ function RecordsPage() {
         medical_history_notes: checkUpData.medical_history_notes || ""
       };
 
-      const res = await fetch("http://localhost:8080/api/patient/check-up", {
+      const res = await fetch("https://oravista-ai-engine-temporary-754963692967.asia-southeast1.run.app/api/patient/check-up", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify(payload)
@@ -254,8 +254,8 @@ function RecordsPage() {
 
     try {
       const [analyticsRes, riskRes] = await Promise.all([
-        fetch(`http://localhost:8080/api/patient/get/${userData.id}/analytics`),
-        fetch(`http://localhost:8080/api/patient/get/${userData.id}/oral-health-risk`)
+        fetch(`https://oravista-ai-engine-temporary-754963692967.asia-southeast1.run.app/api/patient/get/${userData.id}/analytics`),
+        fetch(`https://oravista-ai-engine-temporary-754963692967.asia-southeast1.run.app/api/patient/get/${userData.id}/oral-health-risk`)
       ]);
 
       let aData = {};
@@ -387,7 +387,7 @@ function RecordsPage() {
     formData.append("fileName", file.name);
 
     try {
-      const response = await fetch("http://localhost:5000/api/upload-record", {
+      const response = await fetch("https://oravista-server-temporary-754963692967.asia-southeast1.run.app/api/upload-record", {
         method: "POST",
         body: formData,
       });
@@ -536,7 +536,7 @@ function RecordsPage() {
                         {new Date(record.upload_date).toLocaleDateString("en-US", { year: "numeric", month: "long", day: "numeric" })}
                       </td>
                       <td style={{ padding: "15px", textAlign: "center" }}>
-                        <a href={`http://localhost:5000/${record.file_path}`} target="_blank" rel="noreferrer"
+                        <a href={`https://oravista-server-temporary-754963692967.asia-southeast1.run.app/${record.file_path}`} target="_blank" rel="noreferrer"
                           style={{ display: "inline-flex", alignItems: "center", gap: "5px", color: "#001166", fontWeight: "700", textDecoration: "none" }}>
                           View <ExternalLink size={16} />
                         </a>
@@ -654,7 +654,7 @@ function RecordsPage() {
             </button>
             <input type="file" ref={fileInputRef} style={{ display: "none" }} accept=".pdf,.jpg,.jpeg,.png" onChange={handleFileUpload} /> */}
 
-              {/* FIX THIS CHECK UP BUTTON change the Upload icon appropriately*/}
+            {/* FIX THIS CHECK UP BUTTON change the Upload icon appropriately*/}
             <button
               onClick={() => setIsCheckUpModalOpen(true)}
               style={{
@@ -662,7 +662,7 @@ function RecordsPage() {
               }}>
               <Activity size={18} /> Dental Check Up
             </button>
-            
+
             <button onClick={handleDownloadReport} disabled={isDownloadingReport}
               style={{ display: "flex", alignItems: "center", gap: "8px", padding: "12px 25px", borderRadius: "10px", border: "none", backgroundColor: "#001166", color: "white", fontWeight: "700", cursor: isDownloadingReport ? "not-allowed" : "pointer", boxShadow: "0 4px 6px rgba(0,0,0,0.1)", opacity: isDownloadingReport ? 0.7 : 1 }}>
               <FileText size={18} /> {isDownloadingReport ? "Generating..." : "Download Report"}
@@ -690,11 +690,11 @@ function RecordsPage() {
             <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "15px" }}>
               <div>
                 <label style={{ display: "block", marginBottom: "5px", fontSize: "14px", fontWeight: "600" }}>Age</label>
-                <input type="number" value={checkUpData.age} onChange={e => setCheckUpData({...checkUpData, age: e.target.value})} style={{ width: "100%", padding: "8px", borderRadius: "8px", border: "1px solid #ccc", boxSizing: "border-box" }} />
+                <input type="number" value={checkUpData.age} onChange={e => setCheckUpData({ ...checkUpData, age: e.target.value })} style={{ width: "100%", padding: "8px", borderRadius: "8px", border: "1px solid #ccc", boxSizing: "border-box" }} />
               </div>
               <div>
                 <label style={{ display: "block", marginBottom: "5px", fontSize: "14px", fontWeight: "600" }}>Sex</label>
-                <select value={checkUpData.sex} onChange={e => setCheckUpData({...checkUpData, sex: e.target.value})} style={{ width: "100%", padding: "8px", borderRadius: "8px", border: "1px solid #ccc", boxSizing: "border-box" }}>
+                <select value={checkUpData.sex} onChange={e => setCheckUpData({ ...checkUpData, sex: e.target.value })} style={{ width: "100%", padding: "8px", borderRadius: "8px", border: "1px solid #ccc", boxSizing: "border-box" }}>
                   <option value="">Select...</option>
                   <option value="Male">Male</option>
                   <option value="Female">Female</option>
@@ -703,57 +703,57 @@ function RecordsPage() {
               </div>
               <div>
                 <label style={{ display: "block", marginBottom: "5px", fontSize: "14px", fontWeight: "600" }}>Blood Type</label>
-                <input type="text" value={checkUpData.blood_type} onChange={e => setCheckUpData({...checkUpData, blood_type: e.target.value})} style={{ width: "100%", padding: "8px", borderRadius: "8px", border: "1px solid #ccc", boxSizing: "border-box" }} />
+                <input type="text" value={checkUpData.blood_type} onChange={e => setCheckUpData({ ...checkUpData, blood_type: e.target.value })} style={{ width: "100%", padding: "8px", borderRadius: "8px", border: "1px solid #ccc", boxSizing: "border-box" }} />
               </div>
               <div>
                 <label style={{ display: "block", marginBottom: "5px", fontSize: "14px", fontWeight: "600" }}>Occupation</label>
-                <input type="text" value={checkUpData.occupation} onChange={e => setCheckUpData({...checkUpData, occupation: e.target.value})} style={{ width: "100%", padding: "8px", borderRadius: "8px", border: "1px solid #ccc", boxSizing: "border-box" }} />
+                <input type="text" value={checkUpData.occupation} onChange={e => setCheckUpData({ ...checkUpData, occupation: e.target.value })} style={{ width: "100%", padding: "8px", borderRadius: "8px", border: "1px solid #ccc", boxSizing: "border-box" }} />
               </div>
               <div style={{ gridColumn: "span 2" }}>
                 <label style={{ display: "block", marginBottom: "5px", fontSize: "14px", fontWeight: "600" }}>Allergies</label>
-                <input type="text" value={checkUpData.allergies} onChange={e => setCheckUpData({...checkUpData, allergies: e.target.value})} style={{ width: "100%", padding: "8px", borderRadius: "8px", border: "1px solid #ccc", boxSizing: "border-box" }} />
+                <input type="text" value={checkUpData.allergies} onChange={e => setCheckUpData({ ...checkUpData, allergies: e.target.value })} style={{ width: "100%", padding: "8px", borderRadius: "8px", border: "1px solid #ccc", boxSizing: "border-box" }} />
               </div>
               <div>
                 <label style={{ display: "block", marginBottom: "5px", fontSize: "14px", fontWeight: "600" }}>Sugar Intake Score (0-10)</label>
-                <input type="number" min="0" max="10" value={checkUpData.sugar_intake_score} onChange={e => setCheckUpData({...checkUpData, sugar_intake_score: e.target.value})} style={{ width: "100%", padding: "8px", borderRadius: "8px", border: "1px solid #ccc", boxSizing: "border-box" }} />
+                <input type="number" min="0" max="10" value={checkUpData.sugar_intake_score} onChange={e => setCheckUpData({ ...checkUpData, sugar_intake_score: e.target.value })} style={{ width: "100%", padding: "8px", borderRadius: "8px", border: "1px solid #ccc", boxSizing: "border-box" }} />
               </div>
               <div>
                 <label style={{ display: "block", marginBottom: "5px", fontSize: "14px", fontWeight: "600" }}>Brushing Freq (per day, 0-5)</label>
-                <input type="number" min="0" max="5" value={checkUpData.brushing_frequency} onChange={e => setCheckUpData({...checkUpData, brushing_frequency: e.target.value})} style={{ width: "100%", padding: "8px", borderRadius: "8px", border: "1px solid #ccc", boxSizing: "border-box" }} />
+                <input type="number" min="0" max="5" value={checkUpData.brushing_frequency} onChange={e => setCheckUpData({ ...checkUpData, brushing_frequency: e.target.value })} style={{ width: "100%", padding: "8px", borderRadius: "8px", border: "1px solid #ccc", boxSizing: "border-box" }} />
               </div>
               <div>
                 <label style={{ display: "block", marginBottom: "5px", fontSize: "14px", fontWeight: "600" }}>Flossing Freq (per day, 0-3)</label>
-                <input type="number" min="0" max="3" value={checkUpData.flossing_frequency} onChange={e => setCheckUpData({...checkUpData, flossing_frequency: e.target.value})} style={{ width: "100%", padding: "8px", borderRadius: "8px", border: "1px solid #ccc", boxSizing: "border-box" }} />
+                <input type="number" min="0" max="3" value={checkUpData.flossing_frequency} onChange={e => setCheckUpData({ ...checkUpData, flossing_frequency: e.target.value })} style={{ width: "100%", padding: "8px", borderRadius: "8px", border: "1px solid #ccc", boxSizing: "border-box" }} />
               </div>
               <div>
                 <label style={{ display: "block", marginBottom: "5px", fontSize: "14px", fontWeight: "600" }}>Last Visit (months ago)</label>
-                <input type="number" min="0" value={checkUpData.last_dental_visit_months_ago} onChange={e => setCheckUpData({...checkUpData, last_dental_visit_months_ago: e.target.value})} style={{ width: "100%", padding: "8px", borderRadius: "8px", border: "1px solid #ccc", boxSizing: "border-box" }} />
+                <input type="number" min="0" value={checkUpData.last_dental_visit_months_ago} onChange={e => setCheckUpData({ ...checkUpData, last_dental_visit_months_ago: e.target.value })} style={{ width: "100%", padding: "8px", borderRadius: "8px", border: "1px solid #ccc", boxSizing: "border-box" }} />
               </div>
               <div>
                 <label style={{ display: "block", marginBottom: "5px", fontSize: "14px", fontWeight: "600" }}>Previous Cavities</label>
-                <input type="number" min="0" value={checkUpData.previous_cavities} onChange={e => setCheckUpData({...checkUpData, previous_cavities: e.target.value})} style={{ width: "100%", padding: "8px", borderRadius: "8px", border: "1px solid #ccc", boxSizing: "border-box" }} />
+                <input type="number" min="0" value={checkUpData.previous_cavities} onChange={e => setCheckUpData({ ...checkUpData, previous_cavities: e.target.value })} style={{ width: "100%", padding: "8px", borderRadius: "8px", border: "1px solid #ccc", boxSizing: "border-box" }} />
               </div>
               <div>
                 <label style={{ display: "block", marginBottom: "5px", fontSize: "14px", fontWeight: "600" }}>Previous Extractions</label>
-                <input type="number" min="0" value={checkUpData.previous_extractions} onChange={e => setCheckUpData({...checkUpData, previous_extractions: e.target.value})} style={{ width: "100%", padding: "8px", borderRadius: "8px", border: "1px solid #ccc", boxSizing: "border-box" }} />
+                <input type="number" min="0" value={checkUpData.previous_extractions} onChange={e => setCheckUpData({ ...checkUpData, previous_extractions: e.target.value })} style={{ width: "100%", padding: "8px", borderRadius: "8px", border: "1px solid #ccc", boxSizing: "border-box" }} />
               </div>
-              
+
               <div style={{ display: "flex", alignItems: "center", gap: "10px" }}>
-                <input type="checkbox" checked={checkUpData.smoking} onChange={e => setCheckUpData({...checkUpData, smoking: e.target.checked})} id="smokeCb" />
+                <input type="checkbox" checked={checkUpData.smoking} onChange={e => setCheckUpData({ ...checkUpData, smoking: e.target.checked })} id="smokeCb" />
                 <label htmlFor="smokeCb" style={{ fontSize: "14px", fontWeight: "600", color: "#333" }}>Currently Smokes</label>
               </div>
               <div style={{ display: "flex", alignItems: "center", gap: "10px" }}>
-                <input type="checkbox" checked={checkUpData.alcohol_use} onChange={e => setCheckUpData({...checkUpData, alcohol_use: e.target.checked})} id="alcoholCb" />
+                <input type="checkbox" checked={checkUpData.alcohol_use} onChange={e => setCheckUpData({ ...checkUpData, alcohol_use: e.target.checked })} id="alcoholCb" />
                 <label htmlFor="alcoholCb" style={{ fontSize: "14px", fontWeight: "600", color: "#333" }}>Alcohol Use</label>
               </div>
               <div style={{ gridColumn: "span 2", display: "flex", alignItems: "center", gap: "10px" }}>
-                <input type="checkbox" checked={checkUpData.family_history_dental_disease} onChange={e => setCheckUpData({...checkUpData, family_history_dental_disease: e.target.checked})} id="historyCb" />
+                <input type="checkbox" checked={checkUpData.family_history_dental_disease} onChange={e => setCheckUpData({ ...checkUpData, family_history_dental_disease: e.target.checked })} id="historyCb" />
                 <label htmlFor="historyCb" style={{ fontSize: "14px", fontWeight: "600", color: "#333" }}>Family History of Dental Disease</label>
               </div>
 
               <div style={{ gridColumn: "span 2" }}>
                 <label style={{ display: "block", marginBottom: "5px", fontSize: "14px", fontWeight: "600" }}>Medical History Notes</label>
-                <textarea rows="3" value={checkUpData.medical_history_notes} onChange={e => setCheckUpData({...checkUpData, medical_history_notes: e.target.value})} style={{ width: "100%", padding: "8px", borderRadius: "8px", border: "1px solid #ccc", boxSizing: "border-box", fontFamily: "inherit" }}></textarea>
+                <textarea rows="3" value={checkUpData.medical_history_notes} onChange={e => setCheckUpData({ ...checkUpData, medical_history_notes: e.target.value })} style={{ width: "100%", padding: "8px", borderRadius: "8px", border: "1px solid #ccc", boxSizing: "border-box", fontFamily: "inherit" }}></textarea>
               </div>
             </div>
 
@@ -782,7 +782,7 @@ function RecordsPage() {
             </div>
             <h2 style={{ color: "#001166", marginBottom: "15px", marginTop: 0 }}>Assessment Complete!</h2>
             <p style={{ color: "#666", marginBottom: "20px" }}>The check-up data has been successfully processed by the AI.</p>
-            
+
             <div style={{ backgroundColor: "#f0f2f5", padding: "15px", borderRadius: "10px", marginBottom: "25px", textAlign: "left" }}>
               <div style={{ display: "flex", justifyContent: "space-between", marginBottom: "10px" }}>
                 <span style={{ fontWeight: "600", color: "#333" }}>Risk Score:</span>

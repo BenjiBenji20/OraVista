@@ -27,20 +27,20 @@ function AdminAccountCreation() {
 
   const handleSubmit = async (e) => {
     e.preventDefault();
-    
+
     // Custom Validation Modal
     if (!formData.firstName || !formData.lastName || !formData.email || !formData.phone) {
-      setModal({ 
-        show: true, 
-        type: 'error', 
-        message: 'Missing Information: Please fill in all required fields marked with an asterisk.' 
+      setModal({
+        show: true,
+        type: 'error',
+        message: 'Missing Information: Please fill in all required fields marked with an asterisk.'
       });
       return;
     }
 
     try {
       // UPDATED: Pointing to the new Admin Create User endpoint
-      const response = await fetch('http://localhost:5000/api/admin/create-user', {
+      const response = await fetch('https://oravista-server-temporary-754963692967.asia-southeast1.run.app/api/admin/create-user', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
@@ -59,10 +59,10 @@ function AdminAccountCreation() {
       const data = await response.json();
 
       if (response.ok) {
-        setModal({ 
-          show: true, 
-          type: 'success', 
-          message: `Success! The ${accountType} account has been created and a temporary password was generated.` 
+        setModal({
+          show: true,
+          type: 'success',
+          message: `Success! The ${accountType} account has been created and a temporary password was generated.`
         });
         setFormData({ firstName: '', lastName: '', phone: '', dob: '', email: '', password: 'TempPassword123!', branch: 'Gil Puyat, Pasay', specialty: 'General Dentistry' });
       } else {
@@ -80,7 +80,7 @@ function AdminAccountCreation() {
         {modal.show && (
           <div style={styles.modalOverlay}>
             <div style={styles.modalContent}>
-              <button onClick={closeModal} style={styles.modalClose}><X size={20}/></button>
+              <button onClick={closeModal} style={styles.modalClose}><X size={20} /></button>
               {modal.type === 'success' ? <CheckCircle2 size={48} color="#4ade80" /> : <AlertCircle size={48} color="#ff4d4d" />}
               <h3 style={styles.modalTitle}>{modal.type === 'success' ? 'Account Created' : 'Notice'}</h3>
               <p style={styles.modalText}>{modal.message}</p>
@@ -114,9 +114,9 @@ function AdminAccountCreation() {
           </div>
 
           <form style={styles.formCard} onSubmit={handleSubmit}>
-            <p style={styles.fieldLabel}>Account Type <span style={{color: '#ff4d4d'}}>*</span></p>
+            <p style={styles.fieldLabel}>Account Type <span style={{ color: '#ff4d4d' }}>*</span></p>
             <div style={styles.typeToggleGrid}>
-              <div 
+              <div
                 onClick={() => setAccountType('dentist')}
                 style={{
                   ...styles.typeOption,
@@ -127,7 +127,7 @@ function AdminAccountCreation() {
                 <p style={styles.typeTitle}>Dentist</p>
                 <p style={styles.typeDesc}>Medical professional account</p>
               </div>
-              <div 
+              <div
                 onClick={() => setAccountType('staff')}
                 style={{
                   ...styles.typeOption,
@@ -144,32 +144,32 @@ function AdminAccountCreation() {
 
             <div style={styles.formGrid}>
               <div style={styles.inputGroup}>
-                <label style={styles.fieldLabel}>First Name <span style={{color: '#ff4d4d'}}>*</span></label>
+                <label style={styles.fieldLabel}>First Name <span style={{ color: '#ff4d4d' }}>*</span></label>
                 <input name="firstName" value={formData.firstName} onChange={handleInputChange} type="text" placeholder="Enter first name" style={styles.input} />
               </div>
               <div style={styles.inputGroup}>
-                <label style={styles.fieldLabel}>Last Name <span style={{color: '#ff4d4d'}}>*</span></label>
+                <label style={styles.fieldLabel}>Last Name <span style={{ color: '#ff4d4d' }}>*</span></label>
                 <input name="lastName" value={formData.lastName} onChange={handleInputChange} type="text" placeholder="Enter last name" style={styles.input} />
               </div>
               <div style={styles.inputGroup}>
-                <label style={styles.fieldLabel}>Mobile Phone Number <span style={{color: '#ff4d4d'}}>*</span></label>
+                <label style={styles.fieldLabel}>Mobile Phone Number <span style={{ color: '#ff4d4d' }}>*</span></label>
                 <input name="phone" value={formData.phone} onChange={handleInputChange} type="text" placeholder="(555) 123-4567" style={styles.input} />
               </div>
               <div style={styles.inputGroup}>
-                <label style={styles.fieldLabel}>Birth Date <span style={{color: '#ff4d4d'}}>*</span></label>
+                <label style={styles.fieldLabel}>Birth Date <span style={{ color: '#ff4d4d' }}>*</span></label>
                 <input name="dob" value={formData.dob} onChange={handleInputChange} type="date" style={styles.input} />
               </div>
             </div>
 
-            <div style={{...styles.inputGroup, marginTop: '20px'}}>
-              <label style={styles.fieldLabel}>Email Address <span style={{color: '#ff4d4d'}}>*</span></label>
-              <input name="email" value={formData.email} onChange={handleInputChange} type="email" placeholder="email@example.com" style={{...styles.input, width: '48.5%'}} />
+            <div style={{ ...styles.inputGroup, marginTop: '20px' }}>
+              <label style={styles.fieldLabel}>Email Address <span style={{ color: '#ff4d4d' }}>*</span></label>
+              <input name="email" value={formData.email} onChange={handleInputChange} type="email" placeholder="email@example.com" style={{ ...styles.input, width: '48.5%' }} />
             </div>
 
             {/* NEW: Branch and Specialty Selection */}
-            <div style={{...styles.formGrid, marginTop: '20px'}}>
+            <div style={{ ...styles.formGrid, marginTop: '20px' }}>
               <div style={styles.inputGroup}>
-                <label style={styles.fieldLabel}>Branch Location <span style={{color: '#ff4d4d'}}>*</span></label>
+                <label style={styles.fieldLabel}>Branch Location <span style={{ color: '#ff4d4d' }}>*</span></label>
                 <select name="branch" value={formData.branch} onChange={handleInputChange} style={styles.input}>
                   <option value="Main Branch">Main Branch</option>
                   <option value="Gil Puyat, Pasay">Gil Puyat, Pasay</option>
@@ -180,7 +180,7 @@ function AdminAccountCreation() {
 
               {accountType === 'dentist' && (
                 <div style={styles.inputGroup}>
-                  <label style={styles.fieldLabel}>Dental Specialty <span style={{color: '#ff4d4d'}}>*</span></label>
+                  <label style={styles.fieldLabel}>Dental Specialty <span style={{ color: '#ff4d4d' }}>*</span></label>
                   <select name="specialty" value={formData.specialty} onChange={handleInputChange} style={styles.input}>
                     <option value="General Dentistry">General Dentistry</option>
                     <option value="Orthodontics">Orthodontics</option>
@@ -191,15 +191,15 @@ function AdminAccountCreation() {
             </div>
 
             <div style={styles.formActions}>
-              <button type="button" style={styles.cancelBtn} onClick={() => setFormData({firstName: '', lastName: '', phone: '', dob: '', email: '', password: 'TempPassword123!', branch: 'Gil Puyat, Pasay', specialty: 'General Dentistry'})}>Cancel</button>
+              <button type="button" style={styles.cancelBtn} onClick={() => setFormData({ firstName: '', lastName: '', phone: '', dob: '', email: '', password: 'TempPassword123!', branch: 'Gil Puyat, Pasay', specialty: 'General Dentistry' })}>Cancel</button>
               <button type="submit" style={styles.createBtn}>Create Account</button>
             </div>
           </form>
 
           <div style={styles.guidelinesCard}>
-            <h3 style={{...styles.sectionHeading, marginTop: 0}}>Account Creation Guidelines</h3>
+            <h3 style={{ ...styles.sectionHeading, marginTop: 0 }}>Account Creation Guidelines</h3>
             <ul style={styles.guidelineList}>
-              <li>All fields marked with <span style={{color: '#ff4d4d'}}>*</span> are required</li>
+              <li>All fields marked with <span style={{ color: '#ff4d4d' }}>*</span> are required</li>
               <li><strong>Dentist accounts:</strong> Full access to patient records, treatment plans, and medical documentation</li>
               <li><strong>Staff accounts:</strong> Limited access to appointment scheduling, patient registration, billing, and basic reports</li>
               <li>A temporary password will be sent to the provided email address</li>

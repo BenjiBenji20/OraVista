@@ -8,38 +8,38 @@ function AdminDashboard() {
   const [branchEarnings, setBranchEarnings] = useState({});
   const [stats, setStats] = useState({
     todayCount: 0,
-    totalAppointments: 0, 
-    availableDentists: 3, 
-    totalDentists: 3,     
-    monthPatients: 0, 
-    loading: true 
+    totalAppointments: 0,
+    availableDentists: 3,
+    totalDentists: 3,
+    monthPatients: 0,
+    loading: true
   });
 
   useEffect(() => {
     const fetchDashboardData = async () => {
       try {
         // 1. Centralized Clinic Overview: Fetching stats and operational workflow[cite: 6]
-        const statsRes = await fetch('http://localhost:5000/api/dashboard/stats');
-        
-        // 2. Daily Earnings: Fetching real-time revenue per each branch[cite: 6]
-        const earningsRes = await fetch('http://localhost:5000/api/dashboard/branch-earnings');
-        
-        if (statsRes.ok && earningsRes.ok) {
-           const statsData = await statsRes.json();
-           const earningsData = await earningsRes.json();
-           
-           setStats({
-             todayCount: statsData.todayCount,
-             totalAppointments: statsData.schedule.length, 
-             availableDentists: 3, 
-             totalDentists: 3,     
-             monthPatients: statsData.monthPatients,
-             loading: false
-           });
+        const statsRes = await fetch('https://oravista-server-temporary-754963692967.asia-southeast1.run.app/api/dashboard/stats');
 
-           // 3. Schedule Monitoring: Tracking upcoming patient visits[cite: 6]
-           setAppointments(statsData.schedule);
-           setBranchEarnings(earningsData);
+        // 2. Daily Earnings: Fetching real-time revenue per each branch[cite: 6]
+        const earningsRes = await fetch('https://oravista-server-temporary-754963692967.asia-southeast1.run.app/api/dashboard/branch-earnings');
+
+        if (statsRes.ok && earningsRes.ok) {
+          const statsData = await statsRes.json();
+          const earningsData = await earningsRes.json();
+
+          setStats({
+            todayCount: statsData.todayCount,
+            totalAppointments: statsData.schedule.length,
+            availableDentists: 3,
+            totalDentists: 3,
+            monthPatients: statsData.monthPatients,
+            loading: false
+          });
+
+          // 3. Schedule Monitoring: Tracking upcoming patient visits[cite: 6]
+          setAppointments(statsData.schedule);
+          setBranchEarnings(earningsData);
         }
       } catch (err) {
         console.error("Error fetching dashboard data:", err);
@@ -91,7 +91,7 @@ function AdminDashboard() {
         {/* DASHBOARD CONTENT */}
         <div style={styles.content}>
           <div style={styles.gridTop}>
-            
+
             {/* CARD 1: TOTAL APPOINTMENTS */}
             <div style={styles.card}>
               <p style={styles.cardLabel}>Total Appointments</p>
@@ -100,7 +100,7 @@ function AdminDashboard() {
                 <div
                   style={{
                     ...styles.progressFill,
-                    width: `${Math.min((stats.totalAppointments / 100) * 100, 100)}%`, 
+                    width: `${Math.min((stats.totalAppointments / 100) * 100, 100)}%`,
                   }}
                 ></div>
               </div>
@@ -145,20 +145,20 @@ function AdminDashboard() {
                   Object.entries(branchEarnings).map(([branch, amount], index) => (
                     <div key={index} style={styles.earningRow}>
                       <div style={{ display: "flex", alignItems: "center", gap: "10px" }}>
-                         <div style={styles.iconCircle}>
-                            <MapPin size={18} color="#001166" />
-                         </div>
-                         <p style={styles.branchName}>{branch}</p>
+                        <div style={styles.iconCircle}>
+                          <MapPin size={18} color="#001166" />
+                        </div>
+                        <p style={styles.branchName}>{branch}</p>
                       </div>
                       <h3 style={styles.earningAmount}>₱{parseFloat(amount).toLocaleString()}</h3>
                     </div>
                   ))
                 ) : (
-                  <p style={{textAlign: 'center', opacity: 0.5}}>No earnings recorded today.</p>
+                  <p style={{ textAlign: 'center', opacity: 0.5 }}>No earnings recorded today.</p>
                 )}
               </div>
             </div>
-            
+
             <div style={styles.chartCard}>
               <p style={styles.sectionTitle}>Patient Growth</p>
               <div style={styles.placeholder}>Growth Analytics</div>
@@ -188,21 +188,21 @@ function AdminDashboard() {
             {/* SCHEDULE MONITORING LIST */}
             <div style={{ ...styles.listCard, background: "#001166" }}>
               <p style={styles.sectionTitle}>Today's Schedule</p>
-              
+
               {stats.loading ? (
-                <p style={{color: 'white', opacity: 0.6}}>Loading schedule...</p>
+                <p style={{ color: 'white', opacity: 0.6 }}>Loading schedule...</p>
               ) : appointments.length > 0 ? (
                 appointments.map((item, idx) => (
                   <div key={idx} style={styles.scheduleRow}>
-                    <span style={{flex: 1}}>{item.time} - {item.patientName}</span>
+                    <span style={{ flex: 1 }}>{item.time} - {item.patientName}</span>
                     <span style={{
-                        fontSize: '11px', 
-                        padding: '2px 8px', 
-                        borderRadius: '10px',
-                        background: item.status === 'Confirmed' ? '#e6fffa' : '#fff7ed',
-                        color: item.status === 'Confirmed' ? '#047857' : '#c2410c'
+                      fontSize: '11px',
+                      padding: '2px 8px',
+                      borderRadius: '10px',
+                      background: item.status === 'Confirmed' ? '#e6fffa' : '#fff7ed',
+                      color: item.status === 'Confirmed' ? '#047857' : '#c2410c'
                     }}>
-                        {item.status}
+                      {item.status}
                     </span>
                   </div>
                 ))
@@ -249,7 +249,7 @@ const styles = {
     color: "white",
   },
   headerActions: { display: "flex", alignItems: "center", gap: "25px" },
-  
+
   reportBtn: {
     display: "flex",
     alignItems: "center",
@@ -371,7 +371,7 @@ const styles = {
   earningAmount: {
     margin: 0,
     fontSize: "20px",
-    color: "#10b981", 
+    color: "#10b981",
   },
 
   gridBottom: {

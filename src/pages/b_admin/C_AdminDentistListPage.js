@@ -4,18 +4,18 @@ import { Search, Bell, MessageSquare, User, Eye, Edit, Plus } from 'lucide-react
 
 function AdminDentistList() {
   const [dentists, setDentists] = useState([]);
-  const [filteredDentists, setFilteredDentists] = useState([]); 
+  const [filteredDentists, setFilteredDentists] = useState([]);
   const [loading, setLoading] = useState(true);
-  const [searchQuery, setSearchQuery] = useState(""); 
+  const [searchQuery, setSearchQuery] = useState("");
   const [summary, setSummary] = useState({ total: 0, available: 0, busy: 0, offDuty: 0 });
 
   useEffect(() => {
     const fetchDentists = async () => {
       try {
         // Fetching real-time dentist data from your Node.js server[cite: 8]
-        const response = await fetch('http://localhost:5000/api/dentists');
+        const response = await fetch('https://oravista-server-temporary-754963692967.asia-southeast1.run.app/api/dentists');
         const data = await response.json();
-        
+
         if (Array.isArray(data)) {
           const formattedDentists = data.map(d => ({
             id: `DT-10${d.id}`,
@@ -26,7 +26,7 @@ function AdminDentistList() {
             status: d.status || 'Available',
             branch: d.branch || 'Main Branch'
           }));
-          
+
           setDentists(formattedDentists);
           setFilteredDentists(formattedDentists);
 
@@ -97,12 +97,12 @@ function AdminDentistList() {
           <div style={styles.tableControls}>
             <div style={styles.innerSearch}>
               <Search size={16} color="#999" style={styles.innerSearchIcon} />
-              <input 
-                type="text" 
-                placeholder="Search by name, specialty, or ID..." 
+              <input
+                type="text"
+                placeholder="Search by name, specialty, or ID..."
                 style={styles.innerSearchInput}
                 value={searchQuery}
-                onChange={(e) => setSearchQuery(e.target.value)} 
+                onChange={(e) => setSearchQuery(e.target.value)}
               />
             </div>
             <button style={styles.addButton}>

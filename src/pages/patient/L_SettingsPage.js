@@ -32,7 +32,7 @@ function SettingsPage() {
   const [showPreferenceModal, setShowPreferenceModal] = useState(false);
   const [showPrivacyModal, setShowPrivacyModal] = useState(false);
   const [showNotifModal, setShowNotifModal] = useState(false);
-  
+
   // --- OTP MODAL STATES ---
   const [showOtpModal, setShowOtpModal] = useState(false);
   const [otpInput, setOtpInput] = useState("");
@@ -130,10 +130,10 @@ function SettingsPage() {
     setIsOtpLoading(true);
     setOtpMessage("");
     try {
-      const response = await fetch("http://localhost:5000/api/send-otp", {
+      const response = await fetch("https://oravista-server-temporary-754963692967.asia-southeast1.run.app/api/send-otp", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ email: userData.email, action: "change_password" }), 
+        body: JSON.stringify({ email: userData.email, action: "change_password" }),
       });
       const data = await response.json();
       if (response.ok) {
@@ -175,7 +175,7 @@ function SettingsPage() {
         <h4 style={{ margin: "0 0 5px 0", color: "#001166", fontSize: "16px" }}>{label}</h4>
         <p style={{ margin: 0, fontSize: "12px", color: "#666" }}>{description}</p>
       </div>
-      <div 
+      <div
         onClick={onToggle}
         style={{ width: "50px", height: "26px", backgroundColor: isOn ? "#28a745" : "#ccc", borderRadius: "15px", position: "relative", cursor: "pointer", transition: "background-color 0.3s" }}
       >
@@ -191,7 +191,7 @@ function SettingsPage() {
 
   return (
     <div style={{ display: "flex", minHeight: "100vh", width: "100%" }}>
-      
+
       {/* ----------------- MODALS ----------------- */}
 
       {/* MODAL: PRIVACY & SECURITY */}
@@ -204,11 +204,11 @@ function SettingsPage() {
             </div>
 
             <div style={{ backgroundColor: "#e6f4ea", padding: "20px", borderRadius: "15px", display: "flex", alignItems: "center", gap: "15px", marginBottom: "25px" }}>
-               <CheckCircle2 size={24} color="#28a745" />
-               <div>
-                 <h4 style={{ margin: "0 0 5px 0", color: "#155724" }}>Two-Factor Authentication</h4>
-                 <p style={{ margin: 0, fontSize: "12px", color: "#28a745" }}>Email Verification (OTP) is Active</p>
-               </div>
+              <CheckCircle2 size={24} color="#28a745" />
+              <div>
+                <h4 style={{ margin: "0 0 5px 0", color: "#155724" }}>Two-Factor Authentication</h4>
+                <p style={{ margin: 0, fontSize: "12px", color: "#28a745" }}>Email Verification (OTP) is Active</p>
+              </div>
             </div>
 
             <div style={{ marginBottom: "30px" }}>
@@ -232,25 +232,25 @@ function SettingsPage() {
         <div style={{ position: "fixed", top: 0, left: 0, width: "100%", height: "100%", backgroundColor: "rgba(0,0,0,0.6)", display: "flex", justifyContent: "center", alignItems: "center", zIndex: 2000, backdropFilter: "blur(5px)" }}>
           <div style={{ backgroundColor: "white", padding: "40px", borderRadius: "25px", width: "450px", boxShadow: "0 10px 25px rgba(0,0,0,0.2)" }}>
             <h2 style={{ color: "#001166", fontWeight: "800", marginTop: 0, marginBottom: "25px" }}>Notifications</h2>
-            
+
             <div style={{ marginBottom: "30px" }}>
-              <ToggleSwitch 
-                label="Appointment Reminders" 
-                description="Receive emails 24 hours before your scheduled visit." 
-                isOn={notifSettings.reminders} 
-                onToggle={() => toggleNotif('reminders')} 
+              <ToggleSwitch
+                label="Appointment Reminders"
+                description="Receive emails 24 hours before your scheduled visit."
+                isOn={notifSettings.reminders}
+                onToggle={() => toggleNotif('reminders')}
               />
-              <ToggleSwitch 
-                label="Marketing & Promos" 
-                description="Get updates on dental discounts and clinic news." 
-                isOn={notifSettings.promos} 
-                onToggle={() => toggleNotif('promos')} 
+              <ToggleSwitch
+                label="Marketing & Promos"
+                description="Get updates on dental discounts and clinic news."
+                isOn={notifSettings.promos}
+                onToggle={() => toggleNotif('promos')}
               />
-              <ToggleSwitch 
-                label="System Alerts" 
-                description="Security notifications, login alerts, and system updates." 
-                isOn={notifSettings.alerts} 
-                onToggle={() => toggleNotif('alerts')} 
+              <ToggleSwitch
+                label="System Alerts"
+                description="Security notifications, login alerts, and system updates."
+                isOn={notifSettings.alerts}
+                onToggle={() => toggleNotif('alerts')}
               />
             </div>
 
@@ -362,7 +362,7 @@ function SettingsPage() {
             <button onClick={verifyOTP} style={{ width: "100%", padding: "12px", backgroundColor: "#28a745", color: "white", border: "none", borderRadius: "10px", fontWeight: "700", cursor: "pointer" }}>Verify Code</button>
             <p onClick={sendOTP} style={{ marginTop: "15px", fontSize: "12px", color: "#001166", cursor: "pointer", textDecoration: "underline" }}>Resend Code</p>
             {otpMessage && <p style={{ color: otpMessage.includes("sent") ? "green" : "red", fontSize: "12px", marginTop: "10px", fontWeight: "600" }}>{otpMessage}</p>}
-            <button onClick={() => {setShowOtpModal(false); setOtpInput(""); setOtpMessage("");}} style={{marginTop: "15px", background: "none", border: "none", color: "#999", cursor: "pointer", fontSize: "12px", fontWeight: "600"}}>Cancel Change</button>
+            <button onClick={() => { setShowOtpModal(false); setOtpInput(""); setOtpMessage(""); }} style={{ marginTop: "15px", background: "none", border: "none", color: "#999", cursor: "pointer", fontSize: "12px", fontWeight: "600" }}>Cancel Change</button>
           </div>
         </div>
       )}
@@ -403,14 +403,14 @@ function SettingsPage() {
           <h1 style={{ color: "#001166", fontSize: "48px", fontWeight: "800", marginBottom: "50px" }}>Settings</h1>
 
           {["Change Password", "Privacy & Security", "Notifications", "Preference"].map((label) => (
-            <div 
-              key={label} 
-              onClick={() => { 
-                if (label === "Change Password") setShowPasswordModal(true); 
-                if (label === "Preference") setShowPreferenceModal(true); 
+            <div
+              key={label}
+              onClick={() => {
+                if (label === "Change Password") setShowPasswordModal(true);
+                if (label === "Preference") setShowPreferenceModal(true);
                 if (label === "Privacy & Security") setShowPrivacyModal(true);
                 if (label === "Notifications") setShowNotifModal(true);
-              }} 
+              }}
               style={{ backgroundColor: "#e8ebf5", borderRadius: "20px", padding: "30px 40px", display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: "25px", cursor: "pointer" }}
             >
               <h3 style={{ color: "#001166", fontSize: "24px", fontWeight: "800", margin: 0 }}>{label}</h3>

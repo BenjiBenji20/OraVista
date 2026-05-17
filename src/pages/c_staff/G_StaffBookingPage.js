@@ -8,8 +8,8 @@ import {
 function StaffBookingPage() {
   const navigate = useNavigate();
   const [userData, setUserData] = useState({ id: null, firstName: "Staff" });
-  const [bookedSlots, setBookedSlots] = useState([]); 
-  const [isRefreshing, setIsRefreshing] = useState(false); 
+  const [bookedSlots, setBookedSlots] = useState([]);
+  const [isRefreshing, setIsRefreshing] = useState(false);
 
   // NEW: Dynamic Data States
   const [dentists, setDentists] = useState([]);
@@ -17,7 +17,7 @@ function StaffBookingPage() {
   const [selectedBranch, setSelectedBranch] = useState("");
 
   const [bookingData, setBookingData] = useState({
-    patientId: "", 
+    patientId: "",
     mainService: "",
     specificService: "",
     dentist: "",
@@ -30,12 +30,12 @@ function StaffBookingPage() {
 
   // --- Dynamic Month Viewer Logic ---
   const today = new Date();
-  const [viewDate, setViewDate] = useState(new Date()); 
+  const [viewDate, setViewDate] = useState(new Date());
 
   const currentYear = viewDate.getFullYear();
   const currentMonth = viewDate.getMonth();
   const daysInMonth = new Date(currentYear, currentMonth + 1, 0).getDate();
-  const firstDayOfMonth = new Date(currentYear, currentMonth, 1).getDay(); 
+  const firstDayOfMonth = new Date(currentYear, currentMonth, 1).getDay();
   const currentMonthName = viewDate.toLocaleString('default', { month: 'long' });
 
   const formatDate = (date) => {
@@ -49,16 +49,16 @@ function StaffBookingPage() {
   const generateWeekdaySchedule = () => {
     const schedule = [];
     const startMonth = today.getMonth();
-    
+
     for (let i = 0; i < 3; i++) {
       const targetDate = new Date(today.getFullYear(), startMonth + i, 1);
       const year = targetDate.getFullYear();
       const month = targetDate.getMonth();
       const daysInThisMonth = new Date(year, month + 1, 0).getDate();
-      
+
       for (let day = 1; day <= daysInThisMonth; day++) {
         const date = new Date(year, month, day);
-        if (date >= new Date(today.setHours(0,0,0,0))) {
+        if (date >= new Date(today.setHours(0, 0, 0, 0))) {
           schedule.push(formatDate(date));
         }
       }
@@ -93,18 +93,18 @@ function StaffBookingPage() {
   useEffect(() => {
     const fetchBookingData = async () => {
       try {
-        const response = await fetch('http://localhost:5000/api/dentists');
+        const response = await fetch('https://oravista-server-temporary-754963692967.asia-southeast1.run.app/api/dentists');
         const data = await response.json();
-        
+
         const formattedDentists = data.map(d => ({
           name: `Dr. ${d.first_name} ${d.last_name}`,
           branch: d.branch || "Main Branch",
           available: d.status !== 'Off Duty',
           schedule: mockSchedule
         }));
-        
+
         setDentists(formattedDentists);
-        
+
         // Extract unique branches
         const uniqueBranches = [...new Set(formattedDentists.map(d => d.branch))];
         setBranches(uniqueBranches);
@@ -113,7 +113,7 @@ function StaffBookingPage() {
       }
     };
     fetchBookingData();
-  // eslint-disable-next-line react-hooks/exhaustive-deps
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   const filteredDentists = dentists.filter(d => d.branch === selectedBranch);
@@ -129,8 +129,8 @@ function StaffBookingPage() {
 
   const loadUser = useCallback(() => {
     const user = JSON.parse(localStorage.getItem("user"));
-    if (user) { 
-      setUserData({ id: user.id, firstName: user.firstName || "Staff" }); 
+    if (user) {
+      setUserData({ id: user.id, firstName: user.firstName || "Staff" });
     }
   }, []);
 
@@ -186,10 +186,10 @@ function StaffBookingPage() {
     setIsRefreshing(true);
     try {
       const response = await fetch(
-        `http://localhost:5000/api/appointments/check-availability?date=${bookingData.date}&dentist=${encodeURIComponent(bookingData.dentist)}`
+        `https://oravista-server-temporary-754963692967.asia-southeast1.run.app/api/appointments/check-availability?date=${bookingData.date}&dentist=${encodeURIComponent(bookingData.dentist)}`
       );
       const data = await response.json();
-      
+
       const allOccupiedMinutes = [];
       data.forEach(app => {
         const start = timeToMinutes(app.time);
@@ -198,13 +198,13 @@ function StaffBookingPage() {
           allOccupiedMinutes.push(start + i);
         }
       });
-      setBookedSlots(allOccupiedMinutes); 
+      setBookedSlots(allOccupiedMinutes);
     } catch (error) {
       console.error("Error fetching booked slots:", error);
     } finally {
-      setTimeout(() => setIsRefreshing(false), 500); 
+      setTimeout(() => setIsRefreshing(false), 500);
     }
-  // eslint-disable-next-line react-hooks/exhaustive-deps
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [bookingData.date, bookingData.dentist]);
 
   useEffect(() => { loadUser(); }, [loadUser]);
@@ -217,7 +217,7 @@ function StaffBookingPage() {
 
   const handleFinalSubmit = async () => {
     const appointmentData = {
-      user_id: bookingData.patientId || userData.id, 
+      user_id: bookingData.patientId || userData.id,
       service_type: bookingData.specificService,
       dentist_name: bookingData.dentist,
       appointment_date: bookingData.date,
@@ -227,7 +227,7 @@ function StaffBookingPage() {
     };
 
     try {
-      const response = await fetch("http://localhost:5000/api/book-appointment", {
+      const response = await fetch("https://oravista-server-temporary-754963692967.asia-southeast1.run.app/api/book-appointment", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify(appointmentData),
@@ -236,7 +236,7 @@ function StaffBookingPage() {
       if (response.ok) {
         setShowConfirmModal(false);
         setShowSuccessModal(true);
-        handleDiscard(); 
+        handleDiscard();
         fetchBookedSlots();
       }
     } catch (error) {
@@ -281,22 +281,22 @@ function StaffBookingPage() {
           </div>
 
           <div style={{ backgroundColor: "#e8ebf5", borderRadius: "20px", padding: "40px" }}>
-            
+
             <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr 1fr 1fr 1fr", gap: "20px", marginBottom: "40px" }}>
               <div>
                 <label style={{ color: "#001166", fontWeight: "700", marginBottom: "10px", display: "block" }}>Patient ID</label>
-                <input 
-                  type="text" 
-                  style={{ width: "100%", padding: "12px", borderRadius: "10px", border: "1px solid #ccc", boxSizing: "border-box" }} 
-                  placeholder="e.g. 1" 
-                  value={bookingData.patientId} 
-                  onChange={(e) => setBookingData({...bookingData, patientId: e.target.value})} 
+                <input
+                  type="text"
+                  style={{ width: "100%", padding: "12px", borderRadius: "10px", border: "1px solid #ccc", boxSizing: "border-box" }}
+                  placeholder="e.g. 1"
+                  value={bookingData.patientId}
+                  onChange={(e) => setBookingData({ ...bookingData, patientId: e.target.value })}
                 />
               </div>
 
               <div>
                 <label style={{ color: "#001166", fontWeight: "700", marginBottom: "10px", display: "block" }}>Select Branch</label>
-                <select style={{ width: "100%", padding: "12px", borderRadius: "10px", border: "1px solid #ccc" }} value={selectedBranch} onChange={(e) => { setSelectedBranch(e.target.value); setBookingData({...bookingData, dentist: "", date: "", time: ""}); }}>
+                <select style={{ width: "100%", padding: "12px", borderRadius: "10px", border: "1px solid #ccc" }} value={selectedBranch} onChange={(e) => { setSelectedBranch(e.target.value); setBookingData({ ...bookingData, dentist: "", date: "", time: "" }); }}>
                   <option value="">Choose Branch</option>
                   {branches.map((b, index) => <option key={index} value={b}>{b}</option>)}
                 </select>
@@ -304,7 +304,7 @@ function StaffBookingPage() {
 
               <div>
                 <label style={{ color: "#001166", fontWeight: "700", marginBottom: "10px", display: "block" }}>Services</label>
-                <select style={{ width: "100%", padding: "12px", borderRadius: "10px", border: "1px solid #ccc" }} value={bookingData.mainService} onChange={(e) => setBookingData({...bookingData, mainService: e.target.value, specificService: ""})}>
+                <select style={{ width: "100%", padding: "12px", borderRadius: "10px", border: "1px solid #ccc" }} value={bookingData.mainService} onChange={(e) => setBookingData({ ...bookingData, mainService: e.target.value, specificService: "" })}>
                   <option value="">Select Service</option>
                   {Object.keys(servicesData).map(s => <option key={s} value={s}>{s}</option>)}
                 </select>
@@ -312,7 +312,7 @@ function StaffBookingPage() {
 
               <div>
                 <label style={{ color: "#001166", fontWeight: "700", marginBottom: "10px", display: "block" }}>Dentist</label>
-                <select style={{ width: "100%", padding: "12px", borderRadius: "10px", border: "1px solid #ccc" }} value={bookingData.dentist} onChange={(e) => setBookingData({...bookingData, dentist: e.target.value, date: "", time: ""})} disabled={!selectedBranch}>
+                <select style={{ width: "100%", padding: "12px", borderRadius: "10px", border: "1px solid #ccc" }} value={bookingData.dentist} onChange={(e) => setBookingData({ ...bookingData, dentist: e.target.value, date: "", time: "" })} disabled={!selectedBranch}>
                   <option value="">Select Dentist</option>
                   {filteredDentists.length > 0 ? (
                     filteredDentists.map(d => <option key={d.name} value={d.name} disabled={!d.available}>{d.name}</option>)
@@ -324,7 +324,7 @@ function StaffBookingPage() {
 
               <div>
                 <label style={{ color: "#001166", fontWeight: "700", marginBottom: "10px", display: "block" }}>Slot Date</label>
-                <select style={{ width: "100%", padding: "12px", borderRadius: "10px", border: "1px solid #ccc" }} value={bookingData.date} onChange={(e) => setBookingData({...bookingData, date: e.target.value, time: ""})} disabled={!bookingData.dentist}>
+                <select style={{ width: "100%", padding: "12px", borderRadius: "10px", border: "1px solid #ccc" }} value={bookingData.date} onChange={(e) => setBookingData({ ...bookingData, date: e.target.value, time: "" })} disabled={!bookingData.dentist}>
                   <option value="">Select Date</option>
                   {currentDentist?.schedule.map(date => <option key={date} value={date}>{date}</option>)}
                 </select>
@@ -336,11 +336,13 @@ function StaffBookingPage() {
                 <label style={{ color: "#001166", fontWeight: "700", marginBottom: "10px", display: "block" }}>Choose Type</label>
                 <div style={{ display: "flex", flexDirection: "column", gap: "10px" }}>
                   {bookingData.mainService && servicesData[bookingData.mainService].map(type => (
-                    <button key={type.name} onClick={() => setBookingData({...bookingData, specificService: type.name})}
-                      style={{ padding: "15px", borderRadius: "12px", border: "none", textAlign: "left", cursor: "pointer", fontWeight: "600",
+                    <button key={type.name} onClick={() => setBookingData({ ...bookingData, specificService: type.name })}
+                      style={{
+                        padding: "15px", borderRadius: "12px", border: "none", textAlign: "left", cursor: "pointer", fontWeight: "600",
                         backgroundColor: bookingData.specificService === type.name ? "#001166" : "#f0f2f8",
                         color: bookingData.specificService === type.name ? "white" : "#001166",
-                        display: "flex", justifyContent: "space-between" }}>
+                        display: "flex", justifyContent: "space-between"
+                      }}>
                       <span>{type.name} {type.duration}</span>
                       <span>₱{type.price.toLocaleString()}</span>
                     </button>
@@ -365,10 +367,12 @@ function StaffBookingPage() {
                       const isAvailable = currentDentist?.schedule.includes(dayStr);
                       const isSelected = bookingData.date === dayStr;
                       return (
-                        <div key={i} onClick={() => isAvailable && setBookingData({...bookingData, date: dayStr, time: ""})}
-                          style={{ padding: "8px 0", borderRadius: "6px", fontSize: "12px", cursor: isAvailable ? "pointer" : "default",
+                        <div key={i} onClick={() => isAvailable && setBookingData({ ...bookingData, date: dayStr, time: "" })}
+                          style={{
+                            padding: "8px 0", borderRadius: "6px", fontSize: "12px", cursor: isAvailable ? "pointer" : "default",
                             backgroundColor: isSelected ? "#001166" : (isAvailable ? "#e8ebf5" : "transparent"),
-                            color: isSelected ? "white" : (isAvailable ? "#001166" : "#ccc") }}>
+                            color: isSelected ? "white" : (isAvailable ? "#001166" : "#ccc")
+                          }}>
                           {i + 1}
                         </div>
                       )
@@ -380,12 +384,12 @@ function StaffBookingPage() {
               <div>
                 <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: "10px" }}>
                   <label style={{ color: "#001166", fontWeight: "700", margin: 0 }}>Choose Time</label>
-                  <button 
-                    onClick={fetchBookedSlots} 
+                  <button
+                    onClick={fetchBookedSlots}
                     disabled={!bookingData.date || !bookingData.dentist || isRefreshing}
                     style={{ background: "none", border: "none", cursor: "pointer", display: "flex", alignItems: "center", gap: "5px", color: "#001166", fontSize: "12px", fontWeight: "600" }}
                   >
-                    <RotateCw size={14} className={isRefreshing ? "animate-spin" : ""} /> 
+                    <RotateCw size={14} className={isRefreshing ? "animate-spin" : ""} />
                     Refresh
                   </button>
                 </div>
@@ -394,10 +398,11 @@ function StaffBookingPage() {
                     const currentMinutes = timeToMinutes(t);
                     const isTaken = bookedSlots.includes(currentMinutes);
                     return (
-                      <button key={t} 
-                        onClick={() => !isTaken && setBookingData({...bookingData, time: t})}
+                      <button key={t}
+                        onClick={() => !isTaken && setBookingData({ ...bookingData, time: t })}
                         disabled={isTaken}
-                        style={{ padding: "12px", borderRadius: "10px", border: "none", fontWeight: "600", 
+                        style={{
+                          padding: "12px", borderRadius: "10px", border: "none", fontWeight: "600",
                           cursor: isTaken ? "not-allowed" : "pointer",
                           backgroundColor: isTaken ? "#ccc" : (bookingData.time === t ? "#001166" : "white"),
                           color: isTaken ? "#888" : (bookingData.time === t ? "white" : "#001166"),
@@ -413,7 +418,7 @@ function StaffBookingPage() {
 
             <div style={{ display: "flex", justifyContent: "flex-end", gap: "20px", marginTop: "40px" }}>
               <button onClick={handleDiscard} style={{ padding: "12px 30px", borderRadius: "10px", border: "none", backgroundColor: "#ff4d4d", color: "white", fontWeight: "700", cursor: "pointer" }}>Clear Fields</button>
-              <button onClick={() => setShowConfirmModal(true)} disabled={!bookingData.time} 
+              <button onClick={() => setShowConfirmModal(true)} disabled={!bookingData.time}
                 style={{ padding: "12px 30px", borderRadius: "10px", border: "none", backgroundColor: "#28a745", color: "white", fontWeight: "700", cursor: "pointer", opacity: !bookingData.time ? 0.6 : 1 }}>
                 Confirm Booking
               </button>
@@ -450,11 +455,11 @@ function StaffBookingPage() {
           <div style={{ backgroundColor: "white", padding: "30px", borderRadius: "20px", textAlign: "center", width: "400px" }}>
             <CheckCircle2 size={50} color="#28a745" style={{ marginBottom: "15px", margin: "0 auto" }} />
             <h3 style={{ color: "#001166", fontWeight: "800" }}>Appointment Booked!</h3>
-            <button 
+            <button
               onClick={() => {
                 setShowSuccessModal(false);
                 navigate('/staff/appointments');
-              }} 
+              }}
               style={{ width: "100%", padding: "12px", borderRadius: "10px", border: "none", backgroundColor: "#001166", color: "white", cursor: "pointer", marginTop: "15px" }}
             >
               Return to Schedule
@@ -462,7 +467,7 @@ function StaffBookingPage() {
           </div>
         </div>
       )}
-      
+
       <style>{`
         @keyframes spin {
           from { transform: rotate(0deg); }

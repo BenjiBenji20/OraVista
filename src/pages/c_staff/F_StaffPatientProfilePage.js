@@ -1,13 +1,13 @@
 import React, { useState, useEffect, useCallback } from 'react';
 import { useParams } from 'react-router-dom';
 import AdminLayout from '../../components/AdminLayout';
-import { 
-  Search, Bell, MessageSquare, User, Mail, Phone, MapPin, 
-  Calendar, Edit, Download, Archive, FileText, X, ExternalLink, Clock 
+import {
+  Search, Bell, MessageSquare, User, Mail, Phone, MapPin,
+  Calendar, Edit, Download, Archive, FileText, X, ExternalLink, Clock
 } from 'lucide-react';
 
 function StaffPatientProfile() {
-  const { id } = useParams(); 
+  const { id } = useParams();
 
   // State Management
   const [patient, setPatient] = useState(null);
@@ -27,9 +27,9 @@ function StaffPatientProfile() {
     try {
       setLoading(true);
       const dbId = id.replace('PT-100', '');
-      
+
       // Fetch Basic Info
-      const response = await fetch(`http://localhost:5000/api/patients`);
+      const response = await fetch(`https://oravista-server-temporary-754963692967.asia-southeast1.run.app/api/patients`);
       const allPatients = await response.json();
       const currentPatient = allPatients.find(p => p.id.toString() === dbId);
 
@@ -43,12 +43,12 @@ function StaffPatientProfile() {
         });
 
         // Fetch Visit History
-        const historyRes = await fetch(`http://localhost:5000/api/user-appointments/${dbId}`);
+        const historyRes = await fetch(`https://oravista-server-temporary-754963692967.asia-southeast1.run.app/api/user-appointments/${dbId}`);
         const historyData = await historyRes.json();
         setHistory(historyData);
 
         // NEW: Fetch Patient Uploaded Records[cite: 3]
-        const recordsRes = await fetch(`http://localhost:5000/api/patient-records/${dbId}`);
+        const recordsRes = await fetch(`https://oravista-server-temporary-754963692967.asia-southeast1.run.app/api/patient-records/${dbId}`);
         if (recordsRes.ok) {
           const recordsData = await recordsRes.json();
           setRecords(recordsData);
@@ -70,15 +70,15 @@ function StaffPatientProfile() {
     e.preventDefault();
     try {
       const dbId = id.replace('PT-100', '');
-      const response = await fetch('http://localhost:5000/api/update-profile', {
+      const response = await fetch('https://oravista-server-temporary-754963692967.asia-southeast1.run.app/api/update-profile', {
         method: 'PUT',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ 
-          ...formData, 
+        body: JSON.stringify({
+          ...formData,
           id: dbId,
           firstName: patient.name.split(' ')[0],
           lastName: patient.name.split(' ')[1] || '',
-          email: patient.email || '' 
+          email: patient.email || ''
         }),
       });
 
@@ -123,7 +123,7 @@ function StaffPatientProfile() {
               <p style={styles.pageSubtitle}>View detailed patient information and history</p>
             </div>
             <button style={styles.editProfileBtn} onClick={() => setShowEditModal(true)}>
-              <Edit size={16} style={{marginRight: '8px'}}/> Edit Profile
+              <Edit size={16} style={{ marginRight: '8px' }} /> Edit Profile
             </button>
           </div>
 
@@ -132,7 +132,7 @@ function StaffPatientProfile() {
             <div style={styles.leftCol}>
               <div style={styles.mainCard}>
                 <div style={styles.profileSection}>
-                  <div style={styles.largeAvatar}><User size={50} color="#001166"/></div>
+                  <div style={styles.largeAvatar}><User size={50} color="#001166" /></div>
                   <h2 style={styles.patientNameDisplay}>{patient.name}</h2>
                   <p style={styles.patientIdDisplay}>Patient ID: {id}</p>
                 </div>
@@ -154,7 +154,7 @@ function StaffPatientProfile() {
                 </div>
               </div>
 
-              <div style={{...styles.mainCard, background: '#000d4d'}}>
+              <div style={{ ...styles.mainCard, background: '#000d4d' }}>
                 <h3 style={styles.cardTitle}>Quick Stats</h3>
                 <div style={styles.statsRow}>
                   <span>Total Visits</span>
@@ -210,18 +210,18 @@ function StaffPatientProfile() {
                     <tbody>
                       {records.map((rec) => (
                         <tr key={rec.id} style={styles.trBlack}>
-                          <td style={{...styles.tdPadding, display: 'flex', alignItems: 'center', gap: '10px'}}>
+                          <td style={{ ...styles.tdPadding, display: 'flex', alignItems: 'center', gap: '10px' }}>
                             <FileText size={16} color="#001166" />
                             {rec.file_name}
                           </td>
                           <td style={styles.tdPadding}>
-                            <div style={{display: 'flex', alignItems: 'center', gap: '6px', color: '#666'}}>
+                            <div style={{ display: 'flex', alignItems: 'center', gap: '6px', color: '#666' }}>
                               <Clock size={14} />
                               {new Date(rec.upload_date).toLocaleDateString()}
                             </div>
                           </td>
                           <td style={styles.tdPadding}>
-                            <a href={`http://localhost:5000/${rec.file_path}`} target="_blank" rel="noreferrer" style={styles.viewLink}>
+                            <a href={`https://oravista-server-temporary-754963692967.asia-southeast1.run.app/${rec.file_path}`} target="_blank" rel="noreferrer" style={styles.viewLink}>
                               View <ExternalLink size={14} />
                             </a>
                           </td>
@@ -230,7 +230,7 @@ function StaffPatientProfile() {
                     </tbody>
                   </table>
                 ) : (
-                  <p style={{color: '#999', fontSize: '14px', padding: '10px 0'}}>No documents uploaded by this patient yet.</p>
+                  <p style={{ color: '#999', fontSize: '14px', padding: '10px 0' }}>No documents uploaded by this patient yet.</p>
                 )}
               </div>
 
@@ -255,7 +255,7 @@ function StaffPatientProfile() {
                     </div>
                   ))
                 ) : (
-                  <p style={{opacity: 0.6, fontSize: '14px'}}>No treatment notes available.</p>
+                  <p style={{ opacity: 0.6, fontSize: '14px' }}>No treatment notes available.</p>
                 )}
               </div>
             </div>
@@ -266,27 +266,27 @@ function StaffPatientProfile() {
         {showEditModal && (
           <div style={styles.modalOverlay}>
             <div style={styles.modalContent}>
-              <div style={{display: 'flex', justifyContent: 'space-between', marginBottom: '20px'}}>
+              <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '20px' }}>
                 <h2 style={{ color: '#001166', margin: 0 }}>Edit Medical Profile</h2>
-                <X onClick={() => setShowEditModal(false)} style={{cursor: 'pointer'}} />
+                <X onClick={() => setShowEditModal(false)} style={{ cursor: 'pointer' }} />
               </div>
               <form onSubmit={handleUpdateSubmit}>
                 <div style={styles.formGrid}>
                   <div style={styles.inputGroup}>
                     <label style={styles.label}>Blood Type</label>
-                    <input type="text" value={formData.blood_type} onChange={(e) => setFormData({...formData, blood_type: e.target.value})} style={styles.modalInput} />
+                    <input type="text" value={formData.blood_type} onChange={(e) => setFormData({ ...formData, blood_type: e.target.value })} style={styles.modalInput} />
                   </div>
                   <div style={styles.inputGroup}>
                     <label style={styles.label}>Allergies</label>
-                    <input type="text" value={formData.allergies} onChange={(e) => setFormData({...formData, allergies: e.target.value})} style={styles.modalInput} />
+                    <input type="text" value={formData.allergies} onChange={(e) => setFormData({ ...formData, allergies: e.target.value })} style={styles.modalInput} />
                   </div>
                   <div style={styles.inputGroup}>
                     <label style={styles.label}>Insurance</label>
-                    <input type="text" value={formData.insurance} onChange={(e) => setFormData({...formData, insurance: e.target.value})} style={styles.modalInput} />
+                    <input type="text" value={formData.insurance} onChange={(e) => setFormData({ ...formData, insurance: e.target.value })} style={styles.modalInput} />
                   </div>
                   <div style={styles.inputGroup}>
                     <label style={styles.label}>Policy Number</label>
-                    <input type="text" value={formData.policy_number} onChange={(e) => setFormData({...formData, policy_number: e.target.value})} style={styles.modalInput} />
+                    <input type="text" value={formData.policy_number} onChange={(e) => setFormData({ ...formData, policy_number: e.target.value })} style={styles.modalInput} />
                   </div>
                 </div>
                 <div style={styles.modalActions}>
@@ -314,7 +314,7 @@ const styles = {
   userRole: { margin: 0, fontSize: '12px', color: 'rgba(255,255,255,0.6)' },
   avatar: { width: '40px', height: '40px', background: 'white', borderRadius: '50%', display: 'flex', alignItems: 'center', justifyContent: 'center' },
   loading: { color: '#001166', padding: '40px', fontWeight: 'bold' },
-  
+
   content: { padding: '40px' },
   topRow: { display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '30px' },
   pageTitle: { fontSize: '28px', fontWeight: '800', color: '#001166', margin: 0 },
@@ -329,7 +329,7 @@ const styles = {
   patientIdDisplay: { fontSize: '14px', opacity: 0.7 },
   infoList: { display: 'flex', flexDirection: 'column', gap: '18px' },
   infoItem: { display: 'flex', alignItems: 'center', gap: '12px', fontSize: '14px', opacity: 0.9 },
-  
+
   cardTitle: { fontSize: '18px', fontWeight: '700', margin: '0 0 20px 0' },
   cardTitleBlack: { fontSize: '18px', fontWeight: '700', margin: '0 0 20px 0', color: '#001166' },
   medicalGrid: { display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '20px' },

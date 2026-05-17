@@ -32,9 +32,9 @@ function ProfilePage() {
     email: "",
     sex: "",
     dob: "",
-    age: "", 
+    age: "",
     phone: "",
-    occupation: "" 
+    occupation: ""
   });
 
   const [errors, setErrors] = useState({});
@@ -63,11 +63,11 @@ function ProfilePage() {
         dob: user.dob || "",
         age: user.dob ? calculateAge(user.dob) : (user.age || ""),
         phone: user.phone || "",
-        occupation: user.occupation || "" 
+        occupation: user.occupation || ""
       });
       // Load saved profile picture from backend path
-      if(user.profile_picture) {
-        setProfilePreview(`http://localhost:5000/${user.profile_picture}`);
+      if (user.profile_picture) {
+        setProfilePreview(`https://oravista-server-temporary-754963692967.asia-southeast1.run.app/${user.profile_picture}`);
       }
     }
   }, []);
@@ -79,9 +79,9 @@ function ProfilePage() {
   const validate = (name, value) => {
     let error = "";
     if (name !== "age" && typeof value === 'string' && value.trim() === "") {
-        error = "This field cannot be empty.";
-    } 
-    
+      error = "This field cannot be empty.";
+    }
+
     if (name === "firstName" || name === "lastName") {
       if (value.length > 20) error = "Maximum 20 characters allowed.";
     } else if (name === "email") {
@@ -90,7 +90,7 @@ function ProfilePage() {
     } else if (name === "occupation") {
       if (value.length > 50) error = "Maximum 50 characters allowed.";
     }
-    
+
     setErrors((prev) => ({ ...prev, [name]: error }));
     return error;
   };
@@ -99,7 +99,7 @@ function ProfilePage() {
     const { name, value } = e.target;
 
     if (name === "firstName" || name === "lastName") {
-      if (/[^a-zA-Z\s]/.test(value)) return; 
+      if (/[^a-zA-Z\s]/.test(value)) return;
     }
 
     if (name === "phone") {
@@ -107,12 +107,12 @@ function ProfilePage() {
     }
 
     if (name === "dob") {
-        const newAge = calculateAge(value);
-        setUserData((prev) => ({ ...prev, dob: value, age: newAge }));
-        validate("dob", value);
+      const newAge = calculateAge(value);
+      setUserData((prev) => ({ ...prev, dob: value, age: newAge }));
+      validate("dob", value);
     } else {
-        setUserData((prev) => ({ ...prev, [name]: value }));
-        validate(name, value);
+      setUserData((prev) => ({ ...prev, [name]: value }));
+      validate(name, value);
     }
   };
 
@@ -123,16 +123,16 @@ function ProfilePage() {
       // Create a temporary URL to preview the image immediately
       const imageUrl = URL.createObjectURL(file);
       setProfilePreview(imageUrl);
-      
+
       const user = JSON.parse(localStorage.getItem("user"));
-      
+
       // Use FormData to send the physical file
       const formData = new FormData();
       formData.append('profileImage', file);
       formData.append('userId', user.id);
 
       try {
-        const response = await fetch("http://localhost:5000/api/upload-profile-picture", {
+        const response = await fetch("https://oravista-server-temporary-754963692967.asia-southeast1.run.app/api/upload-profile-picture", {
           method: "POST",
           body: formData, // Sending FormData instead of JSON
         });
@@ -143,9 +143,9 @@ function ProfilePage() {
           // Update localStorage with the new text path from the database
           const updatedUser = { ...user, profile_picture: data.imagePath };
           localStorage.setItem("user", JSON.stringify(updatedUser));
-          
+
           // Set the final preview to the actual server path
-          setProfilePreview(`http://localhost:5000/${data.imagePath}`);
+          setProfilePreview(`https://oravista-server-temporary-754963692967.asia-southeast1.run.app/${data.imagePath}`);
         } else {
           alert(data.message || "Failed to upload image.");
         }
@@ -164,10 +164,10 @@ function ProfilePage() {
     loadUserData();
     setErrors({});
     setIsEditing(false);
-    
+
     // Reset preview back to original state if discarded
     const user = JSON.parse(localStorage.getItem("user"));
-    setProfilePreview(user?.profile_picture ? `http://localhost:5000/${user.profile_picture}` : null);
+    setProfilePreview(user?.profile_picture ? `https://oravista-server-temporary-754963692967.asia-southeast1.run.app/${user.profile_picture}` : null);
   };
 
   const handleSaveClick = () => {
@@ -175,7 +175,7 @@ function ProfilePage() {
     let hasEmpty = false;
 
     Object.keys(userData).forEach((key) => {
-      if (key === 'age') return; 
+      if (key === 'age') return;
       const error = validate(key, userData[key]);
       if (error) {
         newErrors[key] = error;
@@ -194,7 +194,7 @@ function ProfilePage() {
   const handleConfirmSave = async () => {
     const user = JSON.parse(localStorage.getItem("user"));
     try {
-      const response = await fetch("http://localhost:5000/api/update-profile", {
+      const response = await fetch("https://oravista-server-temporary-754963692967.asia-southeast1.run.app/api/update-profile", {
         method: "PUT",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ id: user.id, ...userData }),
@@ -204,7 +204,7 @@ function ProfilePage() {
         // Sync local storage with updated personal info
         const updatedUser = { ...user, ...userData };
         localStorage.setItem("user", JSON.stringify(updatedUser));
-        
+
         setIsEditing(false);
         setShowConfirmModal(false);
         setShowSuccessModal(true);
@@ -268,7 +268,7 @@ function ProfilePage() {
       cursor: "pointer",
       borderRadius: "10px",
       transition: "all 0.3s ease",
-      whiteSpace: "normal", 
+      whiteSpace: "normal",
       backgroundColor: isActive ? "rgba(255, 255, 255, 0.2)" : "transparent",
       fontWeight: isActive ? "700" : "400",
       borderLeft: isActive ? "4px solid white" : "4px solid transparent",
@@ -314,7 +314,7 @@ function ProfilePage() {
 
   return (
     <div style={{ display: "flex", minHeight: "100vh", width: "100%" }}>
-      
+
       {showConfirmModal && (
         <div style={modalOverlayStyle}>
           <div style={modalContentStyle}>
@@ -335,8 +335,8 @@ function ProfilePage() {
             <CheckCircle2 size={50} color="#28a745" style={{ marginBottom: "15px", margin: "0 auto" }} />
             <h3 style={{ color: "#001166", marginBottom: "10px", fontWeight: "800" }}>Success!</h3>
             <p style={{ color: "#666", fontSize: "14px", marginBottom: "25px" }}>Profile updated successfully!</p>
-            <button 
-              onClick={() => setShowSuccessModal(false)} 
+            <button
+              onClick={() => setShowSuccessModal(false)}
               style={{ width: "100%", padding: "12px", borderRadius: "10px", border: "none", backgroundColor: "#001166", color: "white", cursor: "pointer", fontWeight: "600" }}
             >
               Close
@@ -384,16 +384,16 @@ function ProfilePage() {
       <div style={mainContainerStyle}>
         <div style={{ padding: "40px" }}>
           <h1 style={{ color: "#001166", fontSize: "42px", fontWeight: "800", marginBottom: "30px" }}>Profile</h1>
-          
+
           <div style={{ backgroundColor: "#001166", borderRadius: "30px", padding: "50px", color: "white" }}>
             <div style={{ display: "flex", alignItems: "center", gap: "30px", marginBottom: "40px" }}>
-              
+
               {/* IMAGE UPLOAD SECTION */}
               <div style={{ display: "flex", flexDirection: "column", alignItems: "center", gap: "10px" }}>
-                <div style={{ 
-                  width: "120px", 
-                  height: "120px", 
-                  borderRadius: "50%", 
+                <div style={{
+                  width: "120px",
+                  height: "120px",
+                  borderRadius: "50%",
                   backgroundColor: "white",
                   backgroundImage: profilePreview ? `url(${profilePreview})` : "none",
                   backgroundSize: "cover",
@@ -406,18 +406,18 @@ function ProfilePage() {
                 }}>
                   {!profilePreview && <User size={50} color="#001166" opacity={0.3} />}
                 </div>
-                
+
                 {/* Hidden input to handle the actual file selection */}
-                <input 
-                  type="file" 
-                  ref={fileInputRef} 
-                  onChange={handleImageUpload} 
-                  accept="image/*" 
-                  style={{ display: "none" }} 
+                <input
+                  type="file"
+                  ref={fileInputRef}
+                  onChange={handleImageUpload}
+                  accept="image/*"
+                  style={{ display: "none" }}
                 />
-                
+
                 {/* Button to trigger the hidden file input */}
-                <button 
+                <button
                   onClick={triggerFileInput}
                   style={{
                     display: "flex",
@@ -441,7 +441,7 @@ function ProfilePage() {
 
               <div>
                 <h2 style={{ fontSize: "36px", fontWeight: "700", margin: 0 }}>Personal Information</h2>
-                <button 
+                <button
                   onClick={() => setIsEditing(true)}
                   style={{ marginTop: "10px", padding: "8px 20px", borderRadius: "20px", border: "none", backgroundColor: "white", color: "#001166", fontSize: "14px", fontWeight: "700", cursor: "pointer", display: "flex", alignItems: "center", gap: "8px" }}
                 >
@@ -484,13 +484,13 @@ function ProfilePage() {
                 </div>
                 <div style={{ flex: 1, minHeight: "110px" }}>
                   <label style={{ color: "white", fontSize: "14px", fontWeight: "600", display: "block", marginBottom: "5px" }}>Age</label>
-                  <input 
-                    name="age" 
-                    style={inputStyle(false, true)} 
-                    type="text" 
-                    value={userData.age} 
-                    readOnly 
-                    disabled 
+                  <input
+                    name="age"
+                    style={inputStyle(false, true)}
+                    type="text"
+                    value={userData.age}
+                    readOnly
+                    disabled
                     placeholder="Auto-computed"
                   />
                 </div>
@@ -502,30 +502,30 @@ function ProfilePage() {
                   <input name="phone" style={inputStyle()} type="text" value={userData.phone} onChange={handleChange} disabled={!isEditing} />
                 </div>
                 <div style={{ flex: 1, minHeight: "110px" }}>
-                   <label style={{ color: "white", fontSize: "14px", fontWeight: "600", display: "block", marginBottom: "5px" }}>Occupation</label>
-                   <input 
-                      name="occupation" 
-                      style={inputStyle(errors.occupation)} 
-                      type="text" 
-                      value={userData.occupation} 
-                      onChange={handleChange} 
-                      disabled={!isEditing} 
-                      placeholder="Enter your occupation"
-                   />
-                   {errors.occupation && <span style={{ color: "#ff4d4d", fontSize: "14px", fontWeight: "600" }}>{errors.occupation}</span>}
+                  <label style={{ color: "white", fontSize: "14px", fontWeight: "600", display: "block", marginBottom: "5px" }}>Occupation</label>
+                  <input
+                    name="occupation"
+                    style={inputStyle(errors.occupation)}
+                    type="text"
+                    value={userData.occupation}
+                    onChange={handleChange}
+                    disabled={!isEditing}
+                    placeholder="Enter your occupation"
+                  />
+                  {errors.occupation && <span style={{ color: "#ff4d4d", fontSize: "14px", fontWeight: "600" }}>{errors.occupation}</span>}
                 </div>
                 <div style={{ flex: 1, minHeight: "110px" }}></div>
               </div>
 
               <div style={{ display: "flex", justifyContent: "flex-end", gap: "15px", marginTop: "20px" }}>
-                <button 
+                <button
                   disabled={!isEditing}
                   onClick={handleDiscard}
                   style={{ padding: "12px 30px", borderRadius: "10px", border: "none", backgroundColor: isEditing ? "white" : "#ccc", color: "#001166", fontWeight: "700", cursor: isEditing ? "pointer" : "not-allowed" }}
                 >
                   Discard Changes
                 </button>
-                <button 
+                <button
                   disabled={!isEditing}
                   onClick={handleSaveClick}
                   style={{ padding: "12px 30px", borderRadius: "10px", border: "none", backgroundColor: isEditing ? "white" : "#ccc", color: "#001166", fontWeight: "700", cursor: isEditing ? "pointer" : "not-allowed" }}

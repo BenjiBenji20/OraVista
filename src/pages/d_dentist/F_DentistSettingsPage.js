@@ -30,7 +30,7 @@ function DentistSettings() {
   const [currentPassword, setCurrentPassword] = useState('');
   const [newPassword, setNewPassword] = useState('');
   const [confirmPassword, setConfirmPassword] = useState('');
-  
+
   const [showCurrent, setShowCurrent] = useState(false);
   const [showNew, setShowNew] = useState(false);
   const [showConfirm, setShowConfirm] = useState(false);
@@ -47,7 +47,7 @@ function DentistSettings() {
   // 3. API Call: Update Profile
   const handleProfileUpdate = async () => {
     try {
-      const response = await fetch('http://localhost:5000/api/update-profile', {
+      const response = await fetch('https://oravista-server-temporary-754963692967.asia-southeast1.run.app/api/update-profile', {
         method: 'PUT',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
@@ -64,7 +64,7 @@ function DentistSettings() {
         alert("Profile updated successfully!");
         const user = JSON.parse(localStorage.getItem("user"));
         localStorage.setItem("user", JSON.stringify({ ...user, firstName: profileData.firstName, lastName: profileData.lastName, email: profileData.email, phone: profileData.phone }));
-        window.location.reload(); 
+        window.location.reload();
       } else {
         const data = await response.json();
         alert(data.message || "Failed to update profile.");
@@ -80,14 +80,14 @@ function DentistSettings() {
       alert("Error: New passwords do not match!");
       return;
     }
-    
+
     if (!conditions.length || !conditions.lowercase || !conditions.uppercase || !conditions.number || !conditions.special) {
       alert("Error: Please ensure the new password meets all security requirements.");
       return;
     }
 
     try {
-      const response = await fetch('http://localhost:5000/api/update-password', {
+      const response = await fetch('https://oravista-server-temporary-754963692967.asia-southeast1.run.app/api/update-password', {
         method: 'PUT',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
@@ -149,44 +149,44 @@ function DentistSettings() {
                   <User size={18} style={{ marginRight: '10px' }} />
                   <h3 style={styles.cardTitle}>Account Settings</h3>
                 </div>
-                
+
                 <div style={{ display: 'flex', gap: '15px', marginBottom: '20px' }}>
                   <div style={{ flex: 1 }}>
                     <label style={styles.label}>First Name</label>
-                    <input 
-                      type="text" 
-                      value={profileData.firstName} 
-                      onChange={(e) => setProfileData({...profileData, firstName: e.target.value})}
-                      style={styles.input} 
+                    <input
+                      type="text"
+                      value={profileData.firstName}
+                      onChange={(e) => setProfileData({ ...profileData, firstName: e.target.value })}
+                      style={styles.input}
                     />
                   </div>
                   <div style={{ flex: 1 }}>
                     <label style={styles.label}>Last Name</label>
-                    <input 
-                      type="text" 
-                      value={profileData.lastName} 
-                      onChange={(e) => setProfileData({...profileData, lastName: e.target.value})}
-                      style={styles.input} 
+                    <input
+                      type="text"
+                      value={profileData.lastName}
+                      onChange={(e) => setProfileData({ ...profileData, lastName: e.target.value })}
+                      style={styles.input}
                     />
                   </div>
                 </div>
 
                 <div style={styles.inputGroup}>
                   <label style={styles.label}>Email Address</label>
-                  <input 
-                    type="email" 
-                    value={profileData.email} 
-                    onChange={(e) => setProfileData({...profileData, email: e.target.value})}
-                    style={styles.input} 
+                  <input
+                    type="email"
+                    value={profileData.email}
+                    onChange={(e) => setProfileData({ ...profileData, email: e.target.value })}
+                    style={styles.input}
                   />
                 </div>
                 <div style={styles.inputGroup}>
                   <label style={styles.label}>Phone Number</label>
-                  <input 
-                    type="text" 
-                    value={profileData.phone} 
-                    onChange={(e) => setProfileData({...profileData, phone: e.target.value})}
-                    style={styles.input} 
+                  <input
+                    type="text"
+                    value={profileData.phone}
+                    onChange={(e) => setProfileData({ ...profileData, phone: e.target.value })}
+                    style={styles.input}
                   />
                 </div>
                 <button style={styles.saveBtn} onClick={handleProfileUpdate}>Update Profile</button>
@@ -197,16 +197,16 @@ function DentistSettings() {
                   <Lock size={18} style={{ marginRight: '10px' }} />
                   <h3 style={styles.cardTitle}>Change Password</h3>
                 </div>
-                
+
                 <div style={styles.inputGroup}>
                   <label style={styles.label}>Current Password</label>
                   <div style={styles.inputWrapper}>
-                    <input 
-                      type={showCurrent ? "text" : "password"} 
-                      placeholder="********" 
+                    <input
+                      type={showCurrent ? "text" : "password"}
+                      placeholder="********"
                       value={currentPassword}
                       onChange={(e) => setCurrentPassword(e.target.value)}
-                      style={styles.input} 
+                      style={styles.input}
                     />
                     <button type="button" onClick={() => setShowCurrent(!showCurrent)} style={styles.eyeBtn}>
                       {showCurrent ? <EyeOff size={18} color="rgba(255,255,255,0.6)" /> : <Eye size={18} color="rgba(255,255,255,0.6)" />}
@@ -217,34 +217,34 @@ function DentistSettings() {
                 <div style={styles.inputGroup}>
                   <label style={styles.label}>New Password</label>
                   <div style={styles.inputWrapper}>
-                    <input 
-                      type={showNew ? "text" : "password"} 
-                      placeholder="********" 
+                    <input
+                      type={showNew ? "text" : "password"}
+                      placeholder="********"
                       value={newPassword}
                       onChange={(e) => setNewPassword(e.target.value)}
-                      style={styles.input} 
+                      style={styles.input}
                     />
                     <button type="button" onClick={() => setShowNew(!showNew)} style={styles.eyeBtn}>
                       {showNew ? <EyeOff size={18} color="rgba(255,255,255,0.6)" /> : <Eye size={18} color="rgba(255,255,255,0.6)" />}
                     </button>
                   </div>
-                  
+
                   {/* Real-time Validation UI */}
                   <div style={styles.validationContainer}>
-                    <p style={{...styles.valItem, color: conditions.lowercase ? '#4ade80' : '#ff4d4d'}}>
-                      {conditions.lowercase ? <CheckCircle2 size={12}/> : <XCircle size={12}/>} At least one lowercase letter
+                    <p style={{ ...styles.valItem, color: conditions.lowercase ? '#4ade80' : '#ff4d4d' }}>
+                      {conditions.lowercase ? <CheckCircle2 size={12} /> : <XCircle size={12} />} At least one lowercase letter
                     </p>
-                    <p style={{...styles.valItem, color: conditions.uppercase ? '#4ade80' : '#ff4d4d'}}>
-                      {conditions.uppercase ? <CheckCircle2 size={12}/> : <XCircle size={12}/>} At least one uppercase letter
+                    <p style={{ ...styles.valItem, color: conditions.uppercase ? '#4ade80' : '#ff4d4d' }}>
+                      {conditions.uppercase ? <CheckCircle2 size={12} /> : <XCircle size={12} />} At least one uppercase letter
                     </p>
-                    <p style={{...styles.valItem, color: conditions.number ? '#4ade80' : '#ff4d4d'}}>
-                      {conditions.number ? <CheckCircle2 size={12}/> : <XCircle size={12}/>} At least one number
+                    <p style={{ ...styles.valItem, color: conditions.number ? '#4ade80' : '#ff4d4d' }}>
+                      {conditions.number ? <CheckCircle2 size={12} /> : <XCircle size={12} />} At least one number
                     </p>
-                    <p style={{...styles.valItem, color: conditions.special ? '#4ade80' : '#ff4d4d'}}>
-                      {conditions.special ? <CheckCircle2 size={12}/> : <XCircle size={12}/>} At least 1 special character
+                    <p style={{ ...styles.valItem, color: conditions.special ? '#4ade80' : '#ff4d4d' }}>
+                      {conditions.special ? <CheckCircle2 size={12} /> : <XCircle size={12} />} At least 1 special character
                     </p>
-                    <p style={{...styles.valItem, color: conditions.length ? '#4ade80' : '#ff4d4d'}}>
-                      {conditions.length ? <CheckCircle2 size={12}/> : <XCircle size={12}/>} 8 characters minimum
+                    <p style={{ ...styles.valItem, color: conditions.length ? '#4ade80' : '#ff4d4d' }}>
+                      {conditions.length ? <CheckCircle2 size={12} /> : <XCircle size={12} />} 8 characters minimum
                     </p>
                   </div>
                 </div>
@@ -252,12 +252,12 @@ function DentistSettings() {
                 <div style={styles.inputGroup}>
                   <label style={styles.label}>Confirm New Password</label>
                   <div style={styles.inputWrapper}>
-                    <input 
-                      type={showConfirm ? "text" : "password"} 
-                      placeholder="********" 
+                    <input
+                      type={showConfirm ? "text" : "password"}
+                      placeholder="********"
                       value={confirmPassword}
                       onChange={(e) => setConfirmPassword(e.target.value)}
-                      style={styles.input} 
+                      style={styles.input}
                     />
                     <button type="button" onClick={() => setShowConfirm(!showConfirm)} style={styles.eyeBtn}>
                       {showConfirm ? <EyeOff size={18} color="rgba(255,255,255,0.6)" /> : <Eye size={18} color="rgba(255,255,255,0.6)" />}
@@ -276,7 +276,7 @@ function DentistSettings() {
                   <Shield size={18} style={{ marginRight: '10px' }} />
                   <h3 style={styles.cardTitle}>Role-Based Access</h3>
                 </div>
-                
+
                 {/* ROLE BOX 1: CLINIC OWNER */}
                 <div style={styles.roleBoxInactive}>
                   <div style={styles.roleHeader}>
@@ -324,19 +324,19 @@ function DentistSettings() {
                 </div>
 
                 <p style={styles.permissionFooter}>
-                   Need higher access? Please contact your System Administrator.
+                  Need higher access? Please contact your System Administrator.
                 </p>
               </div>
 
               {/* SYSTEM STATUS CARD */}
               <div style={{ ...styles.infoCard, marginTop: '25px' }}>
                 <div style={styles.cardHeader}>
-                   <Activity size={18} style={{ marginRight: '10px' }} />
-                   <h3 style={styles.cardTitle}>System Status</h3>
+                  <Activity size={18} style={{ marginRight: '10px' }} />
+                  <h3 style={styles.cardTitle}>System Status</h3>
                 </div>
                 <div style={styles.statusRow}><p style={styles.stLabel}>App Version</p><p style={styles.stVal}>v1.0.4-beta</p></div>
-                <div style={styles.statusRow}><p style={styles.stLabel}>Server Status</p><p style={{...styles.stVal, color: '#4ade80'}}>Online</p></div>
-                <div style={styles.statusRow}><p style={styles.stLabel}>Database</p><p style={{...styles.stVal, color: '#4ade80'}}>Connected</p></div>
+                <div style={styles.statusRow}><p style={styles.stLabel}>Server Status</p><p style={{ ...styles.stVal, color: '#4ade80' }}>Online</p></div>
+                <div style={styles.statusRow}><p style={styles.stLabel}>Database</p><p style={{ ...styles.stVal, color: '#4ade80' }}>Connected</p></div>
               </div>
             </div>
           </div>
@@ -371,7 +371,7 @@ const styles = {
   input: { width: '100%', padding: '12px 45px 12px 12px', borderRadius: '8px', border: '1px solid rgba(255,255,255,0.1)', background: 'rgba(255,255,255,0.05)', color: 'white', outline: 'none', boxSizing: 'border-box' },
   eyeBtn: { position: 'absolute', right: '15px', background: 'transparent', border: 'none', cursor: 'pointer', padding: 0, display: 'flex', alignItems: 'center' },
   saveBtn: { padding: '10px 25px', background: 'white', color: '#001166', border: 'none', borderRadius: '8px', fontWeight: 'bold', cursor: 'pointer' },
-  
+
   validationContainer: { marginTop: '12px', display: 'flex', flexDirection: 'column', gap: '6px' },
   valItem: { margin: 0, fontSize: '11px', display: 'flex', alignItems: 'center', gap: '6px', fontWeight: '600', transition: 'color 0.2s' },
 

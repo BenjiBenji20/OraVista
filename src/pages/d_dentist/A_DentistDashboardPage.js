@@ -20,7 +20,7 @@ function DentistDashboard() {
 
     const fetchDashboardData = async () => {
       try {
-        const response = await fetch('http://localhost:5000/api/dashboard/stats');
+        const response = await fetch('https://oravista-server-temporary-754963692967.asia-southeast1.run.app/api/dashboard/stats');
         const data = await response.json();
         setStats(data);
       } catch (err) {
@@ -58,19 +58,19 @@ function DentistDashboard() {
 
         {/* CONTENT AREA */}
         <div style={styles.content}>
-          
+
           {/* TOP STAT CARDS - Now functional and mirrored */}
           <div style={styles.gridTop}>
             <div style={styles.card}>
               <p style={styles.cardLabel}>Today's Appointments</p>
               <h2 style={styles.cardValue}>{loading ? "..." : stats.todayCount}</h2>
               <div style={styles.progressBase}>
-                <div style={{...styles.progressFill, width: `${Math.min((stats.todayCount / 50) * 100, 100)}%`}}></div>
+                <div style={{ ...styles.progressFill, width: `${Math.min((stats.todayCount / 50) * 100, 100)}%` }}></div>
               </div>
             </div>
             <div style={styles.card}>
               <p style={styles.cardLabel}>Current Date</p>
-              <h2 style={{...styles.cardValue, fontSize: '18px'}}>
+              <h2 style={{ ...styles.cardValue, fontSize: '18px' }}>
                 {currentDateTime.toLocaleDateString('en-US', { weekday: 'long', month: 'long', day: 'numeric', year: 'numeric' })}
               </h2>
               <p style={styles.cardSub}>{currentDateTime.toLocaleTimeString()}</p>
@@ -106,11 +106,11 @@ function DentistDashboard() {
               {[1, 2, 3, 4, 5].map(i => (
                 <div key={i} style={styles.patientRow}>
                   <div style={styles.pAvatar}></div>
-                  <div style={{flex: 1}}>
+                  <div style={{ flex: 1 }}>
                     <p style={styles.pName}>Recent Visitor {i}</p>
                     <p style={styles.pId}>ID: PT-100{i}</p>
                   </div>
-                  <div style={{textAlign: 'right'}}>
+                  <div style={{ textAlign: 'right' }}>
                     <p style={styles.pType}>Consultation</p>
                     <p style={styles.pTime}>{i * 2}h ago</p>
                   </div>
@@ -121,7 +121,7 @@ function DentistDashboard() {
             <div style={styles.scheduleCard}>
               <p style={styles.sectionTitle}>Today's Schedule</p>
               {loading ? (
-                <p style={{color: 'rgba(255,255,255,0.6)'}}>Loading schedule...</p>
+                <p style={{ color: 'rgba(255,255,255,0.6)' }}>Loading schedule...</p>
               ) : stats.schedule.length > 0 ? (
                 stats.schedule.slice(0, 5).map((item, idx) => (
                   <div key={idx} style={styles.scheduleRow}>
@@ -133,7 +133,7 @@ function DentistDashboard() {
                   </div>
                 ))
               ) : (
-                <p style={{color: 'rgba(255,255,255,0.6)', fontStyle: 'italic'}}>No appointments assigned.</p>
+                <p style={{ color: 'rgba(255,255,255,0.6)', fontStyle: 'italic' }}>No appointments assigned.</p>
               )}
             </div>
           </div>

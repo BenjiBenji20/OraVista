@@ -12,7 +12,7 @@ function StaffAppointments() {
 
   // --- Calendar & Filter States ---
   const [viewDate, setViewDate] = useState(new Date());
-  const [selectedDate, setSelectedDate] = useState(null); 
+  const [selectedDate, setSelectedDate] = useState(null);
 
   // --- Dynamic Calendar Logic ---
   const currentYear = viewDate.getFullYear();
@@ -34,16 +34,16 @@ function StaffAppointments() {
   // FETCH LOGIC
   const fetchAppointments = useCallback(async () => {
     try {
-      const response = await fetch('http://localhost:5000/api/dashboard/stats');
+      const response = await fetch('https://oravista-server-temporary-754963692967.asia-southeast1.run.app/api/dashboard/stats');
       const data = await response.json();
-      
+
       if (data.schedule) {
         const formattedApps = data.schedule.map((app) => ({
-          dbId: app.id, 
-          id: app.booking_ref || `APT-50${app.id}`, 
+          dbId: app.id,
+          id: app.booking_ref || `APT-50${app.id}`,
           patient: app.patientName,
           dentist: app.dentist,
-          date: app.date, 
+          date: app.date,
           time: app.time,
           status: app.status,
           type: app.serviceType || 'Consultation',
@@ -73,17 +73,17 @@ function StaffAppointments() {
   // APPROVAL LOGIC
   const handleApprove = async (appointmentId) => {
     try {
-      const response = await fetch('http://localhost:5000/api/update-appointment-status', {
+      const response = await fetch('https://oravista-server-temporary-754963692967.asia-southeast1.run.app/api/update-appointment-status', {
         method: 'PUT',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ 
-          appointment_id: appointmentId, 
-          status: 'Confirmed' 
+        body: JSON.stringify({
+          appointment_id: appointmentId,
+          status: 'Confirmed'
         }),
       });
 
       if (response.ok) {
-        fetchAppointments(); 
+        fetchAppointments();
       }
     } catch (err) {
       console.error("Staff approval failed:", err);
@@ -93,7 +93,7 @@ function StaffAppointments() {
   // --- APPOINTMENT FILTER LOGIC ---
   const filteredAppointments = selectedDate
     ? appointments.filter(app => formatDbDate(app.date) === selectedDate)
-    : appointments; 
+    : appointments;
 
   return (
     <AdminLayout>
@@ -131,26 +131,26 @@ function StaffAppointments() {
                 <div style={styles.calHeader}>
                   <p style={styles.calMonth}>{currentMonthName} {currentYear}</p>
                   <div style={styles.calNav}>
-                    <ChevronLeft size={16} cursor="pointer" onClick={() => setViewDate(new Date(currentYear, currentMonth - 1, 1))} /> 
+                    <ChevronLeft size={16} cursor="pointer" onClick={() => setViewDate(new Date(currentYear, currentMonth - 1, 1))} />
                     <ChevronRight size={16} cursor="pointer" onClick={() => setViewDate(new Date(currentYear, currentMonth + 1, 1))} />
                   </div>
                 </div>
                 <div style={styles.calGrid}>
                   {['Su', 'Mo', 'Tu', 'We', 'Th', 'Fr', 'Sa'].map(day => <div key={day} style={styles.calDayHead}>{day}</div>)}
-                  
+
                   {[...Array(firstDayOfMonth)].map((_, i) => <div key={`empty-${i}`}></div>)}
-                  
+
                   {[...Array(daysInMonth)].map((_, i) => {
                     const dateStr = formatDate(currentYear, currentMonth, i + 1);
                     const isSelected = selectedDate === dateStr;
-                    
+
                     return (
-                      <div 
-                        key={i} 
-                        onClick={() => setSelectedDate(isSelected ? null : dateStr)} 
+                      <div
+                        key={i}
+                        onClick={() => setSelectedDate(isSelected ? null : dateStr)}
                         style={{
-                          ...styles.calDay, 
-                          backgroundColor: isSelected ? 'white' : 'transparent', 
+                          ...styles.calDay,
+                          backgroundColor: isSelected ? 'white' : 'transparent',
                           color: isSelected ? '#001166' : 'white',
                           fontWeight: isSelected ? 'bold' : 'normal'
                         }}
@@ -179,8 +179,8 @@ function StaffAppointments() {
                 <h3 style={styles.listTitle}>
                   {selectedDate ? `Appointments for ${selectedDate}` : "All Appointments"}
                 </h3>
-                <button 
-                  style={styles.newAppBtn} 
+                <button
+                  style={styles.newAppBtn}
                   onClick={() => navigate('/staff/booking')}
                 >
                   <Plus size={18} /> Book Appointment
@@ -190,7 +190,7 @@ function StaffAppointments() {
               {loading ? <p>Loading Schedule...</p> : filteredAppointments.length === 0 ? (
                 <p style={{ color: "#666" }}>No appointments found for this selection.</p>
               ) : filteredAppointments.map((app) => {
-                
+
                 // Helper to determine badge color
                 const isCanceled = app.status === 'Canceled' || app.status === 'Cancelled';
                 let badgeColor = '#f59e0b'; // Pending (Orange)
@@ -202,10 +202,10 @@ function StaffAppointments() {
                   <div key={app.id} style={styles.appCard}>
                     <div style={styles.appMain}>
                       <div style={styles.appTimeRow}>
-                         <span style={styles.appTime}>🕒 {app.time}</span>
-                         <span style={{...styles.statusBadge, backgroundColor: badgeColor, color: badgeText}}>
-                           {app.status}
-                         </span>
+                        <span style={styles.appTime}>🕒 {app.time}</span>
+                        <span style={{ ...styles.statusBadge, backgroundColor: badgeColor, color: badgeText }}>
+                          {app.status}
+                        </span>
                       </div>
                       <div style={styles.appInfoGrid}>
                         <div><p style={styles.infoLabel}>Patient</p><p style={styles.infoVal}>{app.patient}</p></div>
@@ -214,20 +214,20 @@ function StaffAppointments() {
                         <div><p style={styles.infoLabel}>ID</p><p style={styles.infoVal}>{app.id}</p></div>
                       </div>
                     </div>
-                    
+
                     {/* Conditionally render actions based on status */}
                     {!isCanceled ? (
                       <div style={styles.appActions}>
-                        <button 
+                        <button
                           onClick={() => !app.approved && handleApprove(app.dbId)}
                           style={{
-                            ...styles.actionBtn, 
-                            background: app.approved ? '#4ade80' : 'transparent', 
-                            border: app.approved ? 'none' : '1px solid #4ade80', 
+                            ...styles.actionBtn,
+                            background: app.approved ? '#4ade80' : 'transparent',
+                            border: app.approved ? 'none' : '1px solid #4ade80',
                             color: app.approved ? 'white' : '#4ade80',
                             cursor: app.approved ? 'default' : 'pointer'
                           }}>
-                            {app.approved ? 'Approved' : 'Approve'}
+                          {app.approved ? 'Approved' : 'Approve'}
                         </button>
                         <button style={styles.actionBtnOutline}>Reschedule</button>
                       </div>

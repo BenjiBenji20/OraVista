@@ -122,7 +122,7 @@ function SignupPage() {
     };
 
     try {
-      const response = await fetch("http://localhost:5000/api/signup", {
+      const response = await fetch("https://oravista-server-temporary-754963692967.asia-southeast1.run.app/api/signup", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify(payload), // Send payload with branch
@@ -171,7 +171,7 @@ function SignupPage() {
   const eyeIconContainerStyle = {
     position: "absolute",
     right: "15px",
-    top: "38px", 
+    top: "38px",
     cursor: "pointer",
     color: brandBlue,
     display: "flex",

@@ -6,16 +6,16 @@ import { Search, Bell, MessageSquare, User, Eye, FileText, ClipboardList } from 
 function DentistPatientList() {
   const navigate = useNavigate();
   const [patients, setPatients] = useState([]);
-  const [filteredPatients, setFilteredPatients] = useState([]); 
+  const [filteredPatients, setFilteredPatients] = useState([]);
   const [loading, setLoading] = useState(true);
-  const [searchQuery, setSearchQuery] = useState(""); 
+  const [searchQuery, setSearchQuery] = useState("");
 
   useEffect(() => {
     const fetchPatients = async () => {
       try {
-        const response = await fetch('http://localhost:5000/api/patients');
+        const response = await fetch('https://oravista-server-temporary-754963692967.asia-southeast1.run.app/api/patients');
         const data = await response.json();
-        
+
         if (Array.isArray(data)) {
           const patientData = data.map((patient) => ({
             dbId: patient.id,
@@ -26,7 +26,7 @@ function DentistPatientList() {
             nextAppt: patient.next_appointment ? new Date(patient.next_appointment).toLocaleDateString() : 'Not Scheduled'
           }));
           setPatients(patientData);
-          setFilteredPatients(patientData); 
+          setFilteredPatients(patientData);
         }
       } catch (err) {
         console.error("Error fetching dentist's patient list:", err);
@@ -84,9 +84,9 @@ function DentistPatientList() {
           <div style={styles.tableControls}>
             <div style={styles.innerSearch}>
               <Search size={16} color="#999" style={styles.innerSearchIcon} />
-              <input 
-                type="text" 
-                placeholder="Quick search by name or ID..." 
+              <input
+                type="text"
+                placeholder="Quick search by name or ID..."
                 style={styles.innerSearchInput}
                 value={searchQuery}
                 onChange={(e) => setSearchQuery(e.target.value)}
@@ -112,8 +112,8 @@ function DentistPatientList() {
                 </thead>
                 <tbody>
                   {filteredPatients.length > 0 ? filteredPatients.map((patient) => (
-                    <tr 
-                      key={patient.dbId} 
+                    <tr
+                      key={patient.dbId}
                       style={styles.tbodyRow}
                       onClick={() => handleRowClick(patient.dbId)}
                       onMouseEnter={(e) => (e.currentTarget.style.backgroundColor = "rgba(255,255,255,0.08)")}

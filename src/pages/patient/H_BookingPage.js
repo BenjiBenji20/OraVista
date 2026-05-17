@@ -9,8 +9,8 @@ function BookingPage() {
   const location = useLocation();
   const [isCollapsed, setIsCollapsed] = useState(false);
   const [userData, setUserData] = useState({ id: null, firstName: "User", branch: "" });
-  const [bookedSlots, setBookedSlots] = useState([]); 
-  const [isRefreshing, setIsRefreshing] = useState(false); 
+  const [bookedSlots, setBookedSlots] = useState([]);
+  const [isRefreshing, setIsRefreshing] = useState(false);
 
   const [bookingData, setBookingData] = useState({
     mainService: "",
@@ -25,12 +25,12 @@ function BookingPage() {
 
   // --- Dynamic Month Viewer Logic ---
   const today = new Date();
-  const [viewDate, setViewDate] = useState(new Date()); 
+  const [viewDate, setViewDate] = useState(new Date());
 
   const currentYear = viewDate.getFullYear();
   const currentMonth = viewDate.getMonth();
   const daysInMonth = new Date(currentYear, currentMonth + 1, 0).getDate();
-  const firstDayOfMonth = new Date(currentYear, currentMonth, 1).getDay(); 
+  const firstDayOfMonth = new Date(currentYear, currentMonth, 1).getDay();
   const currentMonthName = viewDate.toLocaleString('default', { month: 'long' });
 
   const formatDate = (date) => {
@@ -44,16 +44,16 @@ function BookingPage() {
   const generateWeekdaySchedule = () => {
     const schedule = [];
     const startMonth = today.getMonth();
-    
+
     for (let i = 0; i < 3; i++) {
       const targetDate = new Date(today.getFullYear(), startMonth + i, 1);
       const year = targetDate.getFullYear();
       const month = targetDate.getMonth();
       const daysInThisMonth = new Date(year, month + 1, 0).getDate();
-      
+
       for (let day = 1; day <= daysInThisMonth; day++) {
         const date = new Date(year, month, day);
-        if (date >= new Date(today.setHours(0,0,0,0))) {
+        if (date >= new Date(today.setHours(0, 0, 0, 0))) {
           schedule.push(formatDate(date));
         }
       }
@@ -113,12 +113,12 @@ function BookingPage() {
 
   const loadUser = useCallback(() => {
     const user = JSON.parse(localStorage.getItem("user"));
-    if (user) { 
-      setUserData({ 
-        id: user.id, 
+    if (user) {
+      setUserData({
+        id: user.id,
         firstName: user.firstName || "User",
-        branch: user.branch || "" 
-      }); 
+        branch: user.branch || ""
+      });
     }
   }, []);
 
@@ -142,7 +142,7 @@ function BookingPage() {
   // UPDATED: Finds the duration safely across new objects and old database records
   const getDurationFromService = (serviceName) => {
     if (!serviceName) return 30;
-    
+
     // Check new object structure first
     for (const key in servicesData) {
       const svc = servicesData[key].find(s => s.name === serviceName || `${s.name} ${s.duration}` === serviceName);
@@ -179,7 +179,7 @@ function BookingPage() {
     setIsRefreshing(true);
     try {
       const response = await fetch(
-        `http://localhost:5000/api/appointments/check-availability?date=${bookingData.date}&dentist=${encodeURIComponent(bookingData.dentist)}`
+        `https://oravista-server-temporary-754963692967.asia-southeast1.run.app/api/appointments/check-availability?date=${bookingData.date}&dentist=${encodeURIComponent(bookingData.dentist)}`
       );
       const data = await response.json();
       const allOccupiedMinutes = [];
@@ -190,13 +190,13 @@ function BookingPage() {
           allOccupiedMinutes.push(start + i);
         }
       });
-      setBookedSlots(allOccupiedMinutes); 
+      setBookedSlots(allOccupiedMinutes);
     } catch (error) {
       console.error("Error fetching booked slots:", error);
     } finally {
-      setTimeout(() => setIsRefreshing(false), 500); 
+      setTimeout(() => setIsRefreshing(false), 500);
     }
-  // eslint-disable-next-line react-hooks/exhaustive-deps
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [bookingData.date, bookingData.dentist]);
 
   useEffect(() => { loadUser(); }, [loadUser]);
@@ -223,7 +223,7 @@ function BookingPage() {
     };
 
     try {
-      const response = await fetch("http://localhost:5000/api/book-appointment", {
+      const response = await fetch("https://oravista-server-temporary-754963692967.asia-southeast1.run.app/api/book-appointment", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify(appointmentData),
@@ -232,7 +232,7 @@ function BookingPage() {
       if (response.ok) {
         setShowConfirmModal(false);
         setShowSuccessModal(true);
-        handleDiscard(); 
+        handleDiscard();
         fetchBookedSlots();
       }
     } catch (error) {
@@ -262,7 +262,7 @@ function BookingPage() {
       <div style={{ width: sidebarWidth, backgroundColor: "#001166", height: "100vh", color: "white", padding: "20px 15px", position: "fixed", transition: "width 0.3s ease", zIndex: 1000, display: "flex", flexDirection: "column", boxSizing: "border-box" }}>
         <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: "40px" }}>
           {!isCollapsed && <h2 style={{ fontSize: "28px", fontWeight: "800", margin: 0 }}>OraVista</h2>}
-          <div onClick={() => setIsCollapsed(!isCollapsed)} style={{ cursor: "pointer" }}>{isCollapsed ? <Menu size={24}/> : <X size={24}/>}</div>
+          <div onClick={() => setIsCollapsed(!isCollapsed)} style={{ cursor: "pointer" }}>{isCollapsed ? <Menu size={24} /> : <X size={24} />}</div>
         </div>
         <nav style={{ flexGrow: 1 }}>
           <div style={getNavItemStyle("/dashboard")} onClick={() => navigate("/dashboard")}><LayoutDashboard size={20} /> {!isCollapsed && "Dashboard"}</div>
@@ -286,7 +286,7 @@ function BookingPage() {
             <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr 1fr", gap: "30px", marginBottom: "40px" }}>
               <div>
                 <label style={{ color: "#001166", fontWeight: "700", marginBottom: "10px", display: "block" }}>Services</label>
-                <select style={{ width: "100%", padding: "12px", borderRadius: "10px", border: "1px solid #ccc" }} value={bookingData.mainService} onChange={(e) => setBookingData({...bookingData, mainService: e.target.value, specificService: ""})}>
+                <select style={{ width: "100%", padding: "12px", borderRadius: "10px", border: "1px solid #ccc" }} value={bookingData.mainService} onChange={(e) => setBookingData({ ...bookingData, mainService: e.target.value, specificService: "" })}>
                   <option value="">Select Service</option>
                   {Object.keys(servicesData).map(s => <option key={s} value={s}>{s}</option>)}
                 </select>
@@ -294,7 +294,7 @@ function BookingPage() {
 
               <div>
                 <label style={{ color: "#001166", fontWeight: "700", marginBottom: "10px", display: "block" }}>Available Dentist</label>
-                <select style={{ width: "100%", padding: "12px", borderRadius: "10px", border: "1px solid #ccc" }} value={bookingData.dentist} onChange={(e) => setBookingData({...bookingData, dentist: e.target.value, date: "", time: ""})}>
+                <select style={{ width: "100%", padding: "12px", borderRadius: "10px", border: "1px solid #ccc" }} value={bookingData.dentist} onChange={(e) => setBookingData({ ...bookingData, dentist: e.target.value, date: "", time: "" })}>
                   <option value="">Select Dentist</option>
                   {filteredDentists.length > 0 ? (
                     filteredDentists.map(d => <option key={d.name} value={d.name} disabled={!d.available}>{d.name}</option>)
@@ -306,7 +306,7 @@ function BookingPage() {
 
               <div>
                 <label style={{ color: "#001166", fontWeight: "700", marginBottom: "10px", display: "block" }}>Available Slot</label>
-                <select style={{ width: "100%", padding: "12px", borderRadius: "10px", border: "1px solid #ccc" }} value={bookingData.date} onChange={(e) => setBookingData({...bookingData, date: e.target.value, time: ""})} disabled={!bookingData.dentist}>
+                <select style={{ width: "100%", padding: "12px", borderRadius: "10px", border: "1px solid #ccc" }} value={bookingData.date} onChange={(e) => setBookingData({ ...bookingData, date: e.target.value, time: "" })} disabled={!bookingData.dentist}>
                   <option value="">Select Date</option>
                   {currentDentist?.schedule.map(date => <option key={date} value={date}>{date}</option>)}
                 </select>
@@ -318,11 +318,13 @@ function BookingPage() {
                 <label style={{ color: "#001166", fontWeight: "700", marginBottom: "10px", display: "block" }}>Choose Type</label>
                 <div style={{ display: "flex", flexDirection: "column", gap: "10px" }}>
                   {bookingData.mainService && servicesData[bookingData.mainService].map(type => (
-                    <button key={type.name} onClick={() => setBookingData({...bookingData, specificService: type.name})}
-                      style={{ padding: "15px", borderRadius: "12px", border: "none", textAlign: "left", cursor: "pointer", fontWeight: "600",
+                    <button key={type.name} onClick={() => setBookingData({ ...bookingData, specificService: type.name })}
+                      style={{
+                        padding: "15px", borderRadius: "12px", border: "none", textAlign: "left", cursor: "pointer", fontWeight: "600",
                         backgroundColor: bookingData.specificService === type.name ? "#001166" : "#f0f2f8",
                         color: bookingData.specificService === type.name ? "white" : "#001166",
-                        display: "flex", justifyContent: "space-between" }}>
+                        display: "flex", justifyContent: "space-between"
+                      }}>
                       <span>{type.name} {type.duration}</span>
                       <span>₱{type.price.toLocaleString()}</span>
                     </button>
@@ -347,10 +349,12 @@ function BookingPage() {
                       const isAvailable = currentDentist?.schedule.includes(dayStr);
                       const isSelected = bookingData.date === dayStr;
                       return (
-                        <div key={i} onClick={() => isAvailable && setBookingData({...bookingData, date: dayStr, time: ""})}
-                          style={{ padding: "8px 0", borderRadius: "6px", fontSize: "12px", cursor: isAvailable ? "pointer" : "default",
+                        <div key={i} onClick={() => isAvailable && setBookingData({ ...bookingData, date: dayStr, time: "" })}
+                          style={{
+                            padding: "8px 0", borderRadius: "6px", fontSize: "12px", cursor: isAvailable ? "pointer" : "default",
                             backgroundColor: isSelected ? "#001166" : (isAvailable ? "#e8ebf5" : "transparent"),
-                            color: isSelected ? "white" : (isAvailable ? "#001166" : "#ccc") }}>
+                            color: isSelected ? "white" : (isAvailable ? "#001166" : "#ccc")
+                          }}>
                           {i + 1}
                         </div>
                       )
@@ -372,13 +376,15 @@ function BookingPage() {
                     const currentMinutes = timeToMinutes(t);
                     const isTaken = bookedSlots.includes(currentMinutes);
                     return (
-                      <button key={t} onClick={() => !isTaken && setBookingData({...bookingData, time: t})}
+                      <button key={t} onClick={() => !isTaken && setBookingData({ ...bookingData, time: t })}
                         disabled={isTaken}
-                        style={{ padding: "12px", borderRadius: "10px", border: "none", fontWeight: "600", 
+                        style={{
+                          padding: "12px", borderRadius: "10px", border: "none", fontWeight: "600",
                           cursor: isTaken ? "not-allowed" : "pointer",
                           backgroundColor: isTaken ? "#ccc" : (bookingData.time === t ? "#001166" : "white"),
                           color: isTaken ? "#888" : (bookingData.time === t ? "white" : "#001166"),
-                          opacity: isTaken ? 0.6 : 1 }}>
+                          opacity: isTaken ? 0.6 : 1
+                        }}>
                         {t} {isTaken && "(Occupied)"}
                       </button>
                     );
@@ -389,7 +395,7 @@ function BookingPage() {
 
             <div style={{ display: "flex", justifyContent: "flex-end", gap: "20px", marginTop: "40px" }}>
               <button onClick={handleDiscard} style={{ padding: "12px 30px", borderRadius: "10px", border: "none", backgroundColor: "#ff4d4d", color: "white", fontWeight: "700", cursor: "pointer" }}>Cancel Booking</button>
-              <button onClick={() => setShowConfirmModal(true)} disabled={!bookingData.time} 
+              <button onClick={() => setShowConfirmModal(true)} disabled={!bookingData.time}
                 style={{ padding: "12px 30px", borderRadius: "10px", border: "none", backgroundColor: "#28a745", color: "white", fontWeight: "700", cursor: "pointer", opacity: !bookingData.time ? 0.6 : 1 }}>
                 Confirm Appointment
               </button>

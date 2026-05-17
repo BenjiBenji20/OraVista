@@ -30,7 +30,7 @@ function AdminSettings() {
   const [currentPassword, setCurrentPassword] = useState('');
   const [newPassword, setNewPassword] = useState('');
   const [confirmPassword, setConfirmPassword] = useState('');
-  
+
   const [showCurrent, setShowCurrent] = useState(false);
   const [showNew, setShowNew] = useState(false);
   const [showConfirm, setShowConfirm] = useState(false);
@@ -47,7 +47,7 @@ function AdminSettings() {
   // 3. API Call: Update Profile
   const handleProfileUpdate = async () => {
     try {
-      const response = await fetch('http://localhost:5000/api/update-profile', {
+      const response = await fetch('https://oravista-server-temporary-754963692967.asia-southeast1.run.app/api/update-profile', {
         method: 'PUT',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
@@ -82,7 +82,7 @@ function AdminSettings() {
       alert("Error: New passwords do not match!");
       return;
     }
-    
+
     // Ensure all security requirements are met
     if (!conditions.length || !conditions.lowercase || !conditions.uppercase || !conditions.number || !conditions.special) {
       alert("Error: Please ensure the new password meets all security requirements.");
@@ -90,7 +90,7 @@ function AdminSettings() {
     }
 
     try {
-      const response = await fetch('http://localhost:5000/api/update-password', {
+      const response = await fetch('https://oravista-server-temporary-754963692967.asia-southeast1.run.app/api/update-password', {
         method: 'PUT',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
@@ -150,68 +150,68 @@ function AdminSettings() {
               {/* ACCOUNT SETTINGS CARD */}
               <div style={styles.formCard}>
                 <div style={styles.cardHeader}>
-                  <User size={18} style={{marginRight: '10px'}} />
+                  <User size={18} style={{ marginRight: '10px' }} />
                   <h3 style={styles.cardTitle}>Account Settings</h3>
                 </div>
-                
+
                 <div style={{ display: 'flex', gap: '15px', marginBottom: '20px' }}>
                   <div style={{ flex: 1 }}>
                     <label style={styles.label}>First Name</label>
-                    <input 
-                      type="text" 
-                      value={profileData.firstName} 
-                      onChange={(e) => setProfileData({...profileData, firstName: e.target.value})}
-                      style={styles.input} 
+                    <input
+                      type="text"
+                      value={profileData.firstName}
+                      onChange={(e) => setProfileData({ ...profileData, firstName: e.target.value })}
+                      style={styles.input}
                     />
                   </div>
                   <div style={{ flex: 1 }}>
                     <label style={styles.label}>Last Name</label>
-                    <input 
-                      type="text" 
-                      value={profileData.lastName} 
-                      onChange={(e) => setProfileData({...profileData, lastName: e.target.value})}
-                      style={styles.input} 
+                    <input
+                      type="text"
+                      value={profileData.lastName}
+                      onChange={(e) => setProfileData({ ...profileData, lastName: e.target.value })}
+                      style={styles.input}
                     />
                   </div>
                 </div>
 
                 <div style={styles.inputGroup}>
                   <label style={styles.label}>Email Address</label>
-                  <input 
-                    type="email" 
-                    value={profileData.email} 
-                    onChange={(e) => setProfileData({...profileData, email: e.target.value})}
-                    style={styles.input} 
+                  <input
+                    type="email"
+                    value={profileData.email}
+                    onChange={(e) => setProfileData({ ...profileData, email: e.target.value })}
+                    style={styles.input}
                   />
                 </div>
                 <div style={styles.inputGroup}>
                   <label style={styles.label}>Phone Number</label>
-                  <input 
-                    type="text" 
-                    value={profileData.phone} 
-                    onChange={(e) => setProfileData({...profileData, phone: e.target.value})}
-                    style={styles.input} 
+                  <input
+                    type="text"
+                    value={profileData.phone}
+                    onChange={(e) => setProfileData({ ...profileData, phone: e.target.value })}
+                    style={styles.input}
                   />
                 </div>
                 <button style={styles.saveBtn} onClick={handleProfileUpdate}>Save Changes</button>
               </div>
 
               {/* SECURITY CARD */}
-              <div style={{...styles.formCard, marginTop: '25px'}}>
+              <div style={{ ...styles.formCard, marginTop: '25px' }}>
                 <div style={styles.cardHeader}>
-                  <Lock size={18} style={{marginRight: '10px'}} />
+                  <Lock size={18} style={{ marginRight: '10px' }} />
                   <h3 style={styles.cardTitle}>Security</h3>
                 </div>
 
                 <div style={styles.inputGroup}>
                   <label style={styles.label}>Current Password</label>
                   <div style={styles.inputWrapper}>
-                    <input 
-                      type={showCurrent ? "text" : "password"} 
-                      placeholder="********" 
+                    <input
+                      type={showCurrent ? "text" : "password"}
+                      placeholder="********"
                       value={currentPassword}
                       onChange={(e) => setCurrentPassword(e.target.value)}
-                      style={styles.input} 
+                      style={styles.input}
                     />
                     <button type="button" onClick={() => setShowCurrent(!showCurrent)} style={styles.eyeBtn}>
                       {showCurrent ? <EyeOff size={18} color="rgba(255,255,255,0.6)" /> : <Eye size={18} color="rgba(255,255,255,0.6)" />}
@@ -222,34 +222,34 @@ function AdminSettings() {
                 <div style={styles.inputGroup}>
                   <label style={styles.label}>New Password</label>
                   <div style={styles.inputWrapper}>
-                    <input 
-                      type={showNew ? "text" : "password"} 
-                      placeholder="********" 
+                    <input
+                      type={showNew ? "text" : "password"}
+                      placeholder="********"
                       value={newPassword}
                       onChange={(e) => setNewPassword(e.target.value)}
-                      style={styles.input} 
+                      style={styles.input}
                     />
                     <button type="button" onClick={() => setShowNew(!showNew)} style={styles.eyeBtn}>
                       {showNew ? <EyeOff size={18} color="rgba(255,255,255,0.6)" /> : <Eye size={18} color="rgba(255,255,255,0.6)" />}
                     </button>
                   </div>
-                  
+
                   {/* Real-time Validation UI */}
                   <div style={styles.validationContainer}>
-                    <p style={{...styles.valItem, color: conditions.lowercase ? '#4ade80' : '#ff4d4d'}}>
-                      {conditions.lowercase ? <CheckCircle2 size={12}/> : <XCircle size={12}/>} At least one lowercase letter
+                    <p style={{ ...styles.valItem, color: conditions.lowercase ? '#4ade80' : '#ff4d4d' }}>
+                      {conditions.lowercase ? <CheckCircle2 size={12} /> : <XCircle size={12} />} At least one lowercase letter
                     </p>
-                    <p style={{...styles.valItem, color: conditions.uppercase ? '#4ade80' : '#ff4d4d'}}>
-                      {conditions.uppercase ? <CheckCircle2 size={12}/> : <XCircle size={12}/>} At least one uppercase letter
+                    <p style={{ ...styles.valItem, color: conditions.uppercase ? '#4ade80' : '#ff4d4d' }}>
+                      {conditions.uppercase ? <CheckCircle2 size={12} /> : <XCircle size={12} />} At least one uppercase letter
                     </p>
-                    <p style={{...styles.valItem, color: conditions.number ? '#4ade80' : '#ff4d4d'}}>
-                      {conditions.number ? <CheckCircle2 size={12}/> : <XCircle size={12}/>} At least one number
+                    <p style={{ ...styles.valItem, color: conditions.number ? '#4ade80' : '#ff4d4d' }}>
+                      {conditions.number ? <CheckCircle2 size={12} /> : <XCircle size={12} />} At least one number
                     </p>
-                    <p style={{...styles.valItem, color: conditions.special ? '#4ade80' : '#ff4d4d'}}>
-                      {conditions.special ? <CheckCircle2 size={12}/> : <XCircle size={12}/>} At least 1 special character
+                    <p style={{ ...styles.valItem, color: conditions.special ? '#4ade80' : '#ff4d4d' }}>
+                      {conditions.special ? <CheckCircle2 size={12} /> : <XCircle size={12} />} At least 1 special character
                     </p>
-                    <p style={{...styles.valItem, color: conditions.length ? '#4ade80' : '#ff4d4d'}}>
-                      {conditions.length ? <CheckCircle2 size={12}/> : <XCircle size={12}/>} 8 characters minimum
+                    <p style={{ ...styles.valItem, color: conditions.length ? '#4ade80' : '#ff4d4d' }}>
+                      {conditions.length ? <CheckCircle2 size={12} /> : <XCircle size={12} />} 8 characters minimum
                     </p>
                   </div>
                 </div>
@@ -257,12 +257,12 @@ function AdminSettings() {
                 <div style={styles.inputGroup}>
                   <label style={styles.label}>Confirm New Password</label>
                   <div style={styles.inputWrapper}>
-                    <input 
-                      type={showConfirm ? "text" : "password"} 
-                      placeholder="********" 
+                    <input
+                      type={showConfirm ? "text" : "password"}
+                      placeholder="********"
                       value={confirmPassword}
                       onChange={(e) => setConfirmPassword(e.target.value)}
-                      style={styles.input} 
+                      style={styles.input}
                     />
                     <button type="button" onClick={() => setShowConfirm(!showConfirm)} style={styles.eyeBtn}>
                       {showConfirm ? <EyeOff size={18} color="rgba(255,255,255,0.6)" /> : <Eye size={18} color="rgba(255,255,255,0.6)" />}
@@ -279,10 +279,10 @@ function AdminSettings() {
               {/* ROLE-BASED ACCESS CARD */}
               <div style={styles.infoCard}>
                 <div style={styles.cardHeader}>
-                  <Shield size={18} style={{marginRight: '10px'}} />
+                  <Shield size={18} style={{ marginRight: '10px' }} />
                   <h3 style={styles.cardTitle}>Role-Based Access</h3>
                 </div>
-                
+
                 <div style={styles.roleBoxActive}>
                   <div style={styles.roleHeader}>
                     <Briefcase size={16} />
@@ -297,19 +297,19 @@ function AdminSettings() {
                 </div>
 
                 <div style={styles.roleBoxInactive}>
-                   <p style={styles.roleNameSmall}>Dentist</p>
-                   <p style={styles.roleDesc}>Clinical tools, Patient records, Appointments</p>
+                  <p style={styles.roleNameSmall}>Dentist</p>
+                  <p style={styles.roleDesc}>Clinical tools, Patient records, Appointments</p>
                 </div>
 
                 <div style={styles.roleBoxInactive}>
-                   <p style={styles.roleNameSmall}>Receptionist/Staff</p>
-                   <p style={styles.roleDesc}>Billing, Scheduling, Patient registration</p>
+                  <p style={styles.roleNameSmall}>Receptionist/Staff</p>
+                  <p style={styles.roleDesc}>Billing, Scheduling, Patient registration</p>
                 </div>
               </div>
 
               {/* CURRENT SESSION CARD */}
-              <div style={{...styles.infoCard, marginTop: '25px'}}>
-                <h3 style={{...styles.cardTitle, marginBottom: '15px'}}>Current Session</h3>
+              <div style={{ ...styles.infoCard, marginTop: '25px' }}>
+                <h3 style={{ ...styles.cardTitle, marginBottom: '15px' }}>Current Session</h3>
                 <div style={styles.sessionItem}><p style={styles.sessionLabel}>Role</p><p style={styles.sessionVal}>Clinic Owner</p></div>
                 <div style={styles.sessionItem}><p style={styles.sessionLabel}>Last Login</p><p style={styles.sessionVal}>Active Now</p></div>
                 <div style={styles.sessionItem}><p style={styles.sessionLabel}>IP Address</p><p style={styles.sessionVal}>192.168.1.109</p></div>
@@ -343,7 +343,7 @@ const styles = {
   formCard: { background: '#001166', borderRadius: '15px', padding: '25px', color: 'white' },
   cardHeader: { display: 'flex', alignItems: 'center', marginBottom: '20px' },
   cardTitle: { margin: 0, fontSize: '16px', fontWeight: 'bold' },
-  
+
   inputGroup: { marginBottom: '20px' },
   label: { display: 'block', fontSize: '12px', marginBottom: '8px', opacity: 0.8 },
   inputWrapper: { position: 'relative', display: 'flex', alignItems: 'center' },
@@ -359,7 +359,7 @@ const styles = {
   roleHeader: { display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '10px' },
   roleName: { margin: 0, fontWeight: 'bold', fontSize: '14px' },
   roleList: { margin: 0, paddingLeft: '20px', fontSize: '11px', lineHeight: '1.8' },
-  
+
   roleBoxInactive: { background: 'rgba(255,255,255,0.05)', borderRadius: '12px', padding: '15px', marginBottom: '10px' },
   roleNameSmall: { margin: '0 0 5px 0', fontSize: '13px', fontWeight: 'bold' },
   roleDesc: { margin: 0, fontSize: '11px', opacity: 0.6 },

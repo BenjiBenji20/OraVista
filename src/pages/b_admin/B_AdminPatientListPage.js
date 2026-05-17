@@ -6,10 +6,10 @@ import { Search, Bell, MessageSquare, User, Eye, Edit, Plus, X, FileText, Extern
 function AdminPatientList() {
   const navigate = useNavigate();
   const [patients, setPatients] = useState([]);
-  const [filteredPatients, setFilteredPatients] = useState([]); 
+  const [filteredPatients, setFilteredPatients] = useState([]);
   const [loading, setLoading] = useState(true);
-  const [searchQuery, setSearchQuery] = useState(""); 
-  
+  const [searchQuery, setSearchQuery] = useState("");
+
   // NEW: Modal and Records states
   const [selectedPatient, setSelectedPatient] = useState(null);
   const [patientRecords, setPatientRecords] = useState([]);
@@ -18,9 +18,9 @@ function AdminPatientList() {
   useEffect(() => {
     const fetchPatients = async () => {
       try {
-        const response = await fetch('http://localhost:5000/api/patients');
+        const response = await fetch('https://oravista-server-temporary-754963692967.asia-southeast1.run.app/api/patients');
         const data = await response.json();
-        
+
         if (Array.isArray(data)) {
           const patientData = data.map((patient) => ({
             dbId: patient.id, // Database ID for API calls[cite: 6]
@@ -31,7 +31,7 @@ function AdminPatientList() {
             lastVisit: patient.lastVisit ? new Date(patient.lastVisit).toLocaleDateString() : 'No Visits'
           }));
           setPatients(patientData);
-          setFilteredPatients(patientData); 
+          setFilteredPatients(patientData);
         }
       } catch (err) {
         console.error("Error fetching patients:", err);
@@ -58,7 +58,7 @@ function AdminPatientList() {
     setSelectedPatient(patient);
     setIsModalOpen(true);
     try {
-      const response = await fetch(`http://localhost:5000/api/patient-records/${patient.dbId}`);
+      const response = await fetch(`https://oravista-server-temporary-754963692967.asia-southeast1.run.app/api/patient-records/${patient.dbId}`);
       if (response.ok) {
         const data = await response.json();
         setPatientRecords(data);
@@ -96,10 +96,10 @@ function AdminPatientList() {
                     <tbody>
                       {patientRecords.map((rec) => (
                         <tr key={rec.id}>
-                          <td style={styles.recordTd}><FileText size={16} style={{marginRight: '8px'}}/>{rec.file_name}</td>
+                          <td style={styles.recordTd}><FileText size={16} style={{ marginRight: '8px' }} />{rec.file_name}</td>
                           <td style={styles.recordTd}>{new Date(rec.upload_date).toLocaleDateString()}</td>
                           <td style={styles.recordTd}>
-                            <a href={`http://localhost:5000/${rec.file_path}`} target="_blank" rel="noreferrer" style={styles.viewLink}>
+                            <a href={`https://oravista-server-temporary-754963692967.asia-southeast1.run.app/${rec.file_path}`} target="_blank" rel="noreferrer" style={styles.viewLink}>
                               View <ExternalLink size={14} />
                             </a>
                           </td>
@@ -108,7 +108,7 @@ function AdminPatientList() {
                     </tbody>
                   </table>
                 ) : (
-                  <p style={{textAlign: 'center', color: '#666', padding: '20px'}}>No uploaded records found for this patient.</p>
+                  <p style={{ textAlign: 'center', color: '#666', padding: '20px' }}>No uploaded records found for this patient.</p>
                 )}
               </div>
             </div>
@@ -144,12 +144,12 @@ function AdminPatientList() {
           <div style={styles.tableControls}>
             <div style={styles.innerSearch}>
               <Search size={16} color="#999" style={styles.innerSearchIcon} />
-              <input 
-                type="text" 
-                placeholder="Search by name, ID, or contact..." 
+              <input
+                type="text"
+                placeholder="Search by name, ID, or contact..."
                 style={styles.innerSearchInput}
                 value={searchQuery}
-                onChange={(e) => setSearchQuery(e.target.value)} 
+                onChange={(e) => setSearchQuery(e.target.value)}
               />
             </div>
             <button style={styles.addButton}>
@@ -175,8 +175,8 @@ function AdminPatientList() {
                 </thead>
                 <tbody>
                   {filteredPatients.length > 0 ? filteredPatients.map((patient) => (
-                    <tr 
-                      key={patient.dbId} 
+                    <tr
+                      key={patient.dbId}
                       style={styles.tbodyRow}
                       onClick={() => handleRowClick(patient.dbId)}
                     >
@@ -199,7 +199,7 @@ function AdminPatientList() {
                     </tr>
                   )) : (
                     <tr>
-                       <td colSpan="6" style={{ padding: '20px', textAlign: 'center', color: 'white' }}>No results found for "{searchQuery}"</td>
+                      <td colSpan="6" style={{ padding: '20px', textAlign: 'center', color: 'white' }}>No results found for "{searchQuery}"</td>
                     </tr>
                   )}
                 </tbody>
@@ -236,7 +236,7 @@ const styles = {
   table: { width: '100%', borderCollapse: 'collapse', color: 'white' },
   th: { textAlign: 'left', padding: '20px', borderBottom: '1px solid rgba(255,255,255,0.1)', fontSize: '14px', fontWeight: '600', opacity: 0.8 },
   td: { padding: '20px', borderBottom: '1px solid rgba(255,255,255,0.05)', fontSize: '14px' },
-  tbodyRow: { borderBottom: '1px solid rgba(255,255,255,0.05)', cursor: 'pointer', transition: 'background 0.2s' }, 
+  tbodyRow: { borderBottom: '1px solid rgba(255,255,255,0.05)', cursor: 'pointer', transition: 'background 0.2s' },
   nameCell: { display: 'flex', alignItems: 'center', gap: '12px' },
   nameAvatar: { width: '32px', height: '32px', backgroundColor: 'white', borderRadius: '50%', opacity: 0.9 },
   actionButtons: { display: 'flex', gap: '15px' },
