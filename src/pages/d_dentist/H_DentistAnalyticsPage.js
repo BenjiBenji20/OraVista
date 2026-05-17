@@ -1,7 +1,7 @@
 import React, { useState, useEffect, useCallback } from 'react';
 import AdminLayout from '../../components/AdminLayout';
 import {
-  Search, Bell, MessageSquare, User,
+  Search, Bell, MessageSquare, User, X,
   TrendingUp, ChevronRight, BrainCircuit,
   CalendarX, ActivitySquare, Stethoscope, Users
 } from 'lucide-react';
@@ -11,6 +11,10 @@ function DentistAnalyticsPage() {
   // --- DYNAMIC STATE (Requirements 1 & 3) ---
   const [highRiskQueue, setHighRiskQueue] = useState([]);
   const [isQueueLoading, setIsQueueLoading] = useState(true);
+  const [isModalOpen, setIsModalOpen] = useState(false);
+  const [modalData, setModalData] = useState(null);
+  const [modalLoading, setModalLoading] = useState(false);
+  const [activePatient, setActivePatient] = useState(null);
 
   // --- HARDCODED DEMO DATA (Requirements 2, 4, 5) ---
   const [noShowPredictions] = useState([
@@ -29,12 +33,11 @@ function DentistAnalyticsPage() {
     try {
       // Get the logged-in dentist info from localStorage
       const user = JSON.parse(localStorage.getItem("user"));
-      const dentistId = user?.id || 93; // Fallback for testing
-      const branch = user?.branch || "Main Branch";
+      const dentistId = user?.dentistId || 93; // Fallback for testing
 
       // GET request to our new dynamic endpoint
       const response = await fetch(
-        `http://localhost:8080/api/dentist/dashboard/${dentistId}?branch=${encodeURIComponent(branch)}`
+        `http://localhost:8080/api/dentist/dashboard/predict-risk-queue/${dentistId}`
       );
 
       if (response.ok) {
@@ -48,6 +51,39 @@ function DentistAnalyticsPage() {
       setIsQueueLoading(false);
     }
   }, []);
+
+  // -- REVIEW RECORD FETCH --
+  const handleReviewRecord = async (patient) => {
+    setActivePatient(patient);
+    setIsModalOpen(true);
+    setModalLoading(true);
+    setModalData(null);
+
+    try {
+      // FIX: Robust ID extraction. 
+      // We cast to String first to prevent .split() from crashing on raw integers.
+      let pid = String(patient.patient_id || patient.id || "");
+      let rawId = pid;
+
+      if (pid.includes('-')) {
+        // Handle "PT-10091" -> ["PT", "10091"] -> "91"
+        const parts = pid.split('-');
+        if (parts.length > 1) {
+          rawId = parts[1].substring(2);
+        }
+      }
+
+      const response = await fetch(`http://localhost:8080/api/patient/get/${rawId}/analytics`);
+      if (response.ok) {
+        const data = await response.json();
+        setModalData(data);
+      }
+    } catch (error) {
+      console.error("Error fetching patient analytics:", error);
+    } finally {
+      setModalLoading(false);
+    }
+  };
 
   useEffect(() => {
     fetchRiskQueue();
@@ -142,7 +178,12 @@ function DentistAnalyticsPage() {
                                 <span style={styles.actionText}>{patient.action}</span>
                               </div>
                             </div>
-                            <button style={styles.reviewBtn}>Review Record</button>
+                            <button
+                              style={styles.reviewBtn}
+                              onClick={() => handleReviewRecord(patient)}
+                            >
+                              Review Record
+                            </button>
                           </div>
                         </div>
                       ))
@@ -207,6 +248,64 @@ function DentistAnalyticsPage() {
             </div>
           </div>
         </div>
+
+        {isModalOpen && (
+          <div style={styles.modalOverlay}>
+            <div style={styles.modalContent}>
+              {/* Header */}
+              <div style={styles.modalHeader}>
+                <div>
+                  <h2 style={{ margin: 0, color: "#001166" }}>{activePatient?.name}</h2>
+                  <p style={{ margin: 0, color: "#666", fontSize: "14px" }}>
+                    Current Path: <strong>{activePatient?.issue}</strong>
+                  </p>
+                </div>
+                <X
+                  size={24}
+                  style={{ cursor: "pointer", color: "#666" }}
+                  onClick={() => setIsModalOpen(false)}
+                />
+              </div>
+
+              {/* Body */}
+              <div style={styles.modalBody}>
+                {modalLoading ? (
+                  <p style={{ textAlign: "center", padding: "40px" }}>Loading Clinical Records...</p>
+                ) : (
+                  <table style={{ width: "100%", borderCollapse: "collapse", textAlign: "left" }}>
+                    <thead>
+                      <tr style={{ backgroundColor: "#001166", color: "white" }}>
+                        <th style={{ padding: "12px 15px" }}>Indicator</th>
+                        <th style={{ padding: "12px 15px" }}>Value</th>
+                      </tr>
+                    </thead>
+                    <tbody>
+                      {modalData && Object.keys(modalData).length > 0 ? (
+                        Object.entries(modalData).map(([key, value], index) => {
+                          if (typeof value !== "string" && typeof value !== "number" && typeof value !== "boolean") return null;
+                          const label = key.replace(/_/g, " ").replace(/\b\w/g, l => l.toUpperCase());
+                          return (
+                            <tr key={key} style={{ borderBottom: index < Object.keys(modalData).length - 1 ? "1px solid #eee" : "none" }}>
+                              <td style={{ padding: "12px 15px", fontWeight: "600", color: "#333" }}>{label}</td>
+                              <td style={{ padding: "12px 15px", color: "#666" }}>{String(value)}</td>
+                            </tr>
+                          );
+                        })
+                      ) : (
+                        <tr>
+                          <td colSpan="2" style={{ padding: "15px", textAlign: "center", color: "#666" }}>
+                            Data Not Available
+                          </td>
+                        </tr>
+                      )}
+                    </tbody>
+                  </table>
+                )}
+              </div>
+            </div>
+          </div>
+        )}
+
       </div>
     </AdminLayout>
   );
@@ -282,6 +381,39 @@ const styles = {
   actionLabel: { display: 'block', fontSize: '11px', color: '#4f46e5', fontWeight: '700', textTransform: 'uppercase', marginBottom: '2px' },
   actionText: { display: 'block', fontSize: '13px', color: '#333', fontWeight: '500' },
   reviewBtn: { backgroundColor: '#001166', color: 'white', border: 'none', padding: '10px 20px', borderRadius: '8px', fontSize: '12px', fontWeight: '600', cursor: 'pointer' },
+
+  modalOverlay: {
+    position: "fixed",
+    top: 0,
+    left: 0,
+    right: 0,
+    bottom: 0,
+    backgroundColor: "rgba(0,0,0,0.5)",
+    display: "flex",
+    justifyContent: "center",
+    alignItems: "center",
+    zIndex: 2000,
+  },
+  modalContent: {
+    backgroundColor: "white",
+    padding: "30px",
+    borderRadius: "20px",
+    width: "600px",
+    maxHeight: "80vh",
+    overflowY: "auto",
+    boxShadow: "0 10px 25px rgba(0,0,0,0.2)",
+  },
+  modalHeader: {
+    display: "flex",
+    justifyContent: "space-between",
+    alignItems: "flex-start",
+    marginBottom: "20px",
+    borderBottom: "1px solid #eee",
+    paddingBottom: "15px",
+  },
+  modalBody: {
+    marginTop: "10px",
+  },
 };
 
 export default DentistAnalyticsPage;
