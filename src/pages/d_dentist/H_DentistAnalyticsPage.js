@@ -8,23 +8,23 @@ import {
 
 
 function DentistAnalyticsPage() {
-  // --- DYNAMIC STATE (Requirements 1 & 3) ---
+  // --- DYNAMIC STATE (Requirements 1, 2 & 3) ---
   const [highRiskQueue, setHighRiskQueue] = useState([]);
   const [isQueueLoading, setIsQueueLoading] = useState(true);
+  const [treatmentOutcomes, setTreatmentOutcomes] = useState([]);
+  const [isOutcomesLoading, setIsOutcomesLoading] = useState(true);
+  const [currentRiskIndex, setCurrentRiskIndex] = useState(0);
+  const [currentOutcomeIndex, setCurrentOutcomeIndex] = useState(0);
+  
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [modalData, setModalData] = useState(null);
   const [modalLoading, setModalLoading] = useState(false);
   const [activePatient, setActivePatient] = useState(null);
 
-  // --- HARDCODED DEMO DATA (Requirements 2, 4, 5) ---
+  // --- HARDCODED DEMO DATA (Requirements 4, 5) ---
   const [noShowPredictions] = useState([
     { time: 'Tomorrow, 9:00 AM', patient: 'Elena Rodriguez', probability: 85, reason: 'Missed last 2 appts, High travel distance', status: 'Reminder Sent' },
     { time: 'Tomorrow, 2:30 PM', patient: 'David Chen', probability: 72, reason: 'Historical Thursday afternoon drop-off', status: 'Pending Call' }
-  ]);
-
-  const [outcomePredictions] = useState([
-    { procedure: 'Root Canal Therapy (Molar)', successRate: 94, factors: 'Patient age, lack of smoking history' },
-    { procedure: 'Dental Implant (Anterior)', successRate: 82, factors: 'Mild bone loss detected, requires grafting' }
   ]);
 
   // --- DYNAMIC FETCH LOGIC ---
@@ -42,13 +42,48 @@ function DentistAnalyticsPage() {
 
       if (response.ok) {
         const data = await response.json();
-        // The API returns { dentist_id: int, patients: [] }
         setHighRiskQueue(data.patients);
       }
     } catch (error) {
       console.error("Failed to fetch dentist dashboard analytics:", error);
     } finally {
       setIsQueueLoading(false);
+    }
+  }, []);
+
+  const fetchTreatmentOutcomes = useCallback(async (patient) => {
+    if (!patient) return;
+    setIsOutcomesLoading(true);
+    try {
+      let pid = String(patient.patient_id || patient.id || "");
+      let rawId = pid;
+      if (pid.includes('-')) {
+        const parts = pid.split('-');
+        if (parts.length > 1) {
+          rawId = parts[1].substring(2);
+        }
+      }
+
+      // Fetch the analytics data just like Review Record
+      const analyticsRes = await fetch(`http://localhost:8080/api/patient/get/${rawId}/analytics`);
+      if (!analyticsRes.ok) throw new Error("Failed to fetch analytics");
+      const analyticsData = await analyticsRes.json();
+
+      // Send the POST request to generate the treatment outcome prediction
+      const predictRes = await fetch("http://localhost:8080/api/dentist/dashboard/predict-treatment-outcome", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(analyticsData)
+      });
+      
+      if (predictRes.ok) {
+        const data = await predictRes.json();
+        setTreatmentOutcomes([data]);
+      }
+    } catch (error) {
+      console.error("Failed to generate treatment outcome prediction:", error);
+    } finally {
+      setIsOutcomesLoading(false);
     }
   }, []);
 
@@ -60,13 +95,10 @@ function DentistAnalyticsPage() {
     setModalData(null);
 
     try {
-      // FIX: Robust ID extraction. 
-      // We cast to String first to prevent .split() from crashing on raw integers.
       let pid = String(patient.patient_id || patient.id || "");
       let rawId = pid;
 
       if (pid.includes('-')) {
-        // Handle "PT-10091" -> ["PT", "10091"] -> "91"
         const parts = pid.split('-');
         if (parts.length > 1) {
           rawId = parts[1].substring(2);
@@ -85,9 +117,34 @@ function DentistAnalyticsPage() {
     }
   };
 
+  const handleReviewOutcome = async (outcome) => {
+    setActivePatient({ name: `Prediction for Patient ${outcome.patient_id}`, issue: outcome.procedure_name });
+    setIsModalOpen(true);
+    setModalLoading(true);
+    setModalData(null);
+
+    try {
+      const response = await fetch(`http://localhost:8080/api/dentist/dashboard/${outcome.patient_id}/predict-treatment-outcome/${outcome.id}`);
+      if (response.ok) {
+        const data = await response.json();
+        setModalData(data);
+      }
+    } catch (error) {
+      console.error("Error fetching outcome analytics:", error);
+    } finally {
+      setModalLoading(false);
+    }
+  };
+
   useEffect(() => {
     fetchRiskQueue();
   }, [fetchRiskQueue]);
+
+  useEffect(() => {
+    if (highRiskQueue.length > 0 && highRiskQueue[currentRiskIndex]) {
+      fetchTreatmentOutcomes(highRiskQueue[currentRiskIndex]);
+    }
+  }, [highRiskQueue, currentRiskIndex, fetchTreatmentOutcomes]);
 
   return (
     <AdminLayout>
@@ -107,48 +164,42 @@ function DentistAnalyticsPage() {
           </div>
 
           <div style={styles.mainLayout}>
-            {/* ROW 1: Clinical & Patient Specific Group */}
-            <div style={styles.sectionContainer}>
-              <h2 style={styles.sectionHeading}>
-                <Stethoscope size={24} color="#001166" />
-                Clinical & Patient Specific Insights
-              </h2>
-
-              <div style={styles.rowGridClinical}>
-                {/* 2. Treatment Outcome Predictions (Hardcoded for now) */}
-                <div style={styles.insightsCard}>
-                  <div style={{ display: 'flex', alignItems: 'center', gap: '10px', marginBottom: '20px' }}>
-                    <ActivitySquare size={20} color="#60a5fa" />
-                    <h3 style={styles.cardTitleWhite}>2. Treatment Outcome Predictions</h3>
-                  </div>
-                  {outcomePredictions.map((outcome, idx) => (
-                    <div key={idx} style={styles.insightItem}>
-                      <div style={styles.scoreCircleSmall}>{outcome.successRate}%</div>
-                      <div>
-                        <h4 style={styles.insightTitle}>{outcome.procedure}</h4>
-                        <p style={styles.insightText}><strong>Key Factors:</strong> {outcome.factors}</p>
-                      </div>
-                    </div>
-                  ))}
-                </div>
-
-                {/* 1 & 3. Predictive Risk Queue (DYNAMIC) */}
-                <div style={styles.queueCard}>
-                  <div style={styles.cardHeader}>
-                    <h3 style={styles.cardTitleBlack}>1 & 3. Predictive Risk Queue</h3>
+            {/* LEFT COLUMN: Predictive Risk & Treatment Outcomes */}
+            <div style={{ display: 'flex', flexDirection: 'column', gap: '30px' }}>
+              
+              {/* 1 & 3. Predictive Risk Queue (DYNAMIC) */}
+              <div style={styles.queueCard}>
+                <div style={styles.cardHeader}>
+                  <h3 style={styles.cardTitleBlack}>1 & 3. Predictive Risk Queue</h3>
+                  <div style={{ display: 'flex', alignItems: 'center', gap: '15px' }}>
                     <span style={styles.viewAll} onClick={fetchRiskQueue}>
                       Refresh <ChevronRight size={14} />
                     </span>
+                    <div style={{ display: 'flex', gap: '5px' }}>
+                      <button 
+                        disabled={highRiskQueue.length === 0 || currentRiskIndex === 0}
+                        onClick={() => setCurrentRiskIndex(i => i - 1)}
+                        style={{...styles.navButton, opacity: (highRiskQueue.length === 0 || currentRiskIndex === 0) ? 0.5 : 1}}
+                      >Back</button>
+                      <button 
+                        disabled={highRiskQueue.length === 0 || currentRiskIndex >= highRiskQueue.length - 1}
+                        onClick={() => setCurrentRiskIndex(i => i + 1)}
+                        style={{...styles.navButton, opacity: (highRiskQueue.length === 0 || currentRiskIndex >= highRiskQueue.length - 1) ? 0.5 : 1}}
+                      >Next</button>
+                    </div>
                   </div>
+                </div>
 
-                  <p style={styles.queueDesc}>High Risk Scores and severe disease progression forecasts in your branch.</p>
+                <p style={styles.queueDesc}>High Risk Scores and severe disease progression forecasts in your branch.</p>
 
-                  <div style={styles.queueList}>
-                    {isQueueLoading ? (
-                      <p style={{ textAlign: 'center', color: '#666', marginTop: '40px' }}>Loading Risk Queue...</p>
-                    ) : highRiskQueue.length > 0 ? (
-                      highRiskQueue.map((patient, index) => (
-                        <div key={index} style={styles.queueItem}>
+                <div style={styles.queueList}>
+                  {isQueueLoading ? (
+                    <p style={{ textAlign: 'center', color: '#666', marginTop: '40px' }}>Loading Risk Queue...</p>
+                  ) : highRiskQueue.length > 0 ? (
+                    (() => {
+                      const patient = highRiskQueue[currentRiskIndex];
+                      return (
+                        <div style={styles.queueItem}>
                           <div style={styles.queueTop}>
                             <div style={styles.queueInfo}>
                               <div style={styles.queueAvatar}><User size={16} color="#001166" /></div>
@@ -186,65 +237,102 @@ function DentistAnalyticsPage() {
                             </button>
                           </div>
                         </div>
-                      ))
-                    ) : (
-                      <p style={{ textAlign: 'center', color: '#666', marginTop: '40px' }}>No high-risk patients detected in your branch.</p>
-                    )}
-                  </div>
+                      );
+                    })()
+                  ) : (
+                    <p style={{ textAlign: 'center', color: '#666', marginTop: '40px' }}>No high-risk patients detected in your branch.</p>
+                  )}
                 </div>
               </div>
-            </div>
 
-            {/* ROW 2: Clinic Operations & Population Group */}
-            <div style={styles.sectionContainer}>
-              <h2 style={styles.sectionHeading}>
-                <Users size={24} color="#001166" />
-                Clinic Operations & Population
-              </h2>
-
-              <div style={styles.rowGridOperations}>
-                {/* Requirement 4: Risk Stratification */}
-                <div style={styles.whiteCard}>
-                  <h3 style={styles.cardTitleBlack}>4. Clinic Risk Stratification</h3>
-                  <div style={styles.barChartContainer}>
-                    <div style={styles.barRow}>
-                      <span style={styles.barLabel}>Low Risk (70%) - Routine Care</span>
-                      <div style={styles.barTrack}><div style={{ ...styles.barFill, width: '70%', background: '#10b981' }}></div></div>
-                    </div>
-                    <div style={styles.barRow}>
-                      <span style={styles.barLabel}>Medium Risk (20%) - Monitor</span>
-                      <div style={styles.barTrack}><div style={{ ...styles.barFill, width: '20%', background: '#f59e0b' }}></div></div>
-                    </div>
-                    <div style={styles.barRow}>
-                      <span style={styles.barLabel}>High Risk (10%) - Urgent Intervention</span>
-                      <div style={styles.barTrack}><div style={{ ...styles.barFill, width: '10%', background: '#ef4444' }}></div></div>
-                    </div>
+              {/* 2. Treatment Outcome Predictions (DYNAMIC) */}
+              <div 
+                style={{ ...styles.insightsCard, display: 'flex', flexDirection: 'column', cursor: 'pointer', transition: 'transform 0.2s' }}
+                onClick={() => {
+                  if (treatmentOutcomes && treatmentOutcomes.length > 0) {
+                    handleReviewOutcome(treatmentOutcomes[0]);
+                  }
+                }}
+              >
+                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '20px' }}>
+                  <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
+                    <ActivitySquare size={20} color="#60a5fa" />
+                    <h3 style={styles.cardTitleWhite}>2. Treatment Outcome Predictions</h3>
                   </div>
                 </div>
-
-                {/* Requirement 5: Patients No Show Prediction */}
-                <div style={{ ...styles.whiteCard, borderLeft: '4px solid #f59e0b' }}>
-                  <div style={{ display: 'flex', alignItems: 'center', gap: '10px', marginBottom: '20px' }}>
-                    <CalendarX size={20} color="#f59e0b" />
-                    <h3 style={styles.cardTitleBlack}>5. No-Show Flight Risk</h3>
-                  </div>
-                  <div style={{ display: 'flex', flexDirection: 'column', gap: '15px' }}>
-                    {noShowPredictions.map((appt, idx) => (
-                      <div key={idx} style={styles.noShowItem}>
-                        <div style={{ flex: 1 }}>
-                          <p style={styles.noShowName}>{appt.patient}</p>
-                          <p style={styles.noShowTime}>{appt.time}</p>
-                          <p style={styles.noShowReason}><strong>AI Flag:</strong> {appt.reason}</p>
-                        </div>
-                        <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'flex-end', gap: '10px' }}>
-                          <span style={styles.probBadge}>{appt.probability}% Risk</span>
-                          <button style={styles.reminderBtn}>{appt.status === 'Reminder Sent' ? '✓ Reminded' : 'Send Automated SMS'}</button>
+                
+                {isOutcomesLoading ? (
+                  <p style={{ color: 'white', textAlign: 'center', margin: 'auto' }}>Loading predictions...</p>
+                ) : treatmentOutcomes && treatmentOutcomes.length > 0 ? (
+                  (() => {
+                    const outcome = treatmentOutcomes[0];
+                    return (
+                      <div style={{ ...styles.insightItem, flexGrow: 1, margin: 0, padding: 0, background: 'transparent' }}>
+                        <div style={styles.scoreCircleSmall}>{outcome.success_probability}%</div>
+                        <div>
+                          <h4 style={styles.insightTitle}>{outcome.procedure_name}</h4>
+                          <p style={styles.insightText}><strong>Key Factors:</strong> {outcome.key_factors}</p>
+                          <p style={{ ...styles.insightText, fontSize: '11px', marginTop: '5px', color: '#93c5fd' }}>
+                          </p>
                         </div>
                       </div>
-                    ))}
+                    );
+                  })()
+                ) : (
+                  <p style={{ color: 'white', textAlign: 'center', margin: 'auto' }}>No outcomes available.</p>
+                )}
+              </div>
+
+            </div>
+
+            {/* RIGHT COLUMN: Clinic Operations & Population Group */}
+            <div style={{ display: 'flex', flexDirection: 'column', gap: '30px' }}>
+              
+              {/* 4. Clinic Risk Stratification */}
+              <div style={styles.whiteCard}>
+                <div style={{ display: 'flex', alignItems: 'center', gap: '10px', marginBottom: '20px' }}>
+                  <Users size={20} color="#001166" />
+                  <h3 style={styles.cardTitleBlack}>4. Clinic Risk Stratification</h3>
+                </div>
+                <div style={styles.barChartContainer}>
+                  <div style={styles.barRow}>
+                    <span style={styles.barLabel}>Low Risk (70%) - Routine Care</span>
+                    <div style={styles.barTrack}><div style={{ ...styles.barFill, width: '70%', background: '#10b981' }}></div></div>
+                  </div>
+                  <div style={styles.barRow}>
+                    <span style={styles.barLabel}>Medium Risk (20%) - Monitor</span>
+                    <div style={styles.barTrack}><div style={{ ...styles.barFill, width: '20%', background: '#f59e0b' }}></div></div>
+                  </div>
+                  <div style={styles.barRow}>
+                    <span style={styles.barLabel}>High Risk (10%) - Urgent Intervention</span>
+                    <div style={styles.barTrack}><div style={{ ...styles.barFill, width: '10%', background: '#ef4444' }}></div></div>
                   </div>
                 </div>
               </div>
+
+              {/* 5. No-Show Flight Risk */}
+              <div style={{ ...styles.whiteCard, borderLeft: '4px solid #f59e0b' }}>
+                <div style={{ display: 'flex', alignItems: 'center', gap: '10px', marginBottom: '20px' }}>
+                  <CalendarX size={20} color="#f59e0b" />
+                  <h3 style={styles.cardTitleBlack}>5. No-Show Flight Risk</h3>
+                </div>
+                <div style={{ display: 'flex', flexDirection: 'column', gap: '15px' }}>
+                  {noShowPredictions.map((appt, idx) => (
+                    <div key={idx} style={styles.noShowItem}>
+                      <div style={{ flex: 1 }}>
+                        <p style={styles.noShowName}>{appt.patient}</p>
+                        <p style={styles.noShowTime}>{appt.time}</p>
+                        <p style={styles.noShowReason}><strong>AI Flag:</strong> {appt.reason}</p>
+                      </div>
+                      <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'flex-end', gap: '10px' }}>
+                        <span style={styles.probBadge}>{appt.probability}% Risk</span>
+                        <button style={styles.reminderBtn}>{appt.status === 'Reminder Sent' ? '✓ Reminded' : 'Send Automated SMS'}</button>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              </div>
+
             </div>
           </div>
         </div>
@@ -329,11 +417,12 @@ const styles = {
   pageSubtitle: { fontSize: '14px', color: '#666' },
   aiBadge: { backgroundColor: '#e0e7ff', color: '#4f46e5', padding: '10px 20px', borderRadius: '30px', fontWeight: '700', fontSize: '14px', display: 'flex', alignItems: 'center', gap: '8px', border: '1px solid #c7d2fe' },
 
-  mainLayout: { display: 'flex', flexDirection: 'column', gap: '40px' },
-  sectionContainer: { display: 'flex', flexDirection: 'column', gap: '20px' },
-  sectionHeading: { fontSize: '20px', fontWeight: '800', color: '#001166', margin: 0, display: 'flex', alignItems: 'center', gap: '10px', borderBottom: '2px solid #e0e7ff', paddingBottom: '10px' },
+  mainLayout: { display: 'grid', gridTemplateColumns: '1.5fr 1fr', gap: '30px' },
+  sectionContainer: { display: 'flex', flexDirection: 'column', gap: '20px', margin: "20px" },
+  sectionHeading: { fontSize: '20px', fontWeight: '800', color: '#001166', marginTop: "20px", display: 'flex', alignItems: 'center', gap: '10px', borderBottom: '2px solid #e0e7ff', paddingBottom: '10px' },
   rowGridClinical: { display: 'grid', gridTemplateColumns: '1fr 1.5fr', gap: '30px' },
   rowGridOperations: { display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '30px' },
+  navButton: { padding: '5px 12px', borderRadius: '5px', border: '1px solid #e0e7ff', background: 'white', color: '#001166', cursor: 'pointer', fontSize: '12px', fontWeight: 'bold' },
 
   whiteCard: { background: 'white', borderRadius: '20px', padding: '25px', boxShadow: '0 4px 15px rgba(0,0,0,0.03)', height: '100%' },
   cardTitleBlack: { fontSize: '18px', fontWeight: '700', color: '#001166', margin: 0 },
@@ -358,7 +447,7 @@ const styles = {
   probBadge: { backgroundColor: '#fef2f2', color: '#dc2626', padding: '4px 10px', borderRadius: '20px', fontSize: '12px', fontWeight: '700', border: '1px solid #fecaca' },
   reminderBtn: { backgroundColor: '#001166', color: 'white', border: 'none', padding: '6px 12px', borderRadius: '6px', fontSize: '11px', fontWeight: '600', cursor: 'pointer' },
 
-  queueCard: { background: 'white', borderRadius: '20px', padding: '30px', boxShadow: '0 4px 15px rgba(0,0,0,0.03)', height: '100%' },
+  queueCard: { background: 'white', borderRadius: '20px', padding: '30px', boxShadow: '0 4px 15px rgba(0,0,0,0.03)', height: '100%'},
   cardHeader: { display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '10px' },
   viewAll: { fontSize: '13px', color: '#4f46e5', fontWeight: '600', cursor: 'pointer', display: 'flex', alignItems: 'center' },
   queueDesc: { fontSize: '13px', color: '#666', marginBottom: '25px' },
