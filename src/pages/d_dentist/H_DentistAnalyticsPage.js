@@ -27,11 +27,9 @@ function DentistAnalyticsPage() {
 
   const [stratPatientsModal, setStratPatientsModal] = useState({ isOpen: false, riskLevel: "", patients: [], loading: false });
 
-  // --- HARDCODED DEMO DATA (Requirements 4, 5) ---
-  const [noShowPredictions] = useState([
-    { time: 'Tomorrow, 9:00 AM', patient: 'Elena Rodriguez', probability: 85, reason: 'Missed last 2 appts, High travel distance', status: 'Reminder Sent' },
-    { time: 'Tomorrow, 2:30 PM', patient: 'David Chen', probability: 72, reason: 'Historical Thursday afternoon drop-off', status: 'Pending Call' }
-  ]);
+  const [noShowPredictions, setNoShowPredictions] = useState([]);
+  const [isNoShowLoading, setIsNoShowLoading] = useState(true);
+  const [predictingAppts, setPredictingAppts] = useState({});
 
   // --- DYNAMIC FETCH LOGIC ---
   const fetchRiskQueue = useCallback(async () => {
@@ -182,9 +180,46 @@ function DentistAnalyticsPage() {
     fetchRiskQueue();
   }, [fetchRiskQueue]);
 
+  const fetchNoShowQueue = useCallback(async (branchName) => {
+    setIsNoShowLoading(true);
+    try {
+      const response = await fetch(`http://localhost:8080/api/dentist/dashboard/no-show-queue?branch=${encodeURIComponent(branchName)}`);
+      if (response.ok) {
+        const data = await response.json();
+        setNoShowPredictions(data);
+      }
+    } catch (error) {
+      console.error("Failed to fetch no-show queue:", error);
+    } finally {
+      setIsNoShowLoading(false);
+    }
+  }, []);
+
+  const handlePredictNoShow = async (appointmentId) => {
+    setPredictingAppts(prev => ({ ...prev, [appointmentId]: true }));
+    try {
+      const response = await fetch(`http://localhost:8080/api/dentist/dashboard/predict-no-show/${appointmentId}`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" }
+      });
+      if (response.ok) {
+        const updatedData = await response.json();
+        setNoShowPredictions(prev => prev.map(appt => appt.appointment_id === appointmentId ? updatedData : appt));
+      } else {
+        alert("Failed to run prediction.");
+      }
+    } catch (error) {
+      console.error("Prediction error:", error);
+      alert("Error running prediction.");
+    } finally {
+      setPredictingAppts(prev => ({ ...prev, [appointmentId]: false }));
+    }
+  };
+
   useEffect(() => {
     fetchRiskStratification(selectedBranch);
-  }, [fetchRiskStratification, selectedBranch]);
+    fetchNoShowQueue(selectedBranch);
+  }, [fetchRiskStratification, fetchNoShowQueue, selectedBranch]);
 
   useEffect(() => {
     if (highRiskQueue.length > 0 && highRiskQueue[currentRiskIndex]) {
@@ -376,26 +411,68 @@ function DentistAnalyticsPage() {
               </div>
 
               {/* 5. No-Show Flight Risk */}
-              <div style={{ ...styles.whiteCard, borderLeft: '4px solid #f59e0b' }}>
-                <div style={{ display: 'flex', alignItems: 'center', gap: '10px', marginBottom: '20px' }}>
+              <div style={{ ...styles.whiteCard, borderLeft: '4px solid #f59e0b', maxHeight: '500px', overflowY: 'auto' }}>
+                <div style={{
+                  display: 'flex',
+                  alignItems: 'center',
+                  gap: '10px',
+                  position: 'sticky',
+                  top: 0,
+                  backgroundColor: 'white',
+                  padding: '20px 20px 15px 20px', // Padding moved here
+                  zIndex: 10,
+                  borderBottom: '1px solid #f0f2f5' // Added subtle line to prevent "floating" look
+                }}>
                   <CalendarX size={20} color="#f59e0b" />
-                  <h3 style={styles.cardTitleBlack}>5. No-Show Flight Risk</h3>
+                  <h3 style={{ ...styles.cardTitleBlack, margin: 0 }}>5. No-Show Flight Risk</h3>
                 </div>
-                <div style={{ display: 'flex', flexDirection: 'column', gap: '15px' }}>
-                  {noShowPredictions.map((appt, idx) => (
-                    <div key={idx} style={styles.noShowItem}>
-                      <div style={{ flex: 1 }}>
-                        <p style={styles.noShowName}>{appt.patient}</p>
-                        <p style={styles.noShowTime}>{appt.time}</p>
-                        <p style={styles.noShowReason}><strong>AI Flag:</strong> {appt.reason}</p>
+                {isNoShowLoading ? (
+                  <p style={{ textAlign: 'center', color: '#666' }}>Loading Schedule...</p>
+                ) : noShowPredictions.length > 0 ? (
+                  <div style={{ display: 'flex', flexDirection: 'column', gap: '15px' }}>
+                    {noShowPredictions.map((appt) => (
+                      <div key={appt.appointment_id} style={styles.noShowItem}>
+                        <div style={{ flex: 1 }}>
+                          <p style={styles.noShowName}>{appt.patient}</p>
+                          <p style={styles.noShowTime}>{appt.time}</p>
+                          {appt.status !== "No Prediction Run" && (
+                            <p style={styles.noShowReason}><strong>AI Flag:</strong> {appt.reason}</p>
+                          )}
+                        </div>
+                        <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'flex-end', gap: '10px', minWidth: '110px' }}>
+                          {appt.status === "No Prediction Run" ? (
+                            <button
+                              onClick={() => handlePredictNoShow(appt.appointment_id)}
+                              disabled={predictingAppts[appt.appointment_id]}
+                              style={{ ...styles.reminderBtn, backgroundColor: '#4f46e5', opacity: predictingAppts[appt.appointment_id] ? 0.7 : 1 }}
+                            >
+                              {predictingAppts[appt.appointment_id] ? "Processing..." : "Predict Risk"}
+                            </button>
+                          ) : (
+                            <>
+                              <span style={{
+                                ...styles.probBadge,
+                                color: appt.probability > 70 ? '#dc2626' : (appt.probability > 40 ? '#f59e0b' : '#10b981'),
+                                backgroundColor: appt.probability > 70 ? '#fef2f2' : (appt.probability > 40 ? '#fffbeb' : '#ecfdf5'),
+                                borderColor: appt.probability > 70 ? '#fecaca' : (appt.probability > 40 ? '#fde68a' : '#a7f3d0')
+                              }}>
+                                {appt.probability}% Risk
+                              </span>
+                              <button
+                                disabled={appt.status === "Reminder Sent"}
+                                style={{ ...styles.reminderBtn, opacity: appt.status === "Reminder Sent" ? 0.6 : 1, cursor: appt.status === "Reminder Sent" ? 'default' : 'pointer' }}
+                              >
+                                {appt.status === "Reminder Sent" ? "✓ Reminded" : "Send Reminder"}
+                              </button>
+                            </>
+                          )}
+                        </div>
                       </div>
-                      <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'flex-end', gap: '10px' }}>
-                        <span style={styles.probBadge}>{appt.probability}% Risk</span>
-                        <button style={styles.reminderBtn}>{appt.status === 'Reminder Sent' ? '✓ Reminded' : 'Send Automated SMS'}</button>
-                      </div>
-                    </div>
-                  ))}
-                </div>
+                    ))}
+                  </div>
+                ) : (
+                  <p style={{ textAlign: 'center', color: '#666' }}>No upcoming appointments found.</p>
+                )}
               </div>
 
             </div>
