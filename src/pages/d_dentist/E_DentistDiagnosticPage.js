@@ -1,6 +1,6 @@
 import React, { useState, useRef, useEffect } from 'react';
 import AdminLayout from '../../components/AdminLayout';
-import { Search, Bell, MessageSquare, User, ZoomIn, RotateCw, UploadCloud, CheckCircle, X } from 'lucide-react';
+import { Search, Bell, MessageSquare, User, ZoomIn, RotateCw, UploadCloud, CheckCircle, X, Activity } from 'lucide-react';
 
 // Global API Base Endpoints
 const NODE_API_BASE = "http://localhost:5000";
@@ -18,6 +18,17 @@ function DentistDiagnostics() {
   // States for saving the diagnosis to the database
   const [clinicalNotes, setClinicalNotes] = useState("");
   const [isSaving, setIsSaving] = useState(false);
+
+  // Dental Check Up Feature State
+  const [isCheckUpModalOpen, setIsCheckUpModalOpen] = useState(false);
+  const [checkUpData, setCheckUpData] = useState({
+    age: "", sex: "", blood_type: "", allergies: "", occupation: "",
+    sugar_intake_score: 0, brushing_frequency: 0, flossing_frequency: 0,
+    smoking: false, alcohol_use: false, previous_cavities: 0, previous_extractions: 0,
+    family_history_dental_disease: false, last_dental_visit_months_ago: "", medical_history_notes: ""
+  });
+  const [isSubmittingCheckUp, setIsSubmittingCheckUp] = useState(false);
+  const [checkUpResponseData, setCheckUpResponseData] = useState(null);
 
   const fileInputRef = useRef(null);
 
@@ -80,6 +91,72 @@ function DentistDiagnostics() {
     setSelectedPatient(patient);
     setSearchQuery(`${patient.first_name} ${patient.last_name}`);
     setShowDropdown(false);
+  };
+
+  const handleOpenCheckUp = () => {
+    if (!selectedPatient) return;
+    setCheckUpData({
+      age: selectedPatient.age || "",
+      sex: selectedPatient.sex || "",
+      blood_type: selectedPatient.blood_type || "",
+      allergies: selectedPatient.allergies || "",
+      occupation: selectedPatient.occupation || "",
+      sugar_intake_score: 0,
+      brushing_frequency: 0,
+      flossing_frequency: 0,
+      smoking: false,
+      alcohol_use: false,
+      previous_cavities: 0,
+      previous_extractions: 0,
+      family_history_dental_disease: false,
+      last_dental_visit_months_ago: "",
+      medical_history_notes: ""
+    });
+    setCheckUpResponseData(null);
+    setIsCheckUpModalOpen(true);
+  };
+
+  const handleCheckUpSubmit = async () => {
+    if (!selectedPatient) return;
+    setIsSubmittingCheckUp(true);
+    try {
+      const payload = {
+        patient_id: parseInt(selectedPatient.id),
+        age: checkUpData.age ? parseInt(checkUpData.age) : null,
+        sex: checkUpData.sex || null,
+        blood_type: checkUpData.blood_type || null,
+        allergies: checkUpData.allergies || null,
+        occupation: checkUpData.occupation || null,
+        sugar_intake_score: parseInt(checkUpData.sugar_intake_score) || 0,
+        brushing_frequency: parseInt(checkUpData.brushing_frequency) || 0,
+        flossing_frequency: parseInt(checkUpData.flossing_frequency) || 0,
+        smoking: Boolean(checkUpData.smoking),
+        alcohol_use: Boolean(checkUpData.alcohol_use),
+        previous_cavities: parseInt(checkUpData.previous_cavities) || 0,
+        previous_extractions: parseInt(checkUpData.previous_extractions) || 0,
+        family_history_dental_disease: Boolean(checkUpData.family_history_dental_disease),
+        last_dental_visit_months_ago: checkUpData.last_dental_visit_months_ago ? parseInt(checkUpData.last_dental_visit_months_ago) : null,
+        medical_history_notes: checkUpData.medical_history_notes || ""
+      };
+
+      const res = await fetch(`${FASTAPI_API_BASE}/api/dentist/check-up`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(payload)
+      });
+
+      if (res.ok) {
+        const responseData = await res.json();
+        setCheckUpResponseData(responseData);
+      } else {
+        alert("Failed to submit check-up data.");
+      }
+    } catch (err) {
+      console.error("Check-up submit error:", err);
+      alert("Server error during check-up submission.");
+    } finally {
+      setIsSubmittingCheckUp(false);
+    }
   };
 
   // Drag and Drop & Upload File Handlers
@@ -506,7 +583,11 @@ function DentistDiagnostics() {
             )}
           </div>
 
-          <div style={styles.infoBar}>
+          <div style={{
+            ...styles.infoBar,
+            gridTemplateColumns: selectedPatient ? 'repeat(5, 1fr)' : 'repeat(4, 1fr)',
+            alignItems: 'center'
+          }}>
             <div style={styles.infoCol}>
               <p style={styles.infoLabel}>Patient Name</p>
               <p style={styles.infoVal}>
@@ -525,10 +606,34 @@ function DentistDiagnostics() {
               <p style={styles.infoLabel}>Case Type</p>
               <p style={styles.infoVal}>Panoramic X-Ray</p>
             </div>
-            <div style={{ ...styles.infoCol, border: 'none' }}>
+            <div style={{
+              ...styles.infoCol,
+              border: selectedPatient ? '1px solid rgba(255,255,255,0.1)' : 'none',
+              borderLeft: 'none',
+              borderTop: 'none',
+              borderBottom: 'none'
+            }}>
               <p style={styles.infoLabel}>Scan Date</p>
               <p style={styles.infoVal}>Feb 15, 2026</p>
             </div>
+            {selectedPatient && (
+              <div style={{
+                ...styles.infoCol,
+                border: 'none',
+                display: 'flex',
+                flexDirection: 'column',
+                alignItems: 'center',
+                justifyContent: 'center'
+              }}>
+                <p style={styles.infoLabel}>Action</p>
+                <button
+                  onClick={handleOpenCheckUp}
+                  style={styles.checkUpBtn}
+                >
+                  <Activity size={16} /> Dental Check Up
+                </button>
+              </div>
+            )}
           </div>
 
           <div style={styles.mainGrid}>
@@ -847,6 +952,148 @@ function DentistDiagnostics() {
           </div>
         </div>
       </div>
+
+      {/* Dental Check Up Modal */}
+      {isCheckUpModalOpen && (
+        <div style={{
+          position: "fixed", top: 0, left: 0, width: "100%", height: "100%",
+          backgroundColor: "rgba(0,0,0,0.5)", display: "flex", justifyContent: "center", alignItems: "center", zIndex: 1000
+        }}>
+          <div style={{
+            backgroundColor: "white", padding: "30px", borderRadius: "15px", width: "600px", maxHeight: "85vh", overflowY: "auto",
+            boxShadow: "0 10px 25px rgba(0,0,0,0.2)", color: "#333"
+          }}>
+            {isSubmittingCheckUp ? (
+              <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', padding: '40px 0' }}>
+                <div style={styles.loadingSpinner}></div>
+                <p style={{ color: '#001166', fontWeight: 'bold', fontSize: '16px', marginTop: '20px' }}>Analyzing Oral Health Risk...</p>
+                <p style={{ color: '#666', fontSize: '13px', marginTop: '5px' }}>Processing lifestyle metrics and clinical history via AI model</p>
+              </div>
+            ) : checkUpResponseData ? (
+              <div style={{ textAlign: "center", padding: "10px" }}>
+                <div style={{ backgroundColor: "#e8f5e9", width: "60px", height: "60px", borderRadius: "50%", display: "flex", justifyContent: "center", alignItems: "center", margin: "0 auto 20px auto" }}>
+                  <Activity size={30} color="#2e7d32" />
+                </div>
+                <h2 style={{ color: "#001166", marginBottom: "15px", marginTop: 0 }}>Assessment Complete!</h2>
+                <p style={{ color: "#666", marginBottom: "20px" }}>The check-up data has been successfully processed by the AI.</p>
+
+                <div style={{ backgroundColor: "#f0f2f5", padding: "20px", borderRadius: "10px", marginBottom: "25px", textAlign: "left" }}>
+                  <div style={{ display: "flex", justifyContent: "space-between", marginBottom: "12px" }}>
+                    <span style={{ fontWeight: "600", color: "#333" }}>Risk Score:</span>
+                    <span style={{ fontWeight: "700", color: "#001166" }}>{checkUpResponseData.risk_score}/100</span>
+                  </div>
+                  <div style={{ display: "flex", justifyContent: "space-between", marginBottom: "12px" }}>
+                    <span style={{ fontWeight: "600", color: "#333" }}>Health Grade:</span>
+                    <span style={{ fontWeight: "700", color: checkUpResponseData.risk_score > 60 ? "#d32f2f" : "#2e7d32" }}>{checkUpResponseData.health_grade}</span>
+                  </div>
+                  <div style={{ display: "flex", justifyContent: "space-between", marginBottom: "15px" }}>
+                    <span style={{ fontWeight: "600", color: "#333" }}>Risk Level:</span>
+                    <span style={{ fontWeight: "700", color: checkUpResponseData.risk_score > 60 ? "#d32f2f" : "#2e7d32" }}>{checkUpResponseData.risk_level}</span>
+                  </div>
+                  
+                  <div style={{ borderTop: "1px solid rgba(0,0,0,0.1)", paddingTop: "15px", marginBottom: "15px" }}>
+                    <span style={{ fontWeight: "600", color: "#333", display: "block", marginBottom: "5px" }}>Disease Progression Forecast:</span>
+                    <span style={{ color: "#555", fontSize: "14px", lineHeight: "1.5", display: "block" }}>{checkUpResponseData.disease_progression_forecast}</span>
+                  </div>
+                  
+                  <div style={{ borderTop: "1px solid rgba(0,0,0,0.1)", paddingTop: "15px" }}>
+                    <span style={{ fontWeight: "600", color: "#333", display: "block", marginBottom: "5px" }}>Recommended Action:</span>
+                    <span style={{ color: "#555", fontSize: "14px", lineHeight: "1.5", display: "block" }}>{checkUpResponseData.recommended_action}</span>
+                  </div>
+                </div>
+
+                <button onClick={() => { setIsCheckUpModalOpen(false); setCheckUpResponseData(null); }} style={{ padding: "12px 30px", borderRadius: "8px", border: "none", backgroundColor: "#001166", color: "white", cursor: "pointer", fontWeight: "700", width: "100%" }}>
+                  Close
+                </button>
+              </div>
+            ) : (
+              <>
+                <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: "20px" }}>
+                  <h2 style={{ color: "#001166", margin: 0 }}>Dental Check Up</h2>
+                  <X size={24} style={{ cursor: "pointer", color: "#666" }} onClick={() => setIsCheckUpModalOpen(false)} />
+                </div>
+
+                <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "15px" }}>
+                  <div>
+                    <label style={{ display: "block", marginBottom: "5px", fontSize: "14px", fontWeight: "600" }}>Age</label>
+                    <input type="number" value={checkUpData.age} onChange={e => setCheckUpData({ ...checkUpData, age: e.target.value })} style={{ width: "100%", padding: "8px", borderRadius: "8px", border: "1px solid #ccc", boxSizing: "border-box" }} />
+                  </div>
+                  <div>
+                    <label style={{ display: "block", marginBottom: "5px", fontSize: "14px", fontWeight: "600" }}>Sex</label>
+                    <select value={checkUpData.sex} onChange={e => setCheckUpData({ ...checkUpData, sex: e.target.value })} style={{ width: "100%", padding: "8px", borderRadius: "8px", border: "1px solid #ccc", boxSizing: "border-box" }}>
+                      <option value="">Select...</option>
+                      <option value="Male">Male</option>
+                      <option value="Female">Female</option>
+                      <option value="Other">Other</option>
+                    </select>
+                  </div>
+                  <div>
+                    <label style={{ display: "block", marginBottom: "5px", fontSize: "14px", fontWeight: "600" }}>Blood Type</label>
+                    <input type="text" value={checkUpData.blood_type} onChange={e => setCheckUpData({ ...checkUpData, blood_type: e.target.value })} style={{ width: "100%", padding: "8px", borderRadius: "8px", border: "1px solid #ccc", boxSizing: "border-box" }} />
+                  </div>
+                  <div>
+                    <label style={{ display: "block", marginBottom: "5px", fontSize: "14px", fontWeight: "600" }}>Occupation</label>
+                    <input type="text" value={checkUpData.occupation} onChange={e => setCheckUpData({ ...checkUpData, occupation: e.target.value })} style={{ width: "100%", padding: "8px", borderRadius: "8px", border: "1px solid #ccc", boxSizing: "border-box" }} />
+                  </div>
+                  <div style={{ gridColumn: "span 2" }}>
+                    <label style={{ display: "block", marginBottom: "5px", fontSize: "14px", fontWeight: "600" }}>Allergies</label>
+                    <input type="text" value={checkUpData.allergies} onChange={e => setCheckUpData({ ...checkUpData, allergies: e.target.value })} style={{ width: "100%", padding: "8px", borderRadius: "8px", border: "1px solid #ccc", boxSizing: "border-box" }} />
+                  </div>
+                  <div>
+                    <label style={{ display: "block", marginBottom: "5px", fontSize: "14px", fontWeight: "600" }}>Sugar Intake Score (0-10)</label>
+                    <input type="number" min="0" max="10" value={checkUpData.sugar_intake_score} onChange={e => setCheckUpData({ ...checkUpData, sugar_intake_score: e.target.value })} style={{ width: "100%", padding: "8px", borderRadius: "8px", border: "1px solid #ccc", boxSizing: "border-box" }} />
+                  </div>
+                  <div>
+                    <label style={{ display: "block", marginBottom: "5px", fontSize: "14px", fontWeight: "600" }}>Brushing Freq (per day, 0-5)</label>
+                    <input type="number" min="0" max="5" value={checkUpData.brushing_frequency} onChange={e => setCheckUpData({ ...checkUpData, brushing_frequency: e.target.value })} style={{ width: "100%", padding: "8px", borderRadius: "8px", border: "1px solid #ccc", boxSizing: "border-box" }} />
+                  </div>
+                  <div>
+                    <label style={{ display: "block", marginBottom: "5px", fontSize: "14px", fontWeight: "600" }}>Flossing Freq (per day, 0-3)</label>
+                    <input type="number" min="0" max="3" value={checkUpData.flossing_frequency} onChange={e => setCheckUpData({ ...checkUpData, flossing_frequency: e.target.value })} style={{ width: "100%", padding: "8px", borderRadius: "8px", border: "1px solid #ccc", boxSizing: "border-box" }} />
+                  </div>
+                  <div>
+                    <label style={{ display: "block", marginBottom: "5px", fontSize: "14px", fontWeight: "600" }}>Last Visit (months ago)</label>
+                    <input type="number" min="0" value={checkUpData.last_dental_visit_months_ago} onChange={e => setCheckUpData({ ...checkUpData, last_dental_visit_months_ago: e.target.value })} style={{ width: "100%", padding: "8px", borderRadius: "8px", border: "1px solid #ccc", boxSizing: "border-box" }} />
+                  </div>
+                  <div>
+                    <label style={{ display: "block", marginBottom: "5px", fontSize: "14px", fontWeight: "600" }}>Previous Cavities</label>
+                    <input type="number" min="0" value={checkUpData.previous_cavities} onChange={e => setCheckUpData({ ...checkUpData, previous_cavities: e.target.value })} style={{ width: "100%", padding: "8px", borderRadius: "8px", border: "1px solid #ccc", boxSizing: "border-box" }} />
+                  </div>
+                  <div>
+                    <label style={{ display: "block", marginBottom: "5px", fontSize: "14px", fontWeight: "600" }}>Previous Extractions</label>
+                    <input type="number" min="0" value={checkUpData.previous_extractions} onChange={e => setCheckUpData({ ...checkUpData, previous_extractions: e.target.value })} style={{ width: "100%", padding: "8px", borderRadius: "8px", border: "1px solid #ccc", boxSizing: "border-box" }} />
+                  </div>
+
+                  <div style={{ display: "flex", alignItems: "center", gap: "10px" }}>
+                    <input type="checkbox" checked={checkUpData.smoking} onChange={e => setCheckUpData({ ...checkUpData, smoking: e.target.checked })} id="smokeCb" />
+                    <label htmlFor="smokeCb" style={{ fontSize: "14px", fontWeight: "600", color: "#333" }}>Currently Smokes</label>
+                  </div>
+                  <div style={{ display: "flex", alignItems: "center", gap: "10px" }}>
+                    <input type="checkbox" checked={checkUpData.alcohol_use} onChange={e => setCheckUpData({ ...checkUpData, alcohol_use: e.target.checked })} id="alcoholCb" />
+                    <label htmlFor="alcoholCb" style={{ fontSize: "14px", fontWeight: "600", color: "#333" }}>Alcohol Use</label>
+                  </div>
+                  <div style={{ gridColumn: "span 2", display: "flex", alignItems: "center", gap: "10px" }}>
+                    <input type="checkbox" checked={checkUpData.family_history_dental_disease} onChange={e => setCheckUpData({ ...checkUpData, family_history_dental_disease: e.target.checked })} id="historyCb" />
+                    <label htmlFor="historyCb" style={{ fontSize: "14px", fontWeight: "600", color: "#333" }}>Family History of Dental Disease</label>
+                  </div>
+
+                  <div style={{ gridColumn: "span 2" }}>
+                    <label style={{ display: "block", marginBottom: "5px", fontSize: "14px", fontWeight: "600" }}>Medical History Notes</label>
+                    <textarea rows="3" value={checkUpData.medical_history_notes} onChange={e => setCheckUpData({ ...checkUpData, medical_history_notes: e.target.value })} style={{ width: "100%", padding: "8px", borderRadius: "8px", border: "1px solid #ccc", boxSizing: "border-box", fontFamily: "inherit" }}></textarea>
+                  </div>
+                </div>
+
+                <div style={{ display: "flex", justifyContent: "flex-end", gap: "15px", marginTop: "25px" }}>
+                  <button onClick={() => setIsCheckUpModalOpen(false)} style={{ padding: "10px 20px", borderRadius: "8px", border: "1px solid #ccc", backgroundColor: "white", cursor: "pointer", fontWeight: "600", color: "#333" }}>Close</button>
+                  <button onClick={handleCheckUpSubmit} disabled={isSubmittingCheckUp} style={{ padding: "10px 20px", borderRadius: "8px", border: "none", backgroundColor: "#001166", color: "white", cursor: isSubmittingCheckUp ? "not-allowed" : "pointer", fontWeight: "600" }}>
+                    {isSubmittingCheckUp ? "Saving..." : "Save"}
+                  </button>
+                </div>
+              </>
+            )}
+          </div>
+        </div>
+      )}
     </AdminLayout>
   );
 }
@@ -963,10 +1210,11 @@ const styles = {
   pageTitle: { fontSize: '28px', fontWeight: '700', color: '#001166', margin: 0 },
   pageSubtitle: { fontSize: '14px', color: '#666', marginTop: '5px' },
 
-  infoBar: { display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', background: '#001166', borderRadius: '15px', padding: '20px', marginBottom: '25px', color: 'white' },
-  infoCol: { borderRight: '1px solid rgba(255,255,255,0.1)', padding: '0 20px' },
-  infoLabel: { fontSize: '11px', opacity: 0.6, marginBottom: '5px' },
-  infoVal: { fontSize: '15px', fontWeight: 'bold' },
+  infoBar: { display: 'grid', background: '#001166', borderRadius: '15px', padding: '20px', marginBottom: '25px', color: 'white' },
+  infoCol: { borderRight: '1px solid rgba(255,255,255,0.1)', padding: '0 20px', textAlign: 'center' },
+  infoLabel: { fontSize: '11px', opacity: 0.6, margin: '0 0 5px 0' },
+  infoVal: { fontSize: '15px', fontWeight: 'bold', margin: 0 },
+  checkUpBtn: { display: "flex", alignItems: "center", justifyContent: "center", gap: "8px", padding: "10px 16px", borderRadius: "10px", border: "none", backgroundColor: "#10b981", color: "white", fontWeight: "700", cursor: "pointer", fontSize: "13px", transition: "background-color 0.2s", boxShadow: "0 4px 6px rgba(0,0,0,0.1)", outline: "none" },
 
   mainGrid: { display: 'grid', gridTemplateColumns: '1.8fr 1fr', gap: '25px' },
 
