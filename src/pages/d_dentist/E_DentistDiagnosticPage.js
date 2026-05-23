@@ -513,7 +513,7 @@ function DentistDiagnostics() {
                                   ...styles.boxLabel,
                                   backgroundColor: finding.status === 'verified' ? '#10b981' : '#ef4444'
                                 }}>
-                                  {finding.title} ({finding.confidence}%)
+                                  {finding.name} ({finding.confidence}%)
                                 </span>
                               )}
                             </div>
