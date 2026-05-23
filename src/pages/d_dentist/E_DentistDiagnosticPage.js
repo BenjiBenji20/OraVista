@@ -135,6 +135,7 @@ function DentistDiagnostics() {
         diagnostic_id: Math.floor(Math.random() * 1000) + 1,
         patient_id: selectedPatient ? selectedPatient.id : 1,
         file_path: localUrl,
+        clinical_notes: "AI Recommended Advisory: Indication of localized caries on the lower left premolars and moderate horizontal bone loss on the posterior region. Clinical validation suggested.",
         predictions: [
           {
             class_id: 1,
@@ -511,13 +512,13 @@ function DentistDiagnostics() {
               <p style={styles.infoVal}>
                 {selectedPatient 
                   ? `${selectedPatient.first_name} ${selectedPatient.last_name}` 
-                  : "John Anderson"}
+                  : "N/A"}
               </p>
             </div>
             <div style={styles.infoCol}>
               <p style={styles.infoLabel}>Patient ID</p>
               <p style={styles.infoVal}>
-                {selectedPatient ? `PT-${selectedPatient.id}` : "PT-1001"}
+                {selectedPatient ? `PT-${selectedPatient.id}` : "N/A"}
               </p>
             </div>
             <div style={styles.infoCol}>
@@ -814,6 +815,14 @@ function DentistDiagnostics() {
             <div style={styles.sidePanel}>
               <div style={styles.notesCard}>
                 <h3 style={styles.sectionTitle}>Clinical Notes</h3>
+                
+                {analysisComplete && diagnosticData && diagnosticData.clinical_notes && (
+                  <div style={styles.aiFindingsCard} className="ai-findings-scrollbar">
+                    <h4 style={styles.aiFindingsHeader}>AI Generated Findings</h4>
+                    <p style={styles.aiFindingsText}>{diagnosticData.clinical_notes}</p>
+                  </div>
+                )}
+
                 <textarea
                   placeholder="Enter final diagnosis and recommendations here. AI findings are supportive only."
                   style={styles.textarea}
@@ -1038,6 +1047,30 @@ const styles = {
     cursor: 'pointer',
     zIndex: 10,
     transition: 'background-color 0.2s',
+  },
+  aiFindingsCard: {
+    background: 'rgba(255, 255, 255, 0.05)',
+    borderLeft: '4px solid #10b981',
+    borderRadius: '8px',
+    padding: '15px',
+    marginTop: '15px',
+    marginBottom: '15px',
+    maxHeight: '530px',
+    overflowY: 'auto',
+  },
+  aiFindingsHeader: {
+    margin: '0 0 8px 0',
+    fontSize: '13px',
+    fontWeight: 'bold',
+    color: '#10b981',
+    textTransform: 'uppercase',
+    letterSpacing: '0.5px',
+  },
+  aiFindingsText: {
+    margin: 0,
+    fontSize: '13px',
+    lineHeight: '1.5',
+    color: 'rgba(255, 255, 255, 0.85)',
   }
 };
 
@@ -1055,6 +1088,19 @@ styleSheet.innerText = `
   @keyframes spin {
     0% { transform: rotate(0deg); }
     100% { transform: rotate(360deg); }
+  }
+  .ai-findings-scrollbar::-webkit-scrollbar {
+    width: 6px;
+  }
+  .ai-findings-scrollbar::-webkit-scrollbar-track {
+    background: transparent;
+  }
+  .ai-findings-scrollbar::-webkit-scrollbar-thumb {
+    background: rgba(255, 255, 255, 0.15);
+    border-radius: 3px;
+  }
+  .ai-findings-scrollbar::-webkit-scrollbar-thumb:hover {
+    background: rgba(255, 255, 255, 0.3);
   }
 `;
 document.head.appendChild(styleSheet);
