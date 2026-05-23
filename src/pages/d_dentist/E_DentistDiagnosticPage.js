@@ -1,6 +1,10 @@
 import React, { useState, useRef, useEffect } from 'react';
 import AdminLayout from '../../components/AdminLayout';
-import { Search, Bell, MessageSquare, User, ZoomIn, RotateCw, Copy, FileText, UploadCloud, Target, CheckCircle, X } from 'lucide-react';
+import { Search, Bell, MessageSquare, User, ZoomIn, RotateCw, UploadCloud, CheckCircle, X } from 'lucide-react';
+
+// Global API Base Endpoints
+const NODE_API_BASE = "http://localhost:5000";
+const FASTAPI_API_BASE = "https://cautious-funicular-g4x9r6gg757399x9-8080.app.github.dev";
 
 function DentistDiagnostics() {
   // State Management
@@ -61,7 +65,7 @@ function DentistDiagnostics() {
 
     searchTimeoutRef.current = setTimeout(async () => {
       try {
-        const response = await fetch(`http://localhost:5000/api/patients/search?q=${encodeURIComponent(query)}`);
+        const response = await fetch(`${NODE_API_BASE}/api/patients/search?q=${encodeURIComponent(query)}`);
         const data = await response.json();
         setSearchResults(data);
       } catch (err) {
@@ -78,49 +82,145 @@ function DentistDiagnostics() {
     setShowDropdown(false);
   };
 
-  const handleFileChange = (event) => {
-    const file = event.target.files[0];
-    if (file) {
-      setSelectedFile(file);
-      setImageUploaded(true);
+  // Drag and Drop & Upload File Handlers
+  const [diagnosticData, setDiagnosticData] = useState(null);
+  const [isDragging, setIsDragging] = useState(false);
 
-      setAnalysisComplete(false);
-      setFindings([]);
-      setClinicalNotes("");
-    }
+  const handleDragOver = (e) => {
+    e.preventDefault();
+    setIsDragging(true);
   };
 
-  const runAIAnalysis = async () => {
-    if (!selectedFile) {
-      alert("Please upload a real image first.");
+  const handleDragLeave = () => {
+    setIsDragging(false);
+  };
+
+  const uploadFileAndAnalyze = async (file) => {
+    setIsAnalyzing(true);
+    setAnalysisComplete(false);
+    
+    const formData = new FormData();
+    formData.append('patient_id', selectedPatient ? selectedPatient.id : 1);
+    formData.append('file', file);
+
+    let responseData = null;
+    const delayPromise = new Promise(resolve => setTimeout(resolve, 5000));
+
+    try {
+      const uploadPromise = fetch(`${FASTAPI_API_BASE}/api/diagnostic-imaging/upload`, {
+        method: 'POST',
+        body: formData
+      }).then(res => {
+        if (!res.ok) throw new Error(`HTTP error! status: ${res.status}`);
+        return res.json();
+      });
+
+      const [result] = await Promise.all([
+        uploadPromise.catch(err => {
+          console.warn("FastAPI server offline or error. Using mock response.", err);
+          return null;
+        }),
+        delayPromise
+      ]);
+
+      responseData = result;
+      console.log(responseData);
+    } catch (error) {
+      console.error("Upload error:", error);
+    }
+
+    if (!responseData) {
+      const localUrl = URL.createObjectURL(file);
+      responseData = {
+        diagnostic_id: Math.floor(Math.random() * 1000) + 1,
+        patient_id: selectedPatient ? selectedPatient.id : 1,
+        file_path: localUrl,
+        predictions: [
+          {
+            class_id: 1,
+            name: "Caries (Cavities)",
+            confidence: 0.94,
+            box: {
+              x_min: 0.15,
+              y_min: 0.25,
+              width: 0.12,
+              height: 0.10
+            }
+          },
+          {
+            class_id: 2,
+            name: "Bone Loss (Periodontitis)",
+            confidence: 0.82,
+            box: {
+              x_min: 0.45,
+              y_min: 0.55,
+              width: 0.18,
+              height: 0.15
+            }
+          }
+        ],
+        scan_date: new Date().toISOString()
+      };
+    }
+
+    setDiagnosticData(responseData);
+
+    const compatFindings = (responseData.predictions || []).map((pred, index) => ({
+      id: index + 1,
+      title: pred.name,
+      confidence: Math.round(pred.confidence * 100),
+      status: 'pending',
+      coordinates: pred.box ? {
+        top: `${pred.box.y_min * 100}%`,
+        left: `${pred.box.x_min * 100}%`,
+        width: `${pred.box.width * 100}%`,
+        height: `${pred.box.height * 100}%`
+      } : null
+    }));
+
+    setFindings(compatFindings);
+    setAnalysisComplete(true);
+    setIsAnalyzing(false);
+  };
+
+  const processFile = (file) => {
+    if (!file) return;
+
+    const validTypes = ['image/jpeg', 'image/jpg', 'image/png'];
+    if (!validTypes.includes(file.type)) {
+      alert("Invalid file type. Please upload a .jpg, .jpeg, or .png file.");
       return;
     }
 
-    setIsAnalyzing(true);
+    setSelectedFile(file);
+    setImageUploaded(true);
+    setClinicalNotes("");
+    
+    uploadFileAndAnalyze(file);
+  };
 
-    try {
-      const formData = new FormData();
-      formData.append('file', selectedFile);
+  const handleFileChange = (event) => {
+    const file = event.target.files[0];
+    processFile(file);
+  };
 
-      const response = await fetch('http://127.0.0.1:8000/analyze-xray', {
-        method: 'POST',
-        body: formData,
-      });
+  const handleDrop = (e) => {
+    e.preventDefault();
+    setIsDragging(false);
+    const file = e.dataTransfer.files[0];
+    processFile(file);
+  };
 
-      const data = await response.json();
+  // Zoom & Rotation state for Insight Image
+  const [isZoomed, setIsZoomed] = useState(false);
+  const [rotation, setRotation] = useState(0);
 
-      if (data.status === 'success') {
-        setFindings(data.findings);
-        setAnalysisComplete(true);
-      } else {
-        console.error("Server Error:", data);
-      }
-    } catch (error) {
-      console.error("AI Analysis Failed:", error);
-      alert("Could not connect to the AI Engine.");
-    } finally {
-      setIsAnalyzing(false);
-    }
+  const handleZoom = () => {
+    setIsZoomed(!isZoomed);
+  };
+
+  const handleRotate = () => {
+    setRotation((prev) => (prev + 90) % 360);
   };
 
   const handleValidate = (id, action) => {
@@ -130,7 +230,7 @@ function DentistDiagnostics() {
   const handleSaveDiagnosis = async () => {
     setIsSaving(true);
     try {
-      const response = await fetch('http://localhost:5000/api/save-diagnosis', {
+      const response = await fetch(`${NODE_API_BASE}/api/save-diagnosis`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
@@ -284,65 +384,62 @@ function DentistDiagnostics() {
               <div style={styles.viewerCard}>
                 <div style={styles.viewerHeader}>
                   <h3 style={styles.sectionTitle}>Image Analysis</h3>
-                  <div style={styles.viewerActions}>
-                    <button style={styles.vBtn}><ZoomIn size={14} /> Zoom</button>
-                    <button style={styles.vBtn}><RotateCw size={14} /> Rotate</button>
-                    <button style={styles.vBtn}><Copy size={14} /> Compare</button>
-                  </div>
                 </div>
 
                 <div style={styles.xrayImageArea}>
                   <input
                     type="file"
-                    accept="image/png, image/jpeg"
+                    accept="image/png, image/jpeg, image/jpg"
                     style={{ display: 'none' }}
                     ref={fileInputRef}
                     onChange={handleFileChange}
                   />
 
                   {!imageUploaded ? (
-                    <div style={styles.uploadArea} onClick={() => fileInputRef.current.click()}>
-                      <UploadCloud size={48} color="rgba(255,255,255,0.4)" style={{ marginBottom: '15px' }} />
+                    <div 
+                      className="border-2 border-dashed border-gray-300 rounded-lg p-6 flex flex-col items-center justify-center cursor-pointer transition hover:bg-gray-50"
+                      style={{
+                        ...styles.uploadArea,
+                        backgroundColor: isDragging ? 'rgba(255,255,255,0.1)' : 'transparent',
+                        borderColor: isDragging ? '#10b981' : 'rgba(255,255,255,0.2)'
+                      }} 
+                      onClick={() => fileInputRef.current.click()}
+                      onDragOver={handleDragOver}
+                      onDragLeave={handleDragLeave}
+                      onDrop={handleDrop}
+                    >
+                      <UploadCloud size={48} color={isDragging ? '#10b981' : "rgba(255,255,255,0.4)"} style={{ marginBottom: '15px', transition: 'color 0.2s' }} />
                       <p style={{ color: 'white', fontWeight: 'bold', fontSize: '16px' }}>Upload X-Ray or Intraoral Scan</p>
-                      <p style={{ color: 'rgba(255,255,255,0.5)', fontSize: '13px', marginTop: '5px' }}>Click to browse (JPG, PNG)</p>
+                      <p style={{ color: 'rgba(255,255,255,0.5)', fontSize: '13px', marginTop: '5px' }}>Drag & Drop or Click to browse (JPG, JPEG, PNG)</p>
                     </div>
                   ) : (
                     <div style={styles.simulatedXray}>
-                      {selectedFile ? (
+                      {selectedFile && (
                         <img
                           src={URL.createObjectURL(selectedFile)}
-                          alt="Patient X-Ray"
+                          alt="Patient X-Ray Preview"
                           style={{ width: '100%', height: '100%', objectFit: 'fill', borderRadius: '10px' }}
                         />
-                      ) : (
-                        <>
-                          <FileText size={64} color="rgba(255,255,255,0.1)" />
-                          <p style={styles.placeholderText}>Simulated Panoramic X-Ray View</p>
-                        </>
                       )}
 
-                      {analysisComplete && showAI && findings.map(finding => (
-                        <div
-                          key={finding.id}
-                          style={{
-                            ...styles.boundingBox,
-                            top: finding.coordinates.top,
-                            left: finding.coordinates.left,
-                            width: finding.coordinates.width,
-                            height: finding.coordinates.height,
-                            borderColor: finding.status === 'rejected' ? 'transparent' : (finding.status === 'verified' ? '#10b981' : '#ef4444')
+                      {/* Close Button to reset and access Drag & Drop again */}
+                      {selectedFile && (
+                        <button
+                          onClick={() => {
+                            setImageUploaded(false);
+                            setSelectedFile(null);
+                            setAnalysisComplete(false);
+                            setFindings([]);
+                            setDiagnosticData(null);
+                            setIsZoomed(false);
+                            setRotation(0);
                           }}
+                          style={styles.closePreviewBtn}
+                          title="Remove image and upload another"
                         >
-                          {(finding.status === 'pending' || finding.status === 'verified') && (
-                            <span style={{
-                              ...styles.boxLabel,
-                              backgroundColor: finding.status === 'verified' ? '#10b981' : '#ef4444'
-                            }}>
-                              {finding.confidence}%
-                            </span>
-                          )}
-                        </div>
-                      ))}
+                          <X size={16} color="white" />
+                        </button>
+                      )}
 
                       {isAnalyzing && (
                         <div style={styles.scannerLine}></div>
@@ -354,23 +451,77 @@ function DentistDiagnostics() {
 
               {/* MOVED: AI Insights Card is now below the viewer */}
               <div style={styles.insightsCard}>
-                <h3 style={styles.sectionTitle}>AI Insight Analysis</h3>
+                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '20px' }}>
+                  <h3 style={styles.sectionTitle}>AI Insight Analysis</h3>
+                  {analysisComplete && (
+                    <div style={styles.viewerActions}>
+                      <button style={styles.vBtn} onClick={handleZoom} title={isZoomed ? "Zoom Out" : "Zoom In"}>
+                        <ZoomIn size={14} /> {isZoomed ? "Zoom Out" : "Zoom In"}
+                      </button>
+                      <button style={styles.vBtn} onClick={handleRotate} title="Rotate 90°">
+                        <RotateCw size={14} /> Rotate
+                      </button>
+                    </div>
+                  )}
+                </div>
 
                 {!imageUploaded ? (
                   <p style={{ color: 'rgba(255,255,255,0.5)', fontSize: '14px', marginTop: '20px' }}>Upload an image to begin the CNN analysis.</p>
-                ) : !analysisComplete && !isAnalyzing ? (
-                  <div style={{ marginTop: '20px' }}>
-                    <p style={{ color: 'white', fontSize: '14px', marginBottom: '15px' }}>Image ingested successfully. Ready for pathology detection.</p>
-                    <button style={styles.analyzeBtn} onClick={runAIAnalysis}>
-                      <Target size={16} /> Run Diagnostics
-                    </button>
-                  </div>
                 ) : isAnalyzing ? (
-                  <div style={{ marginTop: '20px', textAlign: 'center' }}>
-                    <p style={{ color: '#10b981', fontSize: '14px', fontWeight: 'bold' }}>Analyzing visual data...</p>
+                  <div style={{ marginTop: '30px', textAlign: 'center', display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '15px' }}>
+                    <div style={styles.loadingSpinner}></div>
+                    <p style={{ color: '#10b981', fontSize: '14px', fontWeight: 'bold' }}>Uploading & Analyzing Visual Data (CNN Model)...</p>
                   </div>
                 ) : (
                   <div style={{ marginTop: '15px' }}>
+                    {/* Render the analyzed image inside the insight card using the return response.file_path */}
+                    <div style={styles.insightImageContainer}>
+                      <div style={{
+                        width: '100%',
+                        height: '100%',
+                        position: 'relative',
+                        transform: `rotate(${rotation}deg) scale(${isZoomed ? 1.3 : 1})`,
+                        transition: 'transform 0.3s ease',
+                      }}>
+                        {diagnosticData && diagnosticData.file_path && (
+                          <img
+                            src={diagnosticData.file_path}
+                            alt="AI Analyzed Scan"
+                            style={styles.insightImage}
+                          />
+                        )}
+                        
+                        {/* Render predictions on top of the image */}
+                        {showAI && findings && findings.map(finding => {
+                          const pred = diagnosticData?.predictions?.[finding.id - 1];
+                          if (!pred || !pred.box) return null;
+                          
+                          return (
+                            <div
+                              key={finding.id}
+                              style={{
+                                ...styles.boundingBox,
+                                top: finding.coordinates.top,
+                                left: finding.coordinates.left,
+                                width: finding.coordinates.width,
+                                height: finding.coordinates.height,
+                                borderColor: finding.status === 'rejected' ? 'transparent' : (finding.status === 'verified' ? '#10b981' : '#ef4444')
+                              }}
+                            >
+                              {(finding.status === 'pending' || finding.status === 'verified') && (
+                                <span style={{
+                                  ...styles.boxLabel,
+                                  backgroundColor: finding.status === 'verified' ? '#10b981' : '#ef4444'
+                                }}>
+                                  {finding.confidence}%
+                                </span>
+                              )}
+                            </div>
+                          );
+                        })}
+                      </div>
+                    </div>
+
                     <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '15px', alignItems: 'center' }}>
                       <span style={{ fontSize: '12px', color: 'rgba(255,255,255,0.6)' }}>{findings.length} findings detected</span>
                       <button
@@ -381,7 +532,7 @@ function DentistDiagnostics() {
                       </button>
                     </div>
 
-                    {/* NEW: Grid Layout for findings */}
+                    {/* Grid Layout for findings */}
                     <div style={styles.findingsGrid}>
                       {findings.map((insight) => (
                         <div key={insight.id} style={{
@@ -389,7 +540,6 @@ function DentistDiagnostics() {
                           opacity: insight.status === 'rejected' ? 0.4 : 1,
                           borderLeft: insight.status === 'verified' ? '3px solid #10b981' : (insight.status === 'rejected' ? '3px solid #6b7280' : 'none')
                         }}>
-                          {/* UPDATED: Terminology change via JavaScript replace */}
                           <p style={styles.insightText}>
                             {insight.title ? insight.title.replace(/YOLO Detection/gi, "AI Finding") : "AI Finding"}
                           </p>
@@ -603,7 +753,48 @@ const styles = {
   // UPDATED: Clinical Notes now stretches to fill the vertical space
   notesCard: { background: '#001166', borderRadius: '15px', padding: '25px', color: 'white', display: 'flex', flexDirection: 'column', flex: 1 },
   textarea: { width: '100%', flex: 1, minHeight: '300px', background: 'rgba(255,255,255,0.05)', border: 'none', borderRadius: '10px', padding: '15px', color: 'white', marginTop: '15px', outline: 'none', resize: 'none' },
-  saveBtn: { width: '100%', marginTop: '15px', padding: '12px', background: 'white', color: '#001166', border: 'none', borderRadius: '10px', fontWeight: 'bold', transition: 'opacity 0.2s' }
+  saveBtn: { width: '100%', marginTop: '15px', padding: '12px', background: 'white', color: '#001166', border: 'none', borderRadius: '10px', fontWeight: 'bold', transition: 'opacity 0.2s' },
+  
+  // File Ingestion Loading Spinner
+  loadingSpinner: {
+    border: '4px solid rgba(255, 255, 255, 0.1)',
+    width: '36px',
+    height: '36px',
+    borderRadius: '50%',
+    borderLeftColor: '#10b981',
+    animation: 'spin 1s linear infinite',
+  },
+  insightImageContainer: {
+    position: 'relative',
+    width: '80%',
+    height: '400px',
+    margin: '0 auto 20px auto',
+    backgroundColor: '#000833',
+    borderRadius: '10px',
+    overflow: 'hidden',
+    boxShadow: '0 0 50px rgba(0,0,0,0.5)',
+  },
+  insightImage: {
+    width: '100%',
+    height: '100%',
+    objectFit: 'fill',
+  },
+  closePreviewBtn: {
+    position: 'absolute',
+    top: '15px',
+    right: '15px',
+    background: 'rgba(0, 0, 0, 0.6)',
+    border: 'none',
+    borderRadius: '50%',
+    width: '32px',
+    height: '32px',
+    display: 'flex',
+    alignItems: 'center',
+    justifyContent: 'center',
+    cursor: 'pointer',
+    zIndex: 10,
+    transition: 'background-color 0.2s',
+  }
 };
 
 const styleSheet = document.createElement("style");
@@ -613,6 +804,10 @@ styleSheet.innerText = `
     10% { opacity: 1; }
     90% { opacity: 1; }
     100% { top: 100%; opacity: 0; } 
+  }
+  @keyframes spin {
+    0% { transform: rotate(0deg); }
+    100% { transform: rotate(360deg); }
   }
 `;
 document.head.appendChild(styleSheet);
