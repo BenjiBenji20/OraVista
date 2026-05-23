@@ -105,7 +105,7 @@ function LoginPage() {
     setShowLoginOtpModal(true); // Show modal immediately while loading
 
     try {
-      const response = await fetch("https://oravista-server-temporary-754963692967.asia-southeast1.run.app/api/send-otp", {
+      const response = await fetch("http://localhost:5000/api/send-otp", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ email: userEmail, action: "login" }) // <--- ADDED ACTION TAG HERE
@@ -158,7 +158,7 @@ function LoginPage() {
     setStatusMessage("");
 
     try {
-      const response = await fetch("https://oravista-server-temporary-754963692967.asia-southeast1.run.app/api/login", {
+      const response = await fetch("http://localhost:5000/api/login", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ email, password }),
@@ -214,7 +214,7 @@ function LoginPage() {
     setIsOtpLoading(true);
 
     try {
-      const response = await fetch("https://oravista-server-temporary-754963692967.asia-southeast1.run.app/api/send-otp", {
+      const response = await fetch("http://localhost:5000/api/send-otp", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ email: forgotEmail, action: "forgot_password" }) // <--- ADDED ACTION TAG HERE
@@ -258,7 +258,7 @@ function LoginPage() {
     }
 
     try {
-      const response = await fetch("https://oravista-server-temporary-754963692967.asia-southeast1.run.app/api/reset-password-by-email", {
+      const response = await fetch("http://localhost:5000/api/reset-password-by-email", {
         method: "PUT",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ email: forgotEmail, newPassword: newPassword }),

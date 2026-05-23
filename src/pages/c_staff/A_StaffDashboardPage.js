@@ -17,7 +17,7 @@ function StaffDashboard() {
     const fetchDashboardData = async () => {
       try {
         // Fetching from your Node.js server
-        const response = await fetch('https://oravista-server-temporary-754963692967.asia-southeast1.run.app/api/dashboard/stats');
+        const response = await fetch('http://localhost:5000/api/dashboard/stats');
 
         if (!response.ok) {
           throw new Error('Failed to fetch dashboard data');

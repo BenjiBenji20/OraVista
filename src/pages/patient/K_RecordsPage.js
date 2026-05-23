@@ -51,7 +51,7 @@ function RecordsPage() {
   const fetchRecords = useCallback(async (userId) => {
     setIsLoading(true);
     try {
-      const response = await fetch(`https://oravista-server-temporary-754963692967.asia-southeast1.run.app/api/patient-records/${userId}`);
+      const response = await fetch(`http://localhost:5000/api/patient-records/${userId}`);
       if (response.ok) {
         const data = await response.json();
         setRecords(Array.isArray(data) ? data : []);
@@ -387,7 +387,7 @@ function RecordsPage() {
     formData.append("fileName", file.name);
 
     try {
-      const response = await fetch("https://oravista-server-temporary-754963692967.asia-southeast1.run.app/api/upload-record", {
+      const response = await fetch("http://localhost:5000/api/upload-record", {
         method: "POST",
         body: formData,
       });
@@ -536,7 +536,7 @@ function RecordsPage() {
                         {new Date(record.upload_date).toLocaleDateString("en-US", { year: "numeric", month: "long", day: "numeric" })}
                       </td>
                       <td style={{ padding: "15px", textAlign: "center" }}>
-                        <a href={`https://oravista-server-temporary-754963692967.asia-southeast1.run.app/${record.file_path}`} target="_blank" rel="noreferrer"
+                        <a href={`http://localhost:5000/${record.file_path}`} target="_blank" rel="noreferrer"
                           style={{ display: "inline-flex", alignItems: "center", gap: "5px", color: "#001166", fontWeight: "700", textDecoration: "none" }}>
                           View <ExternalLink size={16} />
                         </a>

@@ -1,4 +1,4 @@
-import React, { useState, useRef } from 'react';
+import React, { useState, useRef, useEffect } from 'react';
 import AdminLayout from '../../components/AdminLayout';
 import { Search, Bell, MessageSquare, User, ZoomIn, RotateCw, Copy, FileText, UploadCloud, Target, CheckCircle, X } from 'lucide-react';
 
@@ -16,6 +16,67 @@ function DentistDiagnostics() {
   const [isSaving, setIsSaving] = useState(false);
 
   const fileInputRef = useRef(null);
+
+  // Patient Search State Management
+  const [searchQuery, setSearchQuery] = useState("");
+  const [searchResults, setSearchResults] = useState([]);
+  const [isSearchingPatients, setIsSearchingPatients] = useState(false);
+  const [showDropdown, setShowDropdown] = useState(false);
+  const [selectedPatient, setSelectedPatient] = useState(null);
+  const [hoveredItemId, setHoveredItemId] = useState(null);
+
+  const searchTimeoutRef = useRef(null);
+  const dropdownRef = useRef(null);
+
+  // Click outside to close dropdown
+  useEffect(() => {
+    function handleClickOutside(event) {
+      if (dropdownRef.current && !dropdownRef.current.contains(event.target)) {
+        setShowDropdown(false);
+      }
+    }
+    document.addEventListener("mousedown", handleClickOutside);
+    return () => {
+      document.removeEventListener("mousedown", handleClickOutside);
+    };
+  }, []);
+
+  // Debounced search handler
+  const handleSearchChange = (e) => {
+    const query = e.target.value;
+    setSearchQuery(query);
+
+    if (searchTimeoutRef.current) {
+      clearTimeout(searchTimeoutRef.current);
+    }
+
+    if (query.trim() === "") {
+      setSearchResults([]);
+      setShowDropdown(false);
+      return;
+    }
+
+    setShowDropdown(true);
+    setIsSearchingPatients(true);
+
+    searchTimeoutRef.current = setTimeout(async () => {
+      try {
+        const response = await fetch(`http://localhost:5000/api/patients/search?q=${encodeURIComponent(query)}`);
+        const data = await response.json();
+        setSearchResults(data);
+      } catch (err) {
+        console.error("Error searching patients:", err);
+      } finally {
+        setIsSearchingPatients(false);
+      }
+    }, 300);
+  };
+
+  const handleSelectPatient = (patient) => {
+    setSelectedPatient(patient);
+    setSearchQuery(`${patient.first_name} ${patient.last_name}`);
+    setShowDropdown(false);
+  };
 
   const handleFileChange = (event) => {
     const file = event.target.files[0];
@@ -69,11 +130,11 @@ function DentistDiagnostics() {
   const handleSaveDiagnosis = async () => {
     setIsSaving(true);
     try {
-      const response = await fetch('https://oravista-server-temporary-754963692967.asia-southeast1.run.app/api/save-diagnosis', {
+      const response = await fetch('http://localhost:5000/api/save-diagnosis', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
-          patient_id: 1,
+          patient_id: selectedPatient ? selectedPatient.id : 1,
           clinical_notes: clinicalNotes,
           ai_findings: findings
         })
@@ -123,14 +184,88 @@ function DentistDiagnostics() {
             <p style={styles.pageSubtitle}>AI-Assisted Imaging & Clinical Findings</p>
           </div>
 
+          {/* Patient Search Bar UI */}
+          <div style={styles.searchBarContainer} ref={dropdownRef}>
+            <div style={styles.patientSearchBox}>
+              <Search size={18} color="#001166" style={{ opacity: 0.6 }} />
+              <input
+                type="text"
+                placeholder="Search patient by name or email..."
+                value={searchQuery}
+                onChange={handleSearchChange}
+                onFocus={() => { if (searchQuery.trim() !== "") setShowDropdown(true); }}
+                style={styles.patientSearchInput}
+              />
+              {searchQuery && (
+                <button
+                  onClick={() => {
+                    setSearchQuery("");
+                    setSearchResults([]);
+                    setShowDropdown(false);
+                  }}
+                  style={styles.clearSearchBtn}
+                >
+                  <X size={16} color="#001166" />
+                </button>
+              )}
+            </div>
+
+            {showDropdown && (
+              <div style={styles.patientDropdown}>
+                {isSearchingPatients ? (
+                  <div style={styles.dropdownMessage}>Searching patients...</div>
+                ) : searchResults.length === 0 ? (
+                  <div style={styles.dropdownMessage}>No patient found.</div>
+                ) : (
+                  searchResults.map((patient) => (
+                    <div
+                      key={patient.id}
+                      onClick={() => handleSelectPatient(patient)}
+                      onMouseEnter={() => setHoveredItemId(patient.id)}
+                      onMouseLeave={() => setHoveredItemId(null)}
+                      style={{
+                        ...styles.dropdownItem,
+                        backgroundColor: hoveredItemId === patient.id ? 'rgba(0, 17, 102, 0.05)' : 'white'
+                      }}
+                    >
+                      <div style={styles.patientAvatar}>
+                        {patient.profile_picture ? (
+                          <img
+                            src={`http://localhost:5000/${patient.profile_picture}`}
+                            alt=""
+                            style={styles.avatarImg}
+                          />
+                        ) : (
+                          <User size={16} color="#001166" />
+                        )}
+                      </div>
+                      <div style={styles.patientInfo}>
+                        <p style={styles.patientNameText}>
+                          {patient.first_name} {patient.last_name}
+                        </p>
+                        <p style={styles.patientEmailText}>{patient.email}</p>
+                      </div>
+                    </div>
+                  ))
+                )}
+              </div>
+            )}
+          </div>
+
           <div style={styles.infoBar}>
             <div style={styles.infoCol}>
               <p style={styles.infoLabel}>Patient Name</p>
-              <p style={styles.infoVal}>John Anderson</p>
+              <p style={styles.infoVal}>
+                {selectedPatient 
+                  ? `${selectedPatient.first_name} ${selectedPatient.last_name}` 
+                  : "John Anderson"}
+              </p>
             </div>
             <div style={styles.infoCol}>
               <p style={styles.infoLabel}>Patient ID</p>
-              <p style={styles.infoVal}>PT-1001</p>
+              <p style={styles.infoVal}>
+                {selectedPatient ? `PT-${selectedPatient.id}` : "PT-1001"}
+              </p>
             </div>
             <div style={styles.infoCol}>
               <p style={styles.infoLabel}>Case Type</p>
@@ -315,6 +450,101 @@ function DentistDiagnostics() {
 
 const styles = {
   container: { display: 'flex', flexDirection: 'column', width: '100%' },
+  searchBarContainer: {
+    position: 'relative',
+    marginBottom: '25px',
+    width: '100%',
+    maxWidth: '500px',
+  },
+  patientSearchBox: {
+    display: 'flex',
+    alignItems: 'center',
+    background: 'white',
+    padding: '12px 20px',
+    borderRadius: '12px',
+    boxShadow: '0 4px 12px rgba(0, 17, 102, 0.05)',
+    border: '1px solid rgba(0, 17, 102, 0.1)',
+  },
+  patientSearchInput: {
+    border: 'none',
+    background: 'transparent',
+    marginLeft: '12px',
+    outline: 'none',
+    width: '100%',
+    color: '#001166',
+    fontSize: '15px',
+    fontWeight: '500',
+  },
+  clearSearchBtn: {
+    background: 'transparent',
+    border: 'none',
+    cursor: 'pointer',
+    padding: '4px',
+    display: 'flex',
+    alignItems: 'center',
+    justifyContent: 'center',
+    borderRadius: '50%',
+  },
+  patientDropdown: {
+    position: 'absolute',
+    top: 'calc(100% + 8px)',
+    left: 0,
+    width: '100%',
+    background: 'white',
+    borderRadius: '12px',
+    boxShadow: '0 8px 30px rgba(0, 17, 102, 0.15)',
+    border: '1px solid rgba(0, 17, 102, 0.08)',
+    zIndex: 100,
+    overflow: 'hidden',
+    maxHeight: '300px',
+    overflowY: 'auto',
+  },
+  dropdownMessage: {
+    padding: '15px 20px',
+    color: '#666',
+    fontSize: '14px',
+    textAlign: 'center',
+  },
+  dropdownItem: {
+    display: 'flex',
+    alignItems: 'center',
+    padding: '12px 20px',
+    cursor: 'pointer',
+    borderBottom: '1px solid rgba(0, 17, 102, 0.05)',
+    transition: 'background-color 0.2s',
+  },
+  patientAvatar: {
+    width: '36px',
+    height: '36px',
+    borderRadius: '50%',
+    background: 'rgba(0, 17, 102, 0.05)',
+    display: 'flex',
+    alignItems: 'center',
+    justifyContent: 'center',
+    marginRight: '15px',
+    overflow: 'hidden',
+  },
+  avatarImg: {
+    width: '100%',
+    height: '100%',
+    objectFit: 'cover',
+  },
+  patientInfo: {
+    display: 'flex',
+    flexDirection: 'column',
+  },
+  patientNameText: {
+    margin: 0,
+    fontWeight: '600',
+    fontSize: '14px',
+    color: '#001166',
+  },
+  patientEmailText: {
+    margin: 0,
+    fontSize: '12px',
+    color: '#666',
+    marginTop: '2px',
+  },
   header: { height: '80px', background: '#001166', display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '0 40px', position: 'sticky', top: 0, zIndex: 10 },
   searchBox: { display: 'flex', alignItems: 'center', background: 'rgba(255,255,255,0.1)', padding: '10px 20px', borderRadius: '12px', width: '350px' },
   searchInput: { border: 'none', background: 'transparent', marginLeft: '10px', outline: 'none', width: '100%', color: 'white' },

@@ -18,7 +18,7 @@ function AdminPatientList() {
   useEffect(() => {
     const fetchPatients = async () => {
       try {
-        const response = await fetch('https://oravista-server-temporary-754963692967.asia-southeast1.run.app/api/patients');
+        const response = await fetch('http://localhost:5000/api/patients');
         const data = await response.json();
 
         if (Array.isArray(data)) {
@@ -58,7 +58,7 @@ function AdminPatientList() {
     setSelectedPatient(patient);
     setIsModalOpen(true);
     try {
-      const response = await fetch(`https://oravista-server-temporary-754963692967.asia-southeast1.run.app/api/patient-records/${patient.dbId}`);
+      const response = await fetch(`http://localhost:5000/api/patient-records/${patient.dbId}`);
       if (response.ok) {
         const data = await response.json();
         setPatientRecords(data);
@@ -99,7 +99,7 @@ function AdminPatientList() {
                           <td style={styles.recordTd}><FileText size={16} style={{ marginRight: '8px' }} />{rec.file_name}</td>
                           <td style={styles.recordTd}>{new Date(rec.upload_date).toLocaleDateString()}</td>
                           <td style={styles.recordTd}>
-                            <a href={`https://oravista-server-temporary-754963692967.asia-southeast1.run.app/${rec.file_path}`} target="_blank" rel="noreferrer" style={styles.viewLink}>
+                            <a href={`http://localhost:5000/${rec.file_path}`} target="_blank" rel="noreferrer" style={styles.viewLink}>
                               View <ExternalLink size={14} />
                             </a>
                           </td>

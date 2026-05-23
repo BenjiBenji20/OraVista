@@ -19,10 +19,10 @@ function AdminDashboard() {
     const fetchDashboardData = async () => {
       try {
         // 1. Centralized Clinic Overview: Fetching stats and operational workflow[cite: 6]
-        const statsRes = await fetch('https://oravista-server-temporary-754963692967.asia-southeast1.run.app/api/dashboard/stats');
+        const statsRes = await fetch('http://localhost:5000/api/dashboard/stats');
 
         // 2. Daily Earnings: Fetching real-time revenue per each branch[cite: 6]
-        const earningsRes = await fetch('https://oravista-server-temporary-754963692967.asia-southeast1.run.app/api/dashboard/branch-earnings');
+        const earningsRes = await fetch('http://localhost:5000/api/dashboard/branch-earnings');
 
         if (statsRes.ok && earningsRes.ok) {
           const statsData = await statsRes.json();

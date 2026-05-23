@@ -26,7 +26,7 @@ function BillingsPage() {
   const fetchBillings = useCallback(async (userId) => {
     try {
       // Reusing the appointments API since it contains amounts, refs, and statuses!
-      const response = await fetch(`https://oravista-server-temporary-754963692967.asia-southeast1.run.app/api/user-appointments/${userId}`);
+      const response = await fetch(`http://localhost:5000/api/user-appointments/${userId}`);
       if (response.ok) {
         const data = await response.json();
         setBillings(data);

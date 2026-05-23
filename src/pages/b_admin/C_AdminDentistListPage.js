@@ -13,7 +13,7 @@ function AdminDentistList() {
     const fetchDentists = async () => {
       try {
         // Fetching real-time dentist data from your Node.js server[cite: 8]
-        const response = await fetch('https://oravista-server-temporary-754963692967.asia-southeast1.run.app/api/dentists');
+        const response = await fetch('http://localhost:5000/api/dentists');
         const data = await response.json();
 
         if (Array.isArray(data)) {

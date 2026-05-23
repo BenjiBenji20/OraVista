@@ -93,7 +93,7 @@ function StaffBookingPage() {
   useEffect(() => {
     const fetchBookingData = async () => {
       try {
-        const response = await fetch('https://oravista-server-temporary-754963692967.asia-southeast1.run.app/api/dentists');
+        const response = await fetch('http://localhost:5000/api/dentists');
         const data = await response.json();
 
         const formattedDentists = data.map(d => ({
@@ -186,7 +186,7 @@ function StaffBookingPage() {
     setIsRefreshing(true);
     try {
       const response = await fetch(
-        `https://oravista-server-temporary-754963692967.asia-southeast1.run.app/api/appointments/check-availability?date=${bookingData.date}&dentist=${encodeURIComponent(bookingData.dentist)}`
+        `http://localhost:5000/api/appointments/check-availability?date=${bookingData.date}&dentist=${encodeURIComponent(bookingData.dentist)}`
       );
       const data = await response.json();
 
@@ -227,7 +227,7 @@ function StaffBookingPage() {
     };
 
     try {
-      const response = await fetch("https://oravista-server-temporary-754963692967.asia-southeast1.run.app/api/book-appointment", {
+      const response = await fetch("http://localhost:5000/api/book-appointment", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify(appointmentData),
