@@ -164,12 +164,14 @@ function DentistDiagnostics() {
     }
 
     setDiagnosticData(responseData);
+    setAnnotations(responseData.predictions || []);
 
     const compatFindings = (responseData.predictions || []).map((pred, index) => ({
       id: index + 1,
       title: pred.name,
       confidence: Math.round(pred.confidence * 100),
       status: 'pending',
+      class_id: pred.class_id,
       coordinates: pred.box ? {
         top: `${pred.box.y_min * 100}%`,
         left: `${pred.box.x_min * 100}%`,
@@ -223,33 +225,184 @@ function DentistDiagnostics() {
     setRotation((prev) => (prev + 90) % 360);
   };
 
+  // Bounding Box Drawing States
+  const [annotations, setAnnotations] = useState([]);
+  const [isDrawingBox, setIsDrawingBox] = useState(false);
+  const [drawStart, setDrawStart] = useState({ x: 0, y: 0 });
+  const [currentDraw, setCurrentDraw] = useState(null);
+  const [pendingAnnotation, setPendingAnnotation] = useState(null);
+  const [annotationText, setAnnotationText] = useState("");
+  const containerRef = useRef(null);
+
+  const handleMouseDown = (e) => {
+    if (!analysisComplete || isAnalyzing || pendingAnnotation) return;
+    e.preventDefault();
+    
+    const rect = containerRef.current.getBoundingClientRect();
+    const x = e.clientX - rect.left;
+    const y = e.clientY - rect.top;
+    
+    const pctX = x / rect.width;
+    const pctY = y / rect.height;
+    
+    setIsDrawingBox(true);
+    setDrawStart({ x: pctX, y: pctY });
+    setCurrentDraw({ x: pctX, y: pctY, w: 0, h: 0 });
+  };
+
+  const handleMouseMove = (e) => {
+    if (!isDrawingBox) return;
+    
+    const rect = containerRef.current.getBoundingClientRect();
+    const x = e.clientX - rect.left;
+    const y = e.clientY - rect.top;
+    
+    const pctX = x / rect.width;
+    const pctY = y / rect.height;
+    
+    const x_min = Math.min(drawStart.x, pctX);
+    const y_min = Math.min(drawStart.y, pctY);
+    const width = Math.abs(drawStart.x - pctX);
+    const height = Math.abs(drawStart.y - pctY);
+    
+    setCurrentDraw({
+      x: x_min,
+      y: y_min,
+      w: width,
+      h: height
+    });
+  };
+
+  const handleMouseUp = () => {
+    if (!isDrawingBox) return;
+    setIsDrawingBox(false);
+    
+    if (currentDraw && currentDraw.w > 0.01 && currentDraw.h > 0.01) {
+      setPendingAnnotation({
+        x_min: currentDraw.x,
+        y_min: currentDraw.y,
+        width: currentDraw.w,
+        height: currentDraw.h
+      });
+      setAnnotationText("");
+    } else {
+      setCurrentDraw(null);
+    }
+  };
+
+  const handleSaveAnnotation = () => {
+    if (!annotationText.trim()) {
+      handleCancelAnnotation();
+      return;
+    }
+    
+    const doctorClassStart = 5;
+    const existingClassIds = annotations.map(ann => ann.class_id);
+    const maxClassId = existingClassIds.length > 0 ? Math.max(...existingClassIds) : 0;
+    const newClassId = Math.max(doctorClassStart, maxClassId + 1);
+
+    const newAnnotation = {
+      class_id: newClassId,
+      name: annotationText.trim(),
+      confidence: 0.99,
+      box: {
+        x_min: pendingAnnotation.x_min,
+        y_min: pendingAnnotation.y_min,
+        width: pendingAnnotation.width,
+        height: pendingAnnotation.height
+      }
+    };
+
+    const updatedAnnotations = [...annotations, newAnnotation];
+    setAnnotations(updatedAnnotations);
+
+    const newFindingId = findings.length > 0 ? Math.max(...findings.map(f => f.id)) + 1 : 1;
+    const newFinding = {
+      id: newFindingId,
+      title: newAnnotation.name,
+      confidence: 99,
+      status: 'verified',
+      isDoctorCreated: true,
+      class_id: newClassId,
+      coordinates: {
+        top: `${newAnnotation.box.y_min * 100}%`,
+        left: `${newAnnotation.box.x_min * 100}%`,
+        width: `${newAnnotation.box.width * 100}%`,
+        height: `${newAnnotation.box.height * 100}%`
+      }
+    };
+    setFindings([...findings, newFinding]);
+
+    setPendingAnnotation(null);
+    setCurrentDraw(null);
+    setAnnotationText("");
+  };
+
+  const handleCancelAnnotation = () => {
+    setPendingAnnotation(null);
+    setCurrentDraw(null);
+    setAnnotationText("");
+  };
+
   const handleValidate = (id, action) => {
+    const targetFinding = findings.find(f => f.id === id);
+    if (!targetFinding) return;
+
+    if (targetFinding.isDoctorCreated && action === 'rejected') {
+      // Completely remove it from findings and annotations
+      setFindings(findings.filter(f => f.id !== id));
+      setAnnotations(annotations.filter(ann => ann.class_id !== targetFinding.class_id));
+      return;
+    }
+
     setFindings(findings.map(f => f.id === id ? { ...f, status: action } : f));
+
+    if (action === 'rejected') {
+      setAnnotations(annotations.filter(ann => ann.class_id !== targetFinding.class_id));
+    } else if (action === 'verified') {
+      const isAlreadyIn = annotations.some(ann => ann.class_id === targetFinding.class_id);
+      if (!isAlreadyIn) {
+        const origPred = diagnosticData?.predictions?.find(p => p.class_id === targetFinding.class_id);
+        if (origPred) {
+          setAnnotations([...annotations, origPred]);
+        }
+      }
+    }
   };
 
   const handleSaveDiagnosis = async () => {
+    if (!diagnosticData || !diagnosticData.diagnostic_id) {
+      alert("No active diagnosis record to update. Please upload an image first.");
+      return;
+    }
+
     setIsSaving(true);
     try {
-      const response = await fetch(`${NODE_API_BASE}/api/save-diagnosis`, {
-        method: 'POST',
+      const payload = {
+        clinical_notes: clinicalNotes,
+        human_verified_findings: {
+          predictions: diagnosticData.predictions || [],
+          annotations: annotations,
+          human_verified: true
+        }
+      };
+
+      const response = await fetch(`${FASTAPI_API_BASE}/api/diagnostic-imaging/${diagnosticData.diagnostic_id}/annotate`, {
+        method: 'PUT',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          patient_id: selectedPatient ? selectedPatient.id : 1,
-          clinical_notes: clinicalNotes,
-          ai_findings: findings
-        })
+        body: JSON.stringify(payload)
       });
 
       const data = await response.json();
 
-      if (data.status === 'success') {
-        alert("Success! The AI results and your notes have been saved to the patient's record.");
+      if (response.ok) {
+        alert("Success! The diagnostic record has been updated with annotations and clinical notes.");
       } else {
-        alert("Error saving to database.");
+        alert(`Error: ${data.message || "Failed to update annotations"}`);
       }
     } catch (error) {
       console.error("Save Failed:", error);
-      alert("Could not connect to the Node.js server. Is it running on port 5000?");
+      alert("Could not connect to the FastAPI server. Is it running on port 8000?");
     } finally {
       setIsSaving(false);
     }
@@ -476,13 +629,20 @@ function DentistDiagnostics() {
                   <div style={{ marginTop: '15px' }}>
                     {/* Render the analyzed image inside the insight card using the return response.file_path */}
                     <div style={styles.insightImageContainer}>
-                      <div style={{
-                        width: '100%',
-                        height: '100%',
-                        position: 'relative',
-                        transform: `rotate(${rotation}deg) scale(${isZoomed ? 1.3 : 1})`,
-                        transition: 'transform 0.3s ease',
-                      }}>
+                      <div 
+                        ref={containerRef}
+                        onMouseDown={handleMouseDown}
+                        onMouseMove={handleMouseMove}
+                        onMouseUp={handleMouseUp}
+                        style={{
+                          width: '100%',
+                          height: '100%',
+                          position: 'relative',
+                          transform: `rotate(${rotation}deg) scale(${isZoomed ? 1.3 : 1})`,
+                          transition: 'transform 0.3s ease',
+                          cursor: "url(\"data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='24' height='24' viewBox='0 0 24 24' fill='none' stroke='%2310b981' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'><path d='M12 20h9'/><path d='M16.5 3.5a2.121 2.121 0 0 1 3 3L7 19l-4 1 1-4L16.5 3.5z'/></svg>\") 0 20, crosshair",
+                        }}
+                      >
                         {diagnosticData && diagnosticData.file_path && (
                           <img
                             src={diagnosticData.file_path}
@@ -493,9 +653,7 @@ function DentistDiagnostics() {
                         
                         {/* Render predictions on top of the image */}
                         {showAI && findings && findings.map(finding => {
-                          // Look up the matching prediction object
-                          const pred = diagnosticData?.predictions?.[finding.id - 1];
-                          if (!pred || !pred.box) return null;
+                          if (!finding.coordinates) return null;
                           
                           return (
                             <div
@@ -514,12 +672,97 @@ function DentistDiagnostics() {
                                   ...styles.boxLabel,
                                   backgroundColor: finding.status === 'verified' ? '#10b981' : '#ef4444'
                                 }}>
-                                  {pred.name || finding.name} ({finding.confidence}%)
+                                  {finding.title} ({finding.confidence}%)
                                 </span>
                               )}
                             </div>
                           );
                         })}
+
+                        {currentDraw && (
+                          <div
+                            style={{
+                              position: 'absolute',
+                              border: '2px dashed #10b981',
+                              top: `${currentDraw.y * 100}%`,
+                              left: `${currentDraw.x * 100}%`,
+                              width: `${currentDraw.w * 100}%`,
+                              height: `${currentDraw.h * 100}%`,
+                              pointerEvents: 'none',
+                              zIndex: 10
+                            }}
+                          />
+                        )}
+
+                        {pendingAnnotation && (
+                          <div
+                            style={{
+                              position: 'absolute',
+                              top: `${pendingAnnotation.y_min * 100}%`,
+                              left: `${pendingAnnotation.x_min * 100}%`,
+                              transform: 'translateY(-105%)',
+                              zIndex: 20,
+                              background: '#001166',
+                              border: '1px solid #10b981',
+                              borderRadius: '6px',
+                              padding: '4px 8px',
+                              display: 'flex',
+                              gap: '5px',
+                              boxShadow: '0 4px 10px rgba(0,0,0,0.3)',
+                              pointerEvents: 'auto'
+                            }}
+                          >
+                            <input
+                              type="text"
+                              placeholder="Pathology Name..."
+                              value={annotationText}
+                              onChange={(e) => setAnnotationText(e.target.value)}
+                              onKeyDown={(e) => {
+                                if (e.key === 'Enter') handleSaveAnnotation();
+                                if (e.key === 'Escape') handleCancelAnnotation();
+                              }}
+                              autoFocus
+                              style={{
+                                background: 'transparent',
+                                border: 'none',
+                                outline: 'none',
+                                color: 'white',
+                                fontSize: '12px',
+                                width: '120px'
+                              }}
+                            />
+                            <button
+                              onClick={handleSaveAnnotation}
+                              style={{
+                                background: '#10b981',
+                                border: 'none',
+                                borderRadius: '3px',
+                                color: 'white',
+                                fontSize: '11px',
+                                fontWeight: 'bold',
+                                padding: '2px 6px',
+                                cursor: 'pointer'
+                              }}
+                            >
+                              OK
+                            </button>
+                            <button
+                              onClick={handleCancelAnnotation}
+                              style={{
+                                background: '#ef4444',
+                                border: 'none',
+                                borderRadius: '3px',
+                                color: 'white',
+                                fontSize: '11px',
+                                fontWeight: 'bold',
+                                padding: '2px 6px',
+                                cursor: 'pointer'
+                              }}
+                            >
+                              Cancel
+                            </button>
+                          </div>
+                        )}
                       </div>
                     </div>
 
@@ -800,6 +1043,9 @@ const styles = {
 
 const styleSheet = document.createElement("style");
 styleSheet.innerText = `
+  * {
+    box-sizing: border-box;
+  }
   @keyframes scan { 
     0% { top: 0; opacity: 0; } 
     10% { opacity: 1; }
