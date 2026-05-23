@@ -493,6 +493,7 @@ function DentistDiagnostics() {
                         
                         {/* Render predictions on top of the image */}
                         {showAI && findings && findings.map(finding => {
+                          // Look up the matching prediction object
                           const pred = diagnosticData?.predictions?.[finding.id - 1];
                           if (!pred || !pred.box) return null;
                           
@@ -513,7 +514,7 @@ function DentistDiagnostics() {
                                   ...styles.boxLabel,
                                   backgroundColor: finding.status === 'verified' ? '#10b981' : '#ef4444'
                                 }}>
-                                  {finding.name} ({finding.confidence}%)
+                                  {pred.name || finding.name} ({finding.confidence}%)
                                 </span>
                               )}
                             </div>
