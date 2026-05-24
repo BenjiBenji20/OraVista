@@ -209,9 +209,10 @@ function LoginPage() {
   const modalOverlayStyle = {
     position: "fixed", top: 0, left: 0, width: "100%", height: "100%", backgroundColor: "rgba(0,0,0,0.6)",
     display: "flex", justifyContent: "center", alignItems: "center", zIndex: 2000, backdropFilter: "blur(5px)",
+    padding: "20px", boxSizing: "border-box" // Added padding for mobile breathing room
   };
   const modalContentStyle = {
-    backgroundColor: "white", padding: "40px", borderRadius: "25px", textAlign: "center", maxWidth: "450px", width: "90%", boxShadow: "0 20px 40px rgba(0,0,0,0.4)", position: "relative"
+    backgroundColor: "white", padding: "40px", borderRadius: "25px", textAlign: "center", maxWidth: "450px", width: "100%", boxShadow: "0 20px 40px rgba(0,0,0,0.4)", position: "relative", boxSizing: "border-box"
   };
   const labelStyle = { display: "block", fontWeight: "700", fontSize: "14px", marginBottom: "8px", textAlign: "left", color: brandBlue };
   const inputStyle = (error) => ({
@@ -227,195 +228,263 @@ function LoginPage() {
   );
 
   return (
-    <div style={styles.container}>
+    <>
+      {/* --- RESPONSIVE CSS INJECTION --- */}
+      <style>
+        {`
+          .responsive-login-container {
+            background-color: #001166;
+            height: 100vh;
+            width: 100vw;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            margin: 0;
+            padding: 20px;
+            box-sizing: border-box;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+          }
 
-      {/* FEEDBACK POPUP MODAL */}
-      {feedbackModal.show && (
-        <div style={{ ...modalOverlayStyle, zIndex: 3000 }}>
-          <div style={{ ...modalContentStyle, padding: "30px", maxWidth: "350px" }}>
-            <div style={{
-              backgroundColor: feedbackModal.type === "success" ? "#e6f4ea" : "#fdecea",
-              width: "60px", height: "60px", borderRadius: "50%",
-              display: "flex", justifyContent: "center", alignItems: "center", margin: "0 auto 15px"
-            }}>
-              {feedbackModal.type === "success" ? <CheckCircle2 size={32} color="#28a745" /> : <AlertCircle size={32} color="#ff4d4d" />}
-            </div>
-            <h3 style={{ color: brandBlue, fontWeight: "800", marginBottom: "10px", margin: 0 }}>
-              {feedbackModal.type === "success" ? "Success!" : "Attention"}
-            </h3>
-            <p style={{ color: "#666", fontSize: "14px", marginBottom: "20px" }}>{feedbackModal.message}</p>
-            <button onClick={closeFeedback} style={{ width: "100%", padding: "12px", backgroundColor: brandBlue, color: "white", border: "none", borderRadius: "10px", fontWeight: "700", cursor: "pointer" }}>
-              Okay
-            </button>
-          </div>
-        </div>
-      )}
+          .responsive-login-card {
+            background-color: white;
+            width: 100%;
+            max-width: 400px;
+            border-radius: 20px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            padding: 40px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.3);
+            box-sizing: border-box;
+          }
 
-      {/* FORGOT PASSWORD MODAL */}
-      {showForgotModal && (
-        <div style={modalOverlayStyle}>
-          <div style={modalContentStyle}>
-            <X size={24} onClick={() => { setShowForgotModal(false); setOtpStep("email"); setOtpMessage(""); }} style={{ position: "absolute", right: "20px", top: "20px", cursor: "pointer", color: "#999" }} />
-            <h2 style={{ color: brandBlue, fontWeight: "800", marginBottom: "10px", margin: 0 }}>Forgot Password?</h2>
-            <p style={{ fontSize: "13px", color: "#666", marginBottom: "20px" }}>
-              {otpStep === "email" ? "Enter your email to receive a verification code." : "Enter the code sent to your email."}
-            </p>
+          .responsive-modal-box {
+            background-color: white;
+            padding: 40px;
+            border-radius: 25px;
+            text-align: center;
+            max-width: 450px;
+            width: 100%;
+            box-shadow: 0 20px 40px rgba(0,0,0,0.4);
+            position: relative;
+            box-sizing: border-box;
+          }
 
-            {otpStep === "email" ? (
-              <>
-                <input
-                  type="email"
-                  placeholder="Enter your email"
-                  value={forgotEmail}
-                  onChange={(e) => setForgotEmail(e.target.value)}
-                  style={{ ...inputStyle(false), marginBottom: "15px" }}
-                />
-                <button onClick={sendOTP} disabled={isOtpLoading} style={{ width: "100%", padding: "12px", backgroundColor: brandBlue, color: "white", border: "none", borderRadius: "10px", fontWeight: "700", cursor: "pointer", opacity: isOtpLoading ? 0.7 : 1 }}>
-                  {isOtpLoading ? "Sending..." : "Send Code"}
-                </button>
-              </>
-            ) : (
-              <>
-                <input
-                  type="text"
-                  placeholder="Enter 6-digit code"
-                  value={otpInput}
-                  onChange={(e) => setOtpInput(e.target.value)}
-                  style={{ ...inputStyle(false), marginBottom: "15px", letterSpacing: "5px", textAlign: "center", fontSize: "18px" }}
-                  maxLength="6"
-                />
-                <button onClick={verifyOTP} style={{ width: "100%", padding: "12px", backgroundColor: "#28a745", color: "white", border: "none", borderRadius: "10px", fontWeight: "700", cursor: "pointer" }}>
-                  Verify Code
-                </button>
-                <p onClick={() => setOtpStep("email")} style={{ marginTop: "15px", fontSize: "12px", color: brandBlue, cursor: "pointer", textDecoration: "underline" }}>
-                  Resend Code
-                </p>
-              </>
-            )}
-            {otpMessage && <p style={{ color: otpMessage.includes("sent") ? "green" : "red", fontSize: "12px", marginTop: "10px", fontWeight: "600" }}>{otpMessage}</p>}
-          </div>
-        </div>
-      )}
+          .criteria-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 10px;
+            text-align: left;
+            margin-bottom: 25px;
+          }
 
-      {/* RESET PASSWORD MODAL */}
-      {showResetModal && (
-        <div style={modalOverlayStyle}>
-          <div style={modalContentStyle}>
-            <X size={24} onClick={() => setShowResetModal(false)} style={{ position: "absolute", right: "20px", top: "20px", cursor: "pointer", color: "#999" }} />
-            <h2 style={{ color: brandBlue, fontWeight: "800", marginBottom: "20px", margin: 0 }}>Reset Password</h2>
+          /* Mobile Adjustments */
+          @media (max-width: 480px) {
+            .responsive-login-card {
+              padding: 30px 20px !important;
+            }
+            .responsive-modal-box {
+              padding: 30px 20px !important;
+            }
+            .criteria-grid {
+              grid-template-columns: 1fr !important;
+            }
+            .login-title {
+              font-size: 24px !important;
+            }
+          }
+        `}
+      </style>
 
-            <div style={{ marginBottom: "15px", textAlign: "left" }}>
-              <label style={labelStyle}>New Password</label>
-              <div style={{ position: "relative" }}>
-                <input
-                  type={showNewPassword ? "text" : "password"}
-                  value={newPassword}
-                  onChange={(e) => setNewPassword(e.target.value)}
-                  style={inputStyle(false)}
-                  placeholder="Enter new password"
-                />
-                <span onClick={() => setShowNewPassword(!showNewPassword)} style={{ position: "absolute", right: "15px", top: "12px", cursor: "pointer", color: brandBlue }}>
-                  {showNewPassword ? <EyeOff size={18} /> : <Eye size={18} />}
-                </span>
+      <div className="responsive-login-container">
+
+        {/* FEEDBACK POPUP MODAL */}
+        {feedbackModal.show && (
+          <div style={{ ...modalOverlayStyle, zIndex: 3000 }}>
+            <div className="responsive-modal-box" style={{ maxWidth: "350px", padding: "30px" }}>
+              <div style={{
+                backgroundColor: feedbackModal.type === "success" ? "#e6f4ea" : "#fdecea",
+                width: "60px", height: "60px", borderRadius: "50%",
+                display: "flex", justifyContent: "center", alignItems: "center", margin: "0 auto 15px"
+              }}>
+                {feedbackModal.type === "success" ? <CheckCircle2 size={32} color="#28a745" /> : <AlertCircle size={32} color="#ff4d4d" />}
               </div>
-            </div>
-
-            <div style={{ marginBottom: "20px", textAlign: "left" }}>
-              <label style={labelStyle}>Confirm Password</label>
-              <input
-                type="password"
-                value={confirmNewPassword}
-                onChange={(e) => setConfirmNewPassword(e.target.value)}
-                style={inputStyle(false)}
-                placeholder="Confirm new password"
-              />
-            </div>
-
-            {/* REAL TIME CONDITIONS GRID */}
-            <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "10px", textAlign: "left", marginBottom: "25px" }}>
-              <RequirementItem met={passwordCriteria.lower} label="One lowercase" />
-              <RequirementItem met={passwordCriteria.upper} label="One uppercase" />
-              <RequirementItem met={passwordCriteria.number} label="One number" />
-              <RequirementItem met={passwordCriteria.special} label="One special character" />
-              <RequirementItem met={passwordCriteria.length} label="8 characters minimum" />
-            </div>
-
-            <button
-              onClick={handlePasswordReset}
-              style={{ width: "100%", padding: "12px", backgroundColor: brandBlue, color: "white", border: "none", borderRadius: "10px", fontWeight: "700", cursor: "pointer", opacity: !isPasswordValid ? 0.7 : 1 }}
-            >
-              Change Password
-            </button>
-          </div>
-        </div>
-      )}
-
-      <div style={styles.card}>
-        <div style={styles.logoContainer}><div style={styles.logoCircle}></div></div>
-        <h1 style={styles.title}>OraVista</h1>
-        <p style={styles.subtitle}>System Login - King Epres Dental Clinic</p>
-
-        {/* ROLE TABS */}
-        <div style={styles.roleToggleContainer}>
-          {['Admin', 'Staff', 'Dentist'].map((role) => (
-            <button
-              key={role}
-              onClick={() => { setLoginAs(role); setErrors({ email: '', password: '' }); }}
-              style={{
-                ...styles.roleButton,
-                backgroundColor: loginAs === role ? '#001166' : 'transparent',
-                color: loginAs === role ? 'white' : '#666',
-              }}
-            >
-              {role}
-            </button>
-          ))}
-        </div>
-
-        {/* FORM */}
-        <form onSubmit={handleLogin} style={styles.form}>
-          <div style={styles.inputGroup}>
-            <label style={styles.label}>Email Address</label>
-            <div style={styles.inputWrapper}>
-              <User size={20} style={styles.inputIcon} />
-              <input type="email" value={email} onChange={(e) => setEmail(e.target.value)} placeholder="email@oravista.com" style={styles.input} />
-            </div>
-            {errors.email && <div style={styles.fieldErrorText}>{errors.email}</div>}
-          </div>
-
-          <div style={styles.inputGroup}>
-            <label style={styles.label}>Password</label>
-            <div style={styles.inputWrapper}>
-              <Lock size={20} style={styles.inputIcon} />
-              <input type={showPassword ? "text" : "password"} value={password} onChange={(e) => setPassword(e.target.value)} placeholder="........" style={styles.input} />
-              <button type="button" onClick={() => setShowPassword(!showPassword)} style={styles.eyeButton}>
-                {showPassword ? <EyeOff size={20} color="#666" /> : <Eye size={20} color="#666" />}
+              <h3 style={{ color: brandBlue, fontWeight: "800", marginBottom: "10px", margin: 0 }}>
+                {feedbackModal.type === "success" ? "Success!" : "Attention"}
+              </h3>
+              <p style={{ color: "#666", fontSize: "14px", marginBottom: "20px" }}>{feedbackModal.message}</p>
+              <button onClick={closeFeedback} style={{ width: "100%", padding: "12px", backgroundColor: brandBlue, color: "white", border: "none", borderRadius: "10px", fontWeight: "700", cursor: "pointer" }}>
+                Okay
               </button>
             </div>
-            {errors.password && <div style={styles.fieldErrorText}>{errors.password}</div>}
+          </div>
+        )}
+
+        {/* FORGOT PASSWORD MODAL */}
+        {showForgotModal && (
+          <div style={modalOverlayStyle}>
+            <div className="responsive-modal-box">
+              <X size={24} onClick={() => { setShowForgotModal(false); setOtpStep("email"); setOtpMessage(""); }} style={{ position: "absolute", right: "20px", top: "20px", cursor: "pointer", color: "#999" }} />
+              <h2 style={{ color: brandBlue, fontWeight: "800", marginBottom: "10px", margin: 0 }}>Forgot Password?</h2>
+              <p style={{ fontSize: "13px", color: "#666", marginBottom: "20px" }}>
+                {otpStep === "email" ? "Enter your email to receive a verification code." : "Enter the code sent to your email."}
+              </p>
+
+              {otpStep === "email" ? (
+                <>
+                  <input
+                    type="email"
+                    placeholder="Enter your email"
+                    value={forgotEmail}
+                    onChange={(e) => setForgotEmail(e.target.value)}
+                    style={{ ...inputStyle(false), marginBottom: "15px" }}
+                  />
+                  <button onClick={sendOTP} disabled={isOtpLoading} style={{ width: "100%", padding: "12px", backgroundColor: brandBlue, color: "white", border: "none", borderRadius: "10px", fontWeight: "700", cursor: "pointer", opacity: isOtpLoading ? 0.7 : 1 }}>
+                    {isOtpLoading ? "Sending..." : "Send Code"}
+                  </button>
+                </>
+              ) : (
+                <>
+                  <input
+                    type="text"
+                    placeholder="Enter 6-digit code"
+                    value={otpInput}
+                    onChange={(e) => setOtpInput(e.target.value)}
+                    style={{ ...inputStyle(false), marginBottom: "15px", letterSpacing: "5px", textAlign: "center", fontSize: "18px" }}
+                    maxLength="6"
+                  />
+                  <button onClick={verifyOTP} style={{ width: "100%", padding: "12px", backgroundColor: "#28a745", color: "white", border: "none", borderRadius: "10px", fontWeight: "700", cursor: "pointer" }}>
+                    Verify Code
+                  </button>
+                  <p onClick={() => setOtpStep("email")} style={{ marginTop: "15px", fontSize: "12px", color: brandBlue, cursor: "pointer", textDecoration: "underline" }}>
+                    Resend Code
+                  </p>
+                </>
+              )}
+              {otpMessage && <p style={{ color: otpMessage.includes("sent") ? "green" : "red", fontSize: "12px", marginTop: "10px", fontWeight: "600" }}>{otpMessage}</p>}
+            </div>
+          </div>
+        )}
+
+        {/* RESET PASSWORD MODAL */}
+        {showResetModal && (
+          <div style={modalOverlayStyle}>
+            <div className="responsive-modal-box">
+              <X size={24} onClick={() => setShowResetModal(false)} style={{ position: "absolute", right: "20px", top: "20px", cursor: "pointer", color: "#999" }} />
+              <h2 style={{ color: brandBlue, fontWeight: "800", marginBottom: "20px", margin: 0 }}>Reset Password</h2>
+
+              <div style={{ marginBottom: "15px", textAlign: "left" }}>
+                <label style={labelStyle}>New Password</label>
+                <div style={{ position: "relative" }}>
+                  <input
+                    type={showNewPassword ? "text" : "password"}
+                    value={newPassword}
+                    onChange={(e) => setNewPassword(e.target.value)}
+                    style={inputStyle(false)}
+                    placeholder="Enter new password"
+                  />
+                  <span onClick={() => setShowNewPassword(!showNewPassword)} style={{ position: "absolute", right: "15px", top: "12px", cursor: "pointer", color: brandBlue }}>
+                    {showNewPassword ? <EyeOff size={18} /> : <Eye size={18} />}
+                  </span>
+                </div>
+              </div>
+
+              <div style={{ marginBottom: "20px", textAlign: "left" }}>
+                <label style={labelStyle}>Confirm Password</label>
+                <input
+                  type="password"
+                  value={confirmNewPassword}
+                  onChange={(e) => setConfirmNewPassword(e.target.value)}
+                  style={inputStyle(false)}
+                  placeholder="Confirm new password"
+                />
+              </div>
+
+              {/* REAL TIME CONDITIONS GRID */}
+              <div className="criteria-grid">
+                <RequirementItem met={passwordCriteria.lower} label="One lowercase" />
+                <RequirementItem met={passwordCriteria.upper} label="One uppercase" />
+                <RequirementItem met={passwordCriteria.number} label="One number" />
+                <RequirementItem met={passwordCriteria.special} label="One special character" />
+                <RequirementItem met={passwordCriteria.length} label="8 characters minimum" />
+              </div>
+
+              <button
+                onClick={handlePasswordReset}
+                style={{ width: "100%", padding: "12px", backgroundColor: brandBlue, color: "white", border: "none", borderRadius: "10px", fontWeight: "700", cursor: "pointer", opacity: !isPasswordValid ? 0.7 : 1 }}
+              >
+                Change Password
+              </button>
+            </div>
+          </div>
+        )}
+
+        {/* MAIN LOGIN CARD */}
+        <div className="responsive-login-card">
+          <div style={styles.logoContainer}><div style={styles.logoCircle}></div></div>
+          <h1 className="login-title" style={styles.title}>OraVista</h1>
+          <p style={styles.subtitle}>System Login - King Epres Dental Clinic</p>
+
+          {/* ROLE TABS */}
+          <div style={styles.roleToggleContainer}>
+            {['Admin', 'Staff', 'Dentist'].map((role) => (
+              <button
+                key={role}
+                onClick={() => { setLoginAs(role); setErrors({ email: '', password: '' }); }}
+                style={{
+                  ...styles.roleButton,
+                  backgroundColor: loginAs === role ? '#001166' : 'transparent',
+                  color: loginAs === role ? 'white' : '#666',
+                }}
+              >
+                {role}
+              </button>
+            ))}
           </div>
 
-          <button type="submit" style={styles.loginButton}>Login</button>
-        </form>
-        <p
-          style={styles.forgotPassword}
-          onClick={() => setShowForgotModal(true)}
-        >
-          Forgot password?
-        </p>
+          {/* FORM */}
+          <form onSubmit={handleLogin} style={styles.form}>
+            <div style={styles.inputGroup}>
+              <label style={styles.label}>Email Address</label>
+              <div style={styles.inputWrapper}>
+                <User size={20} style={styles.inputIcon} />
+                <input type="email" value={email} onChange={(e) => setEmail(e.target.value)} placeholder="email@oravista.com" style={styles.input} />
+              </div>
+              {errors.email && <div style={styles.fieldErrorText}>{errors.email}</div>}
+            </div>
+
+            <div style={styles.inputGroup}>
+              <label style={styles.label}>Password</label>
+              <div style={styles.inputWrapper}>
+                <Lock size={20} style={styles.inputIcon} />
+                <input type={showPassword ? "text" : "password"} value={password} onChange={(e) => setPassword(e.target.value)} placeholder="........" style={styles.input} />
+                <button type="button" onClick={() => setShowPassword(!showPassword)} style={styles.eyeButton}>
+                  {showPassword ? <EyeOff size={20} color="#666" /> : <Eye size={20} color="#666" />}
+                </button>
+              </div>
+              {errors.password && <div style={styles.fieldErrorText}>{errors.password}</div>}
+            </div>
+
+            <button type="submit" style={styles.loginButton}>Login</button>
+          </form>
+          <p
+            style={styles.forgotPassword}
+            onClick={() => setShowForgotModal(true)}
+          >
+            Forgot password?
+          </p>
+        </div>
       </div>
-    </div>
+    </>
   );
 }
 
 const styles = {
-  container: { backgroundColor: '#001166', height: '100vh', width: '100vw', display: 'flex', justifyContent: 'center', alignItems: 'center', margin: 0, padding: 0, fontFamily: "'Segoe UI', Tahoma, Geneva, Verdana, sans-serif" },
-  card: { backgroundColor: 'white', width: '400px', borderRadius: '20px', display: 'flex', flexDirection: 'column', alignItems: 'center', padding: '40px', boxShadow: '0 10px 30px rgba(0,0,0,0.3)' },
   logoContainer: { width: '60px', height: '60px', backgroundColor: '#e0e0e0', borderRadius: '12px', display: 'flex', justifyContent: 'center', alignItems: 'center', marginBottom: '15px' },
   logoCircle: { width: '30px', height: '30px', borderRadius: '50%', backgroundColor: '#001166' },
   title: { color: '#001166', fontSize: '28px', fontWeight: '800', margin: '0 0 5px 0' },
-  subtitle: { color: '#666', fontSize: '13px', fontWeight: '400', margin: '0 0 30px 0' },
-  roleToggleContainer: { display: 'flex', backgroundColor: '#f0f2f5', borderRadius: '10px', padding: '5px', marginBottom: '20px', width: '100%' },
+  subtitle: { color: '#666', fontSize: '13px', fontWeight: '400', margin: '0 0 30px 0', textAlign: 'center' },
+  roleToggleContainer: { display: 'flex', backgroundColor: '#f0f2f5', borderRadius: '10px', padding: '5px', marginBottom: '20px', width: '100%', boxSizing: 'border-box' },
   roleButton: { flex: 1, padding: '10px 0', border: 'none', borderRadius: '8px', fontSize: '13px', fontWeight: '600', cursor: 'pointer', transition: 'all 0.3s ease' },
   form: { width: '100%' },
   inputGroup: { marginBottom: '20px', textAlign: 'left', width: '100%' },
@@ -425,7 +494,7 @@ const styles = {
   eyeButton: { position: 'absolute', right: '15px', background: 'none', border: 'none', cursor: 'pointer', padding: 0, display: 'flex', alignItems: 'center', zIndex: 2 },
   input: { width: '100%', padding: '12px 45px 12px 45px', borderRadius: '10px', border: '1px solid #e0e0e0', fontSize: '14px', color: '#333', backgroundColor: '#f9f9f9', outline: 'none', boxSizing: 'border-box' },
   fieldErrorText: { color: '#dc2626', fontSize: '12px', fontWeight: '600', marginTop: '5px', marginLeft: '5px' },
-  loginButton: { width: '100%', padding: '12px', backgroundColor: '#001166', border: 'none', borderRadius: '10px', color: 'white', fontSize: '15px', fontWeight: '700', cursor: 'pointer', marginTop: '10px', marginBottom: '20px', transition: 'background-color 0.3s ease' },
+  loginButton: { width: '100%', padding: '12px', backgroundColor: '#001166', border: 'none', borderRadius: '10px', color: 'white', fontSize: '15px', fontWeight: '700', cursor: 'pointer', marginTop: '10px', marginBottom: '20px', transition: 'background-color 0.3s ease', boxSizing: 'border-box' },
   forgotPassword: { color: '#666', fontSize: '12px', cursor: 'pointer', margin: 0, textDecoration: 'underline' }
 };
 

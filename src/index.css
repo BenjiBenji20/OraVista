@@ -821,3 +821,79 @@ code {
 @media (max-width: 480px) {
   /* Keep standard columns layout from 768px media query */
 }
+
+/* ==========================================================
+   8. RESPONSIVE DENTIST LIST LAYOUTS
+   ========================================================== */
+.table-container-scrollable {
+  max-height: 480px;
+  overflow-y: auto;
+  overflow-x: auto;
+}
+
+/* Custom scrollbars for table container */
+.table-container-scrollable::-webkit-scrollbar {
+  width: 6px;
+  height: 6px;
+}
+.table-container-scrollable::-webkit-scrollbar-track {
+  background: transparent;
+}
+.table-container-scrollable::-webkit-scrollbar-thumb {
+  background: rgba(255, 255, 255, 0.2);
+  border-radius: 3px;
+}
+.table-container-scrollable::-webkit-scrollbar-thumb:hover {
+  background: rgba(255, 255, 255, 0.4);
+}
+
+.summary-grid {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 20px;
+}
+
+@media (max-width: 1024px) {
+  .summary-grid {
+    grid-template-columns: repeat(2, 1fr) !important;
+    gap: 15px !important;
+  }
+}
+
+@media (max-width: 768px) {
+  .table-container-scrollable {
+    max-height: 350px !important;
+  }
+
+  .table-container-scrollable table th,
+  .table-container-scrollable table td {
+    padding: 8px 10px !important;
+    font-size: 10px !important;
+  }
+
+  .table-container-scrollable table td p {
+    font-size: 9px !important;
+  }
+
+  .summary-grid .summary-card,
+  .summary-grid [style*="summaryCard"] {
+    padding: 15px !important;
+  }
+
+  .summary-grid h2,
+  .summary-grid [style*="summaryValue"] {
+    font-size: 18px !important;
+  }
+
+  .summary-grid p,
+  .summary-grid [style*="summaryLabel"] {
+    font-size: 10px !important;
+  }
+}
+
+@media (max-width: 576px) {
+  .summary-grid {
+    grid-template-columns: 1fr !important;
+    gap: 15px !important;
+  }
+}

@@ -1,9 +1,10 @@
 import React, { useState, useEffect } from 'react';
 import AdminLayout from '../../components/AdminLayout';
-import { Search, Bell, MessageSquare, User, Eye, Edit, Plus } from 'lucide-react';
+import { Search, Bell, MessageSquare, User, Eye, Edit, Plus, ChevronDown, ChevronUp } from 'lucide-react';
 
 function StaffDentistList() {
   // UPDATED: Added state management to mirror Admin functionality
+  const [isSearchOpen, setIsSearchOpen] = useState(false);
   const [dentists, setDentists] = useState([]);
   const [filteredDentists, setFilteredDentists] = useState([]);
   const [loading, setLoading] = useState(true);
@@ -68,18 +69,137 @@ function StaffDentistList() {
 
   return (
     <AdminLayout>
+      <style>
+        {`
+          /* Mobile Toggle Defaults */
+          .mobile-search-toggle-btn {
+            display: none;
+            background: none;
+            border: none;
+            color: white;
+            cursor: pointer;
+            padding: 5px;
+          }
+          
+          .mobile-search-collapsible {
+            display: none;
+          }
+
+          /* General Resets for table wrapper */
+          .table-container-scrollable {
+            overflow-x: auto;
+            overflow-y: auto;
+            max-height: 60vh; /* Vertical scroll for long lists */
+          }
+          
+          .dentist-table {
+            width: 100%;
+            min-width: 800px; /* Forces horizontal scrolling on small screens instead of breaking layout */
+          }
+
+          /* Custom Scrollbar for the table container */
+          .table-container-scrollable::-webkit-scrollbar {
+            width: 6px;
+            height: 6px;
+          }
+          .table-container-scrollable::-webkit-scrollbar-track {
+            background: rgba(255, 255, 255, 0.05);
+            border-radius: 10px;
+          }
+          .table-container-scrollable::-webkit-scrollbar-thumb {
+            background: rgba(255, 255, 255, 0.2);
+            border-radius: 10px;
+          }
+          .table-container-scrollable::-webkit-scrollbar-thumb:hover {
+            background: rgba(255, 255, 255, 0.4);
+          }
+
+          /* Responsive Breakpoints */
+          @media (max-width: 1024px) {
+            .summary-grid {
+              grid-template-columns: 1fr 1fr !important;
+            }
+          }
+
+          @media (max-width: 768px) {
+            .dashboard-page-header {
+              padding: 10px 20px !important;
+            }
+            .header-search-box {
+              display: none !important;
+            }
+            .mobile-search-toggle-btn {
+              display: block;
+            }
+            .mobile-search-collapsible {
+              display: block;
+              padding: 15px 20px;
+              background-color: #001166;
+              border-top: 1px solid rgba(255, 255, 255, 0.1);
+            }
+            .header-profile-text {
+              display: none !important;
+            }
+            .settings-content {
+              padding: 20px !important;
+            }
+            .table-controls-row {
+              flex-direction: column !important;
+              align-items: stretch !important;
+              gap: 15px;
+            }
+            .inner-search-container {
+              width: 100% !important;
+            }
+            .add-dentist-btn {
+              width: 100% !important;
+              justify-content: center;
+            }
+            .header-actions {
+              gap: 15px !important;
+            }
+            .table-container-scrollable {
+              max-height: 50vh; /* Adjust height for mobile */
+            }
+          }
+
+          @media (max-width: 480px) {
+            .summary-grid {
+              grid-template-columns: 1fr !important;
+            }
+            .page-title {
+              font-size: 24px !important;
+            }
+          }
+        `}
+      </style>
+
       <div style={styles.container}>
         {/* TOP NAV HEADER - Staff Profile */}
-        <header style={styles.header}>
-          <div style={styles.searchBox}>
-            <Search size={18} color="rgba(255,255,255,0.6)" />
-            <input type="text" placeholder="Search header..." style={styles.searchInput} />
+        <header style={styles.header} className="dashboard-page-header">
+          <div style={styles.searchBox} className="header-search-box">
+            <ChevronDown size={18} color="rgba(255,255,255,0.6)" />
+            <input
+              type="text"
+              placeholder="Search header..."
+              style={styles.searchInput}
+              value={searchQuery}
+              onChange={(e) => setSearchQuery(e.target.value)}
+            />
           </div>
-          <div style={styles.headerActions}>
-            <Bell size={20} color="white" />
-            <MessageSquare size={20} color="white" />
-            <div style={styles.profile}>
-              <div style={styles.profileText}>
+          <div style={styles.headerActions} className="header-actions">
+            {/* Mobile Search Toggle */}
+            <button 
+              className="mobile-search-toggle-btn"
+              onClick={() => setIsSearchOpen(!isSearchOpen)}
+            >
+              {isSearchOpen ? <ChevronUp size={24} /> : <ChevronDown size={24} />}
+            </button>
+
+            <Bell size={20} color="white" style={{ cursor: 'pointer' }} />
+            <MessageSquare size={20} color="white" style={{ cursor: 'pointer' }} />
+            <div style={styles.profile} className="header-profile">
+              <div style={styles.profileText} className="header-profile-text">
                 <p style={styles.userName}>Staff User</p>
                 <p style={styles.userRole}>Receptionist</p>
               </div>
@@ -88,15 +208,31 @@ function StaffDentistList() {
           </div>
         </header>
 
+        {/* Mobile Collapsible Search Drawer */}
+        {isSearchOpen && (
+          <div className="mobile-search-collapsible">
+            <div style={{ ...styles.searchBox, width: "100%", boxSizing: 'border-box' }}>
+              <Search size={18} color="rgba(255,255,255,0.6)" />
+              <input
+                type="text"
+                placeholder="Search dentists..."
+                style={styles.searchInput}
+                value={searchQuery}
+                onChange={(e) => setSearchQuery(e.target.value)}
+              />
+            </div>
+          </div>
+        )}
+
         {/* PAGE CONTENT */}
-        <div style={styles.content}>
+        <div style={styles.content} className="settings-content">
           <div style={styles.titleSection}>
-            <h1 style={styles.pageTitle}>Dentist List</h1>
+            <h1 style={styles.pageTitle} className="page-title">Dentist List</h1>
             <p style={styles.pageSubtitle}>View and manage dental staff information</p>
           </div>
 
-          <div style={styles.tableControls}>
-            <div style={styles.innerSearch}>
+          <div style={styles.tableControls} className="table-controls-row">
+            <div style={styles.innerSearch} className="inner-search-container">
               <Search size={16} color="#999" style={styles.innerSearchIcon} />
               <input
                 type="text"
@@ -106,18 +242,18 @@ function StaffDentistList() {
                 onChange={(e) => setSearchQuery(e.target.value)}
               />
             </div>
-            <button style={styles.addButton}>
+            <button style={styles.addButton} className="add-dentist-btn">
               <Plus size={18} style={{ marginRight: '8px' }} />
               Add New Dentist
             </button>
           </div>
 
           {/* DENTIST TABLE - Navy Blue Theme mirrored from Admin */}
-          <div style={styles.tableContainer}>
+          <div style={styles.tableContainer} className="table-container-scrollable">
             {loading ? (
-              <p style={{ padding: '20px', color: 'white' }}>Loading dentists...</p>
+              <p style={{ padding: '20px', color: 'white', textAlign: 'center' }}>Loading dentists...</p>
             ) : (
-              <table style={styles.table}>
+              <table style={styles.table} className="dentist-table">
                 <thead>
                   <tr style={styles.theadRow}>
                     <th style={styles.th}>Dentist ID</th>
@@ -134,7 +270,7 @@ function StaffDentistList() {
                       <td style={styles.td}>{dentist.id}</td>
                       <td style={styles.td}>
                         <div style={styles.nameCell}>
-                          <div style={styles.nameAvatar}></div>
+                          <div style={styles.nameAvatar}><User size={16} color="#001166" style={{ margin: '8px' }} /></div>
                           {dentist.name}
                         </div>
                       </td>
@@ -154,7 +290,9 @@ function StaffDentistList() {
                     </tr>
                   )) : (
                     <tr>
-                      <td colSpan="6" style={{ padding: '20px', textAlign: 'center' }}>No results found for "{searchQuery}"</td>
+                      <td colSpan="6" style={{ padding: '40px', textAlign: 'center', opacity: 0.5 }}>
+                        No results found for "{searchQuery}"
+                      </td>
                     </tr>
                   )}
                 </tbody>
@@ -163,22 +301,22 @@ function StaffDentistList() {
           </div>
 
           {/* SUMMARY CARDS - Mirrored dynamic values */}
-          <div style={styles.summaryGrid}>
-            <div style={styles.summaryCard}>
-              <p style={styles.summaryLabel}>Total Dentists</p>
-              <h2 style={styles.summaryValue}>{summary.total}</h2>
+          <div style={styles.summaryGrid} className="summary-grid">
+            <div style={styles.summaryCard} className="summary-card">
+              <p style={styles.summaryLabel} className="summary-label">Total Dentists</p>
+              <h2 style={styles.summaryValue} className="summary-value">{summary.total}</h2>
             </div>
-            <div style={styles.summaryCard}>
-              <p style={styles.summaryLabel}>Currently Available</p>
-              <h2 style={styles.summaryValue}>{summary.available}</h2>
+            <div style={styles.summaryCard} className="summary-card">
+              <p style={styles.summaryLabel} className="summary-label">Currently Available</p>
+              <h2 style={styles.summaryValue} className="summary-value">{summary.available}</h2>
             </div>
-            <div style={styles.summaryCard}>
-              <p style={styles.summaryLabel}>Busy</p>
-              <h2 style={styles.summaryValue}>{summary.busy}</h2>
+            <div style={styles.summaryCard} className="summary-card">
+              <p style={styles.summaryLabel} className="summary-label">Busy</p>
+              <h2 style={styles.summaryValue} className="summary-value">{summary.busy}</h2>
             </div>
-            <div style={styles.summaryCard}>
-              <p style={styles.summaryLabel}>Off Duty</p>
-              <h2 style={styles.summaryValue}>{summary.offDuty}</h2>
+            <div style={styles.summaryCard} className="summary-card">
+              <p style={styles.summaryLabel} className="summary-label">Off Duty</p>
+              <h2 style={styles.summaryValue} className="summary-value">{summary.offDuty}</h2>
             </div>
           </div>
         </div>
@@ -188,10 +326,10 @@ function StaffDentistList() {
 }
 
 const styles = {
-  container: { display: 'flex', flexDirection: 'column', width: '100%' },
+  container: { display: 'flex', flexDirection: 'column', width: '100%', minHeight: '100vh', backgroundColor: '#f4f6f9', fontFamily: "'Poppins', sans-serif" },
   header: {
     height: '80px', background: '#001166', display: 'flex', alignItems: 'center',
-    justifyContent: 'space-between', padding: '0 40px', position: 'sticky', top: 0, zIndex: 10
+    justifyContent: 'space-between', padding: '0 40px', position: 'sticky', top: 0, zIndex: 10, boxSizing: 'border-box'
   },
   searchBox: { display: 'flex', alignItems: 'center', background: 'rgba(255,255,255,0.1)', padding: '10px 20px', borderRadius: '12px', width: '350px' },
   searchInput: { border: 'none', background: 'transparent', marginLeft: '10px', outline: 'none', width: '100%', color: 'white' },
@@ -200,36 +338,38 @@ const styles = {
   profileText: { textAlign: 'right' },
   userName: { margin: 0, fontWeight: 'bold', fontSize: '14px', color: 'white' },
   userRole: { margin: 0, fontSize: '12px', color: 'rgba(255,255,255,0.6)' },
-  avatar: { width: '40px', height: '40px', background: 'white', borderRadius: '50%', display: 'flex', alignItems: 'center', justifyContent: 'center' },
+  avatar: { width: '40px', height: '40px', background: 'white', borderRadius: '50%', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 },
 
-  content: { padding: '40px' },
+  content: { padding: '40px', boxSizing: 'border-box', width: '100%' },
   titleSection: { marginBottom: '30px' },
   pageTitle: { fontSize: '28px', fontWeight: '700', color: '#001166', margin: 0 },
   pageSubtitle: { fontSize: '14px', color: '#666', marginTop: '5px' },
 
   tableControls: { display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '20px' },
   innerSearch: { position: 'relative', width: '300px' },
-  innerSearchIcon: { position: 'absolute', left: '12px', top: '10px' },
-  innerSearchInput: { width: '100%', padding: '10px 15px 10px 40px', borderRadius: '8px', border: '1px solid #ddd', outline: 'none' },
+  innerSearchIcon: { position: 'absolute', left: '12px', top: '12px' },
+  innerSearchInput: { width: '100%', padding: '10px 15px 10px 40px', borderRadius: '8px', border: '1px solid #ddd', outline: 'none', boxSizing: 'border-box', fontFamily: "'Poppins', sans-serif" },
   addButton: {
     backgroundColor: '#001166', color: 'white', border: 'none', padding: '10px 20px',
-    borderRadius: '8px', fontWeight: '600', display: 'flex', alignItems: 'center', cursor: 'pointer'
+    borderRadius: '8px', fontWeight: '600', display: 'flex', alignItems: 'center', cursor: 'pointer', fontFamily: "'Poppins', sans-serif"
   },
 
   tableContainer: { backgroundColor: '#001166', borderRadius: '15px', overflow: 'hidden', boxShadow: '0 10px 30px rgba(0,0,0,0.1)', marginBottom: '30px' },
-  table: { width: '100%', borderCollapse: 'collapse', color: 'white' },
-  th: { textAlign: 'left', padding: '20px', borderBottom: '1px solid rgba(255,255,255,0.1)', fontSize: '14px', fontWeight: '600', opacity: 0.8 },
-  td: { padding: '20px', borderBottom: '1px solid rgba(255,255,255,0.05)', fontSize: '14px' },
+  table: { borderCollapse: 'collapse', color: 'white' },
+  theadRow: { backgroundColor: 'rgba(255,255,255,0.05)' },
+  th: { textAlign: 'left', padding: '20px', borderBottom: '1px solid rgba(255,255,255,0.1)', fontSize: '14px', fontWeight: '600', opacity: 0.8, whiteSpace: 'nowrap' },
+  tbodyRow: { transition: 'background-color 0.2s' },
+  td: { padding: '20px', borderBottom: '1px solid rgba(255,255,255,0.05)', fontSize: '14px', whiteSpace: 'nowrap' },
   nameCell: { display: 'flex', alignItems: 'center', gap: '12px' },
-  nameAvatar: { width: '32px', height: '32px', backgroundColor: 'white', borderRadius: '50%', opacity: 0.9 },
-  statusBadge: { padding: '6px 12px', borderRadius: '20px', fontSize: '12px', fontWeight: '600' },
+  nameAvatar: { width: '32px', height: '32px', backgroundColor: 'white', borderRadius: '50%', opacity: 0.9, flexShrink: 0 },
+  statusBadge: { padding: '6px 12px', borderRadius: '20px', fontSize: '12px', fontWeight: '600', display: 'inline-block' },
   actionButtons: { display: 'flex', gap: '15px' },
   iconBtn: { cursor: 'pointer', opacity: 0.8 },
 
   summaryGrid: { display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: '20px' },
-  summaryCard: { backgroundColor: '#001166', borderRadius: '15px', padding: '20px', color: 'white' },
-  summaryLabel: { fontSize: '12px', opacity: 0.8, marginBottom: '8px' },
-  summaryValue: { fontSize: '24px', fontWeight: 'bold', margin: 0 }
+  summaryCard: { backgroundColor: '#001166', borderRadius: '15px', padding: '20px', color: 'white', boxShadow: '0 4px 15px rgba(0,0,0,0.05)' },
+  summaryLabel: { fontSize: '13px', opacity: 0.8, marginBottom: '8px', fontWeight: '500' },
+  summaryValue: { fontSize: '28px', fontWeight: 'bold', margin: 0 }
 };
 
 export default StaffDentistList;
