@@ -47,7 +47,7 @@ function StaffSettings() {
   // 3. API Call: Update Profile
   const handleProfileUpdate = async () => {
     try {
-      const response = await fetch('http://localhost:5000/api/update-profile', {
+      const response = await fetch('https://oravista-server-temporary-756513026425.asia-southeast1.run.app/api/update-profile', {
         method: 'PUT',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
@@ -87,7 +87,7 @@ function StaffSettings() {
     }
 
     try {
-      const response = await fetch('http://localhost:5000/api/update-password', {
+      const response = await fetch('https://oravista-server-temporary-756513026425.asia-southeast1.run.app/api/update-password', {
         method: 'PUT',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({

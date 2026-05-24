@@ -39,7 +39,7 @@ function AdminPatientProfile() {
     try {
       setLoading(true);
       const dbId = id.replace('PT-100', '');
-      const response = await fetch(`http://localhost:5000/api/patients`);
+      const response = await fetch(`https://oravista-server-temporary-756513026425.asia-southeast1.run.app/api/patients`);
       const allPatients = await response.json();
       const currentPatient = allPatients.find(p => p.id.toString() === dbId);
       if (currentPatient) {
@@ -50,10 +50,10 @@ function AdminPatientProfile() {
           insurance: currentPatient.insurance || 'None',
           policy_number: currentPatient.policy_number || 'N/A'
         });
-        const historyRes = await fetch(`http://localhost:5000/api/user-appointments/${dbId}`);
+        const historyRes = await fetch(`https://oravista-server-temporary-756513026425.asia-southeast1.run.app/api/user-appointments/${dbId}`);
         const historyData = await historyRes.json();
         setHistory(historyData);
-        const recordsRes = await fetch(`http://localhost:5000/api/patient-records/${dbId}`);
+        const recordsRes = await fetch(`https://oravista-server-temporary-756513026425.asia-southeast1.run.app/api/patient-records/${dbId}`);
         if (recordsRes.ok) {
           const recordsData = await recordsRes.json();
           setRecords(recordsData);
@@ -86,7 +86,7 @@ function AdminPatientProfile() {
     e.preventDefault();
     try {
       const dbId = id.replace('PT-100', '');
-      const response = await fetch('http://localhost:5000/api/update-profile', {
+      const response = await fetch('https://oravista-server-temporary-756513026425.asia-southeast1.run.app/api/update-profile', {
         method: 'PUT',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({

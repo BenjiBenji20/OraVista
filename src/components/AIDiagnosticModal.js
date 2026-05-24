@@ -12,7 +12,7 @@ function AIDiagnosticModal({ isOpen, onClose, record }) {
   const getImageUrl = (filePath) => {
     if (!filePath) return '';
     if (filePath.startsWith('http://') || filePath.startsWith('https://')) return filePath;
-    return `http://localhost:5000/${filePath}`;
+    return `https://oravista-server-temporary-756513026425.asia-southeast1.run.app/${filePath}`;
   };
 
   let parsedFindings = null;

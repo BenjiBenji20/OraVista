@@ -76,7 +76,7 @@ function LoginPage() {
     setIsOtpLoading(true);
 
     try {
-      const response = await fetch("http://localhost:5000/api/send-otp", {
+      const response = await fetch("https://oravista-server-temporary-756513026425.asia-southeast1.run.app/api/send-otp", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ email: forgotEmail, action: "forgot_password" })
@@ -120,7 +120,7 @@ function LoginPage() {
     }
 
     try {
-      const response = await fetch("http://localhost:5000/api/reset-password-by-email", {
+      const response = await fetch("https://oravista-server-temporary-756513026425.asia-southeast1.run.app/api/reset-password-by-email", {
         method: "PUT",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ email: forgotEmail, newPassword: newPassword }),
@@ -163,7 +163,7 @@ function LoginPage() {
 
     try {
       console.log("1. Sending login request...");
-      const response = await fetch('http://localhost:5000/api/login', {
+      const response = await fetch('https://oravista-server-temporary-756513026425.asia-southeast1.run.app/api/login', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ email, password }),

@@ -33,7 +33,7 @@ function DashboardPage() {
 
   const fetchAppointments = useCallback(async (userId) => {
     try {
-      const response = await fetch(`http://localhost:5000/api/user-appointments/${userId}`);
+      const response = await fetch(`https://oravista-server-temporary-756513026425.asia-southeast1.run.app/api/user-appointments/${userId}`);
       if (response.ok) {
         const data = await response.json();
         setAppointments(data);
@@ -179,20 +179,40 @@ function DashboardPage() {
             overflow-x: hidden !important;
           }
 
-          /* ── HEADER: greeting left, icons right, same row ── */
+          /* ── HEADER FIX: align greeting top-left, icons top-right ── */
           .patient-header-row {
             flex-direction: row !important;
-            align-items: center !important;
+            align-items: flex-start !important;
             justify-content: space-between !important;
-            gap: 8px !important;
+            gap: 12px !important;
             width: 100% !important;
           }
-          .patient-header-text h1 { font-size: 22px !important; }
-          .patient-header-text p  { font-size: 12px !important; margin-top: 2px !important; }
-
+          .patient-header-text {
+            flex: 1 1 auto;
+            min-width: 0;
+          }
+          .patient-header-text h1 {
+            font-size: 22px !important;
+            line-height: 1.2 !important;
+            margin: 0 !important;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+          }
+          .patient-header-text p {
+            font-size: 12px !important;
+            margin: 3px 0 0 0 !important;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+          }
           .patient-header-actions {
-            gap: 14px !important;
+            display: flex !important;
+            align-items: center !important;
+            gap: 16px !important;
             flex-shrink: 0;
+            /* nudge icons down slightly so they sit next to the "Hi, name" line */
+            padding-top: 2px !important;
           }
           .desktop-search-box         { display: none !important; }
           .patient-search-toggle-btn  { display: flex !important; }

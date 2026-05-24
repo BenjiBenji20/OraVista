@@ -8,9 +8,9 @@ import { Search, Bell, MessageSquare, User, ZoomIn, RotateCw, UploadCloud, Check
 
 
 
-const NODE_API_BASE = "http://localhost:5000";
+const NODE_API_BASE = "https://oravista-server-temporary-756513026425.asia-southeast1.run.app";
 
-const FASTAPI_API_BASE = "https://cautious-funicular-g4x9r6gg757399x9-8080.app.github.dev";
+const FASTAPI_API_BASE = "https://oravista-ai-engine-temporary-756513026425.asia-southeast1.run.app";
 
 
 
@@ -976,7 +976,7 @@ function DentistDiagnostics() {
 
                         {patient.profile_picture ? (
 
-                          <img src={`http://localhost:5000/${patient.profile_picture}`} alt="" style={styles.avatarImg} />
+                          <img src={`https://oravista-server-temporary-756513026425.asia-southeast1.run.app/${patient.profile_picture}`} alt="" style={styles.avatarImg} />
 
                         ) : <User size={16} color="#001166" />}
 

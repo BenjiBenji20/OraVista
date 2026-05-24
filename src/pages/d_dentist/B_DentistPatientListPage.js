@@ -14,7 +14,7 @@ function DentistPatientList() {
   useEffect(() => {
     const fetchPatients = async () => {
       try {
-        const response = await fetch('http://localhost:5000/api/patients');
+        const response = await fetch('https://oravista-server-temporary-756513026425.asia-southeast1.run.app/api/patients');
         const data = await response.json();
 
         if (Array.isArray(data)) {
