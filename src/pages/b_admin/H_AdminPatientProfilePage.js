@@ -3,8 +3,9 @@ import { useParams } from 'react-router-dom';
 import AdminLayout from '../../components/AdminLayout';
 import {
   Search, Bell, MessageSquare, User, Mail, Phone, MapPin,
-  Calendar, Edit, Download, Archive, FileText, X, ExternalLink, Clock
+  Calendar, Edit, Download, FileText, X, ExternalLink, Clock
 } from 'lucide-react';
+import AIDiagnosticModal from '../../components/AIDiagnosticModal';
 
 function AdminPatientProfile() {
   const { id } = useParams();
@@ -15,6 +16,7 @@ function AdminPatientProfile() {
   const [records, setRecords] = useState([]);
   const [loading, setLoading] = useState(true);
   const [showEditModal, setShowEditModal] = useState(false);
+  const [activeRecordForModal, setActiveRecordForModal] = useState(null);
   const [formData, setFormData] = useState({
     blood_type: '',
     allergies: '',
@@ -92,6 +94,10 @@ function AdminPatientProfile() {
 
   if (loading) return <AdminLayout><div style={styles.loading}>Loading Profile...</div></AdminLayout>;
   if (!patient) return <AdminLayout><div style={styles.loading}>Patient not found.</div></AdminLayout>;
+
+  // Get earliest record (index 0) and check if it has clinical notes
+  const earliestRecord = records[0];
+  const hasClinicalNotes = earliestRecord && earliestRecord.clinical_notes && earliestRecord.clinical_notes.trim() !== "";
 
   return (
     <AdminLayout>
@@ -207,8 +213,8 @@ function AdminPatientProfile() {
                       </tr>
                     </thead>
                     <tbody>
-                      {records.map((rec) => (
-                        <tr key={rec.id} style={styles.trBlack}>
+                      {records.map((rec, idx) => (
+                        <tr key={rec.file_path || idx} style={styles.trBlack}>
                           <td style={{ ...styles.tdPadding, display: 'flex', alignItems: 'center', gap: '10px' }}>
                             <FileText size={16} color="#001166" />
                             {rec.file_name}
@@ -220,9 +226,24 @@ function AdminPatientProfile() {
                             </div>
                           </td>
                           <td style={styles.tdPadding}>
-                            <a href={`http://localhost:5000/${rec.file_path}`} target="_blank" rel="noreferrer" style={styles.viewLink}>
+                            <button
+                              onClick={() => setActiveRecordForModal(rec)}
+                              style={{
+                                background: 'none',
+                                border: 'none',
+                                color: '#001166',
+                                fontWeight: '700',
+                                cursor: 'pointer',
+                                display: 'flex',
+                                alignItems: 'center',
+                                gap: '5px',
+                                padding: 0,
+                                fontFamily: 'inherit',
+                                fontSize: 'inherit'
+                              }}
+                            >
                               View <ExternalLink size={14} />
-                            </a>
+                            </button>
                           </td>
                         </tr>
                       ))}
@@ -236,25 +257,12 @@ function AdminPatientProfile() {
               {/* Treatment Notes */}
               <div style={styles.notesCard}>
                 <h3 style={styles.cardTitle}>Treatment Notes</h3>
-                {history.filter(h => h.status === 'Completed').length > 0 ? (
-                  history.filter(h => h.status === 'Completed').slice(0, 2).map((note, idx) => (
-                    <div key={idx} style={styles.noteItem}>
-                      <div style={styles.noteHeader}>
-                        <div style={styles.noteIcon}><FileText size={18} /></div>
-                        <div>
-                          <p style={styles.noteTitle}>{note.service_type}</p>
-                          <p style={styles.noteDate}>{new Date(note.appointment_date).toLocaleDateString()}</p>
-                        </div>
-                      </div>
-                      <p style={styles.noteContent}>Routine check completed. Patient advised to maintain daily flossing.</p>
-                      <div style={styles.noteActions}>
-                        <button style={styles.noteBtn}><Edit size={14} /> Edit</button>
-                        <button style={styles.noteBtn}><Archive size={14} /> Archive</button>
-                      </div>
-                    </div>
-                  ))
+                {hasClinicalNotes ? (
+                  <div style={styles.noteItem}>
+                    <p style={styles.noteContent}>{earliestRecord.clinical_notes}</p>
+                  </div>
                 ) : (
-                  <p style={{ opacity: 0.6, fontSize: '14px' }}>No treatment notes available.</p>
+                  <p style={{ opacity: 0.6, fontSize: '14px' }}>No treatment notes available</p>
                 )}
               </div>
             </div>
@@ -296,6 +304,11 @@ function AdminPatientProfile() {
             </div>
           </div>
         )}
+        <AIDiagnosticModal
+          isOpen={!!activeRecordForModal}
+          onClose={() => setActiveRecordForModal(null)}
+          record={activeRecordForModal}
+        />
       </div>
     </AdminLayout>
   );

@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import AdminLayout from '../../components/AdminLayout';
 import { Search, Bell, MessageSquare, User, Eye, Edit, Plus, X, FileText, ExternalLink } from 'lucide-react';
+import AIDiagnosticModal from '../../components/AIDiagnosticModal';
 
 function AdminPatientList() {
   const navigate = useNavigate();
@@ -14,6 +15,7 @@ function AdminPatientList() {
   const [selectedPatient, setSelectedPatient] = useState(null);
   const [patientRecords, setPatientRecords] = useState([]);
   const [isModalOpen, setIsModalOpen] = useState(false);
+  const [activeRecordForModal, setActiveRecordForModal] = useState(null);
 
   useEffect(() => {
     const fetchPatients = async () => {
@@ -94,14 +96,29 @@ function AdminPatientList() {
                       </tr>
                     </thead>
                     <tbody>
-                      {patientRecords.map((rec) => (
-                        <tr key={rec.id}>
+                      {patientRecords.map((rec, idx) => (
+                        <tr key={rec.file_path || idx}>
                           <td style={styles.recordTd}><FileText size={16} style={{ marginRight: '8px' }} />{rec.file_name}</td>
                           <td style={styles.recordTd}>{new Date(rec.upload_date).toLocaleDateString()}</td>
                           <td style={styles.recordTd}>
-                            <a href={`http://localhost:5000/${rec.file_path}`} target="_blank" rel="noreferrer" style={styles.viewLink}>
+                            <button
+                              onClick={() => setActiveRecordForModal(rec)}
+                              style={{
+                                background: 'none',
+                                border: 'none',
+                                color: '#001166',
+                                fontWeight: 'bold',
+                                cursor: 'pointer',
+                                display: 'flex',
+                                alignItems: 'center',
+                                gap: '4px',
+                                padding: 0,
+                                fontFamily: 'inherit',
+                                fontSize: 'inherit'
+                              }}
+                            >
                               View <ExternalLink size={14} />
-                            </a>
+                            </button>
                           </td>
                         </tr>
                       ))}
@@ -207,6 +224,11 @@ function AdminPatientList() {
             )}
           </div>
         </div>
+        <AIDiagnosticModal
+          isOpen={!!activeRecordForModal}
+          onClose={() => setActiveRecordForModal(null)}
+          record={activeRecordForModal}
+        />
       </div>
     </AdminLayout>
   );
