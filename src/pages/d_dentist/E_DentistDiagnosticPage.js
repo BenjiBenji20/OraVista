@@ -1,10 +1,11 @@
 import React, { useState, useRef, useEffect } from 'react';
+import { useSearchParams } from 'react-router-dom';
 import AdminLayout from '../../components/AdminLayout';
 import { Search, Bell, MessageSquare, User, ZoomIn, RotateCw, UploadCloud, CheckCircle, X, Activity } from 'lucide-react';
 
 // Global API Base Endpoints
 const NODE_API_BASE = "https://oravista-server-temporary-756513026425.asia-southeast1.run.app";
-const FASTAPI_API_BASE = "https://oravista-ai-engine-temporary-756513026425.asia-southeast1.run.app";
+const FASTAPI_API_BASE = "https://cautious-funicular-g4x9r6gg757399x9-8080.app.github.dev";
 
 function DentistDiagnostics() {
   // State Management
@@ -43,6 +44,10 @@ function DentistDiagnostics() {
   const searchTimeoutRef = useRef(null);
   const dropdownRef = useRef(null);
 
+  const [searchParams] = useSearchParams();
+  const patientIdParam = searchParams.get('patient_id') || searchParams.get('id');
+  const isUploadDisabled = !selectedPatient && !patientIdParam;
+
   // Click outside to close dropdown
   useEffect(() => {
     function handleClickOutside(event) {
@@ -55,6 +60,32 @@ function DentistDiagnostics() {
       document.removeEventListener("mousedown", handleClickOutside);
     };
   }, []);
+
+  // Auto-fetch patient if param is present
+  useEffect(() => {
+    if (patientIdParam) {
+      const fetchPatient = async () => {
+        try {
+          const cleanId = patientIdParam.toString().replace('PT-100', '').trim();
+          const response = await fetch(`${NODE_API_BASE}/api/patients`);
+          if (response.ok) {
+            const allPatients = await response.json();
+            const patient = allPatients.find(p => 
+              p.id.toString() === cleanId || 
+              p.id.toString() === patientIdParam.toString()
+            );
+            if (patient) {
+              setSelectedPatient(patient);
+              setSearchQuery(`${patient.first_name} ${patient.last_name}`);
+            }
+          }
+        } catch (err) {
+          console.error("Error fetching patient by param:", err);
+        }
+      };
+      fetchPatient();
+    }
+  }, [patientIdParam]);
 
   // Debounced search handler
   const handleSearchChange = (e) => {
@@ -173,11 +204,16 @@ function DentistDiagnostics() {
   };
 
   const uploadFileAndAnalyze = async (file) => {
+    const activePatientId = selectedPatient ? selectedPatient.id : (patientIdParam ? patientIdParam.toString().replace('PT-100', '').trim() : null);
+    if (!activePatientId) {
+      alert("No patient selected or patient ID parameter found. Cannot upload.");
+      return;
+    }
     setIsAnalyzing(true);
     setAnalysisComplete(false);
     
     const formData = new FormData();
-    formData.append('patient_id', selectedPatient ? selectedPatient.id : 1);
+    formData.append('patient_id', activePatientId);
     formData.append('file', file);
 
     let responseData = null;
@@ -210,7 +246,7 @@ function DentistDiagnostics() {
       const localUrl = URL.createObjectURL(file);
       responseData = {
         diagnostic_id: Math.floor(Math.random() * 1000) + 1,
-        patient_id: selectedPatient ? selectedPatient.id : 1,
+        patient_id: activePatientId,
         file_path: localUrl,
         clinical_notes: "AI Recommended Advisory: Indication of localized caries on the lower left premolars and moderate horizontal bone loss on the posterior region. Clinical validation suggested.",
         predictions: [
@@ -265,6 +301,10 @@ function DentistDiagnostics() {
 
   const processFile = (file) => {
     if (!file) return;
+    if (isUploadDisabled) {
+      alert("Please select a patient or make sure a patient ID is provided before uploading.");
+      return;
+    }
 
     const validTypes = ['image/jpeg', 'image/jpg', 'image/png'];
     if (!validTypes.includes(file.type)) {
@@ -659,17 +699,35 @@ function DentistDiagnostics() {
                       className="border-2 border-dashed border-gray-300 rounded-lg p-6 flex flex-col items-center justify-center cursor-pointer transition hover:bg-gray-50"
                       style={{
                         ...styles.uploadArea,
-                        backgroundColor: isDragging ? 'rgba(255,255,255,0.1)' : 'transparent',
-                        borderColor: isDragging ? '#10b981' : 'rgba(255,255,255,0.2)'
+                        backgroundColor: isUploadDisabled ? 'rgba(255,255,255,0.02)' : (isDragging ? 'rgba(255,255,255,0.1)' : 'transparent'),
+                        borderColor: isUploadDisabled ? 'rgba(255,255,255,0.1)' : (isDragging ? '#10b981' : 'rgba(255,255,255,0.2)'),
+                        opacity: isUploadDisabled ? 0.5 : 1,
+                        cursor: isUploadDisabled ? 'not-allowed' : 'pointer'
                       }} 
-                      onClick={() => fileInputRef.current.click()}
-                      onDragOver={handleDragOver}
-                      onDragLeave={handleDragLeave}
-                      onDrop={handleDrop}
+                      onClick={() => {
+                        if (isUploadDisabled) return;
+                        fileInputRef.current.click();
+                      }}
+                      onDragOver={(e) => {
+                        if (isUploadDisabled) return;
+                        handleDragOver(e);
+                      }}
+                      onDragLeave={() => {
+                        if (isUploadDisabled) return;
+                        handleDragLeave();
+                      }}
+                      onDrop={(e) => {
+                        if (isUploadDisabled) return;
+                        handleDrop(e);
+                      }}
                     >
-                      <UploadCloud size={48} color={isDragging ? '#10b981' : "rgba(255,255,255,0.4)"} style={{ marginBottom: '15px', transition: 'color 0.2s' }} />
-                      <p style={{ color: 'white', fontWeight: 'bold', fontSize: '16px' }}>Upload X-Ray or Intraoral Scan</p>
-                      <p style={{ color: 'rgba(255,255,255,0.5)', fontSize: '13px', marginTop: '5px' }}>Drag & Drop or Click to browse (JPG, JPEG, PNG)</p>
+                      <UploadCloud size={48} color={isUploadDisabled ? "rgba(255,255,255,0.2)" : (isDragging ? '#10b981' : "rgba(255,255,255,0.4)")} style={{ marginBottom: '15px', transition: 'color 0.2s' }} />
+                      <p style={{ color: isUploadDisabled ? 'rgba(255,255,255,0.4)' : 'white', fontWeight: 'bold', fontSize: '16px' }}>
+                        {isUploadDisabled ? "Upload Disabled" : "Upload X-Ray or Intraoral Scan"}
+                      </p>
+                      <p style={{ color: isUploadDisabled ? 'rgba(255,255,255,0.3)' : 'rgba(255,255,255,0.5)', fontSize: '13px', marginTop: '5px' }}>
+                        {isUploadDisabled ? "Select a patient from search or via URL parameters to enable upload" : "Drag & Drop or Click to browse (JPG, JPEG, PNG)"}
+                      </p>
                     </div>
                   ) : (
                     <div style={styles.simulatedXray}>

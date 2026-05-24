@@ -15,6 +15,9 @@ function DentistAnalyticsPage() {
   const [isOutcomesLoading, setIsOutcomesLoading] = useState(true);
   const [currentRiskIndex, setCurrentRiskIndex] = useState(0);
 
+  const [diagnosticFindings, setDiagnosticFindings] = useState(null);
+  const [isDiagnosticsLoading, setIsDiagnosticsLoading] = useState(true);
+
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [modalData, setModalData] = useState(null);
   const [modalLoading, setModalLoading] = useState(false);
@@ -40,7 +43,7 @@ function DentistAnalyticsPage() {
 
       // GET request to our new dynamic endpoint
       const response = await fetch(
-        `https://oravista-ai-engine-temporary-756513026425.asia-southeast1.run.app/api/dentist/dashboard/predict-risk-queue/${dentistId}`
+        `https://cautious-funicular-g4x9r6gg757399x9-8080.app.github.dev/api/dentist/dashboard/predict-risk-queue/${dentistId}`
       );
 
       if (response.ok) {
@@ -68,12 +71,12 @@ function DentistAnalyticsPage() {
       }
 
       // Fetch the analytics data just like Review Record
-      const analyticsRes = await fetch(`https://oravista-ai-engine-temporary-756513026425.asia-southeast1.run.app/api/patient/get/${rawId}/analytics`);
+      const analyticsRes = await fetch(`https://cautious-funicular-g4x9r6gg757399x9-8080.app.github.dev/api/patient/get/${rawId}/analytics`);
       if (!analyticsRes.ok) throw new Error("Failed to fetch analytics");
       const analyticsData = await analyticsRes.json();
 
       // Send the POST request to generate the treatment outcome prediction
-      const predictRes = await fetch("https://oravista-ai-engine-temporary-756513026425.asia-southeast1.run.app/api/dentist/dashboard/predict-treatment-outcome", {
+      const predictRes = await fetch("https://cautious-funicular-g4x9r6gg757399x9-8080.app.github.dev/api/dentist/dashboard/predict-treatment-outcome", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify(analyticsData)
@@ -87,6 +90,32 @@ function DentistAnalyticsPage() {
       console.error("Failed to generate treatment outcome prediction:", error);
     } finally {
       setIsOutcomesLoading(false);
+    }
+  }, []);
+
+  const fetchPatientDiagnostics = useCallback(async (patient) => {
+    if (!patient) return;
+    setIsDiagnosticsLoading(true);
+    setDiagnosticFindings(null);
+    try {
+      let pid = String(patient.patient_id || patient.id || "");
+      let rawId = pid;
+      if (pid.includes('-')) {
+        const parts = pid.split('-');
+        if (parts.length > 1) {
+          rawId = parts[1].substring(2);
+        }
+      }
+
+      const response = await fetch(`https://cautious-funicular-g4x9r6gg757399x9-8080.app.github.dev/api/diagnostic-imaging/patient/${rawId}/latest`);
+      if (response.ok) {
+        const data = await response.json();
+        setDiagnosticFindings(data);
+      }
+    } catch (error) {
+      console.error("Failed to fetch patient diagnostic findings:", error);
+    } finally {
+      setIsDiagnosticsLoading(false);
     }
   }, []);
 
@@ -108,7 +137,7 @@ function DentistAnalyticsPage() {
         }
       }
 
-      const response = await fetch(`https://oravista-ai-engine-temporary-756513026425.asia-southeast1.run.app/api/patient/get/${rawId}/analytics`);
+      const response = await fetch(`https://cautious-funicular-g4x9r6gg757399x9-8080.app.github.dev/api/patient/get/${rawId}/analytics`);
       if (response.ok) {
         const data = await response.json();
         setModalData(data);
@@ -127,7 +156,7 @@ function DentistAnalyticsPage() {
     setModalData(null);
 
     try {
-      const response = await fetch(`https://oravista-ai-engine-temporary-756513026425.asia-southeast1.run.app/api/dentist/dashboard/${outcome.patient_id}/predict-treatment-outcome/${outcome.id}`);
+      const response = await fetch(`https://cautious-funicular-g4x9r6gg757399x9-8080.app.github.dev/api/dentist/dashboard/${outcome.patient_id}/predict-treatment-outcome/${outcome.id}`);
       if (response.ok) {
         const data = await response.json();
         setModalData(data);
@@ -142,7 +171,7 @@ function DentistAnalyticsPage() {
   const fetchRiskStratification = useCallback(async (branchName) => {
     setIsStratLoading(true);
     try {
-      const response = await fetch("https://oravista-ai-engine-temporary-756513026425.asia-southeast1.run.app/api/dentist/dashboard/risk-stratification", {
+      const response = await fetch("https://cautious-funicular-g4x9r6gg757399x9-8080.app.github.dev/api/dentist/dashboard/risk-stratification", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ branch: branchName, timeframe_days: 30 })
@@ -162,7 +191,7 @@ function DentistAnalyticsPage() {
     if (!riskStratification || !riskStratification.id) return;
     setStratPatientsModal({ isOpen: true, riskLevel, patients: [], loading: true });
     try {
-      const response = await fetch(`https://oravista-ai-engine-temporary-756513026425.asia-southeast1.run.app/api/dentist/dashboard/risk-stratification/${riskStratification.id}/patients?risk_level=${riskLevel}`);
+      const response = await fetch(`https://cautious-funicular-g4x9r6gg757399x9-8080.app.github.dev/api/dentist/dashboard/risk-stratification/${riskStratification.id}/patients?risk_level=${riskLevel}`);
       if (response.ok) {
         const data = await response.json();
         setStratPatientsModal(prev => ({ ...prev, patients: data, loading: false }));
@@ -182,7 +211,7 @@ function DentistAnalyticsPage() {
   const fetchNoShowQueue = useCallback(async (branchName) => {
     setIsNoShowLoading(true);
     try {
-      const response = await fetch(`https://oravista-ai-engine-temporary-756513026425.asia-southeast1.run.app/api/dentist/dashboard/no-show-queue?branch=${encodeURIComponent(branchName)}`);
+      const response = await fetch(`https://cautious-funicular-g4x9r6gg757399x9-8080.app.github.dev/api/dentist/dashboard/no-show-queue?branch=${encodeURIComponent(branchName)}`);
       if (response.ok) {
         const data = await response.json();
         setNoShowPredictions(data);
@@ -197,7 +226,7 @@ function DentistAnalyticsPage() {
   const handlePredictNoShow = async (appointmentId) => {
     setPredictingAppts(prev => ({ ...prev, [appointmentId]: true }));
     try {
-      const response = await fetch(`https://oravista-ai-engine-temporary-756513026425.asia-southeast1.run.app/api/dentist/dashboard/predict-no-show/${appointmentId}`, {
+      const response = await fetch(`https://cautious-funicular-g4x9r6gg757399x9-8080.app.github.dev/api/dentist/dashboard/predict-no-show/${appointmentId}`, {
         method: "POST",
         headers: { "Content-Type": "application/json" }
       });
@@ -223,8 +252,9 @@ function DentistAnalyticsPage() {
   useEffect(() => {
     if (highRiskQueue.length > 0 && highRiskQueue[currentRiskIndex]) {
       fetchTreatmentOutcomes(highRiskQueue[currentRiskIndex]);
+      fetchPatientDiagnostics(highRiskQueue[currentRiskIndex]);
     }
-  }, [highRiskQueue, currentRiskIndex, fetchTreatmentOutcomes]);
+  }, [highRiskQueue, currentRiskIndex, fetchTreatmentOutcomes, fetchPatientDiagnostics]);
 
   return (
     <AdminLayout>
@@ -363,17 +393,132 @@ function DentistAnalyticsPage() {
                 )}
               </div>
 
+              {/* Patient Diagnostic Findings */}
+              <div style={styles.whiteCard}>
+                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '20px' }}>
+                  <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
+                    <ActivitySquare size={20} color="#001166" />
+                    <h3 style={styles.cardTitleBlack}>4. Patient Diagnostic Findings</h3>
+                  </div>
+                </div>
+
+                {isDiagnosticsLoading ? (
+                  <p style={{ textAlign: 'center', color: '#666', marginTop: '20px' }}>Loading Diagnostic Findings...</p>
+                ) : diagnosticFindings ? (
+                  <div style={{ display: 'flex', flexDirection: 'column', gap: '15px' }}>
+                    
+                    {/* Findings list */}
+                    <div>
+                      <span style={styles.actionLabel}>Detected Pathologies / Annotations:</span>
+                      {(() => {
+                        const findings = (diagnosticFindings.ai_findings?.annotations && diagnosticFindings.ai_findings.annotations.length > 0)
+                          ? diagnosticFindings.ai_findings.annotations
+                          : (diagnosticFindings.ai_findings?.predictions || []);
+                        const humanVerified = diagnosticFindings.ai_findings?.human_verified;
+                        
+                        if (findings.length === 0) {
+                          return <p style={{ fontSize: '13px', color: '#666', margin: '5px 0 0 0' }}>No findings detected.</p>;
+                        }
+                        
+                        return (
+                          <div style={{ display: 'flex', flexDirection: 'column', gap: '8px', marginTop: '8px' }}>
+                            {findings.map((item, idx) => {
+                              const conf = item.confidence <= 1 ? Math.round(item.confidence * 100) : Math.round(item.confidence);
+                              return (
+                                <div 
+                                  key={idx} 
+                                  style={{
+                                    display: 'flex',
+                                    justifyContent: 'space-between',
+                                    alignItems: 'center',
+                                    padding: '10px 14px',
+                                    borderRadius: '10px',
+                                    backgroundColor: '#fafbfc',
+                                    border: '1px solid #f0f2f5',
+                                    fontSize: '13px',
+                                    fontWeight: '600',
+                                    color: '#333'
+                                  }}
+                                >
+                                  <span>{item.name}</span>
+                                  <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                                    <span style={{
+                                      color: humanVerified ? '#10b981' : '#ef4444',
+                                      backgroundColor: humanVerified ? '#ecfdf5' : '#fef2f2',
+                                      padding: '2px 8px',
+                                      borderRadius: '12px',
+                                      fontSize: '12px',
+                                      fontWeight: '700'
+                                    }}>
+                                      {conf}%
+                                    </span>
+                                    <span style={{
+                                      fontSize: '10px',
+                                      padding: '2px 6px',
+                                      borderRadius: '6px',
+                                      backgroundColor: humanVerified ? '#10b981' : '#6b7280',
+                                      color: 'white',
+                                      fontWeight: '700'
+                                    }}>
+                                      {humanVerified ? 'Verified' : 'AI'}
+                                    </span>
+                                  </div>
+                                </div>
+                              );
+                            })}
+                          </div>
+                        );
+                      })()}
+                    </div>
+
+                    {/* Clinical Notes */}
+                    {diagnosticFindings.clinical_notes && (
+                      <div style={{ marginTop: '10px' }}>
+                        <span style={styles.actionLabel}>Clinical Notes:</span>
+                        <div 
+                          className="clinical-notes-scrollbar"
+                          style={{
+                            maxHeight: '120px',
+                            overflowY: 'auto',
+                            backgroundColor: '#fafbfc',
+                            border: '1px solid #f0f2f5',
+                            borderRadius: '10px',
+                            padding: '12px',
+                            marginTop: '6px',
+                            fontSize: '13px',
+                            lineHeight: '1.5',
+                            color: '#444'
+                          }}
+                        >
+                          {diagnosticFindings.clinical_notes}
+                        </div>
+                      </div>
+                    )}
+
+                    {/* Scan date / metadata */}
+                    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', borderTop: '1px solid #eee', paddingTop: '12px', marginTop: '5px' }}>
+                      <span style={{ fontSize: '11px', color: '#888' }}>
+                        Scan Date: {diagnosticFindings.scan_date ? new Date(diagnosticFindings.scan_date).toLocaleDateString() : 'N/A'}
+                      </span>
+                    </div>
+
+                  </div>
+                ) : (
+                  <p style={{ textAlign: 'center', color: '#666', marginTop: '20px' }}>No diagnostic records found for this patient.</p>
+                )}
+              </div>
+
             </div>
 
             {/* RIGHT COLUMN: Clinic Operations & Population Group */}
             <div style={{ display: 'flex', flexDirection: 'column', gap: '30px' }}>
 
-              {/* 4. Clinic Risk Stratification */}
+              {/* 6. Clinic Risk Stratification */}
               <div style={styles.whiteCard}>
                 <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '20px' }}>
                   <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
                     <Users size={20} color="#001166" />
-                    <h3 style={styles.cardTitleBlack}>4. Clinic Risk Stratification</h3>
+                    <h3 style={styles.cardTitleBlack}>5. Clinic Risk Stratification</h3>
                   </div>
 
                 </div>
@@ -423,7 +568,7 @@ function DentistAnalyticsPage() {
                   borderBottom: '1px solid #f0f2f5' // Added subtle line to prevent "floating" look
                 }}>
                   <CalendarX size={20} color="#f59e0b" />
-                  <h3 style={{ ...styles.cardTitleBlack, margin: 0 }}>5. No-Show Flight Risk</h3>
+                  <h3 style={{ ...styles.cardTitleBlack, margin: 0 }}>6. No-Show Flight Risk</h3>
                 </div>
                 {isNoShowLoading ? (
                   <p style={{ textAlign: 'center', color: '#666' }}>Loading Schedule...</p>
@@ -708,5 +853,23 @@ const styles = {
     marginTop: "10px",
   },
 };
+
+const styleSheet = document.createElement("style");
+styleSheet.innerText = `
+  .clinical-notes-scrollbar::-webkit-scrollbar {
+    width: 6px;
+  }
+  .clinical-notes-scrollbar::-webkit-scrollbar-track {
+    background: transparent;
+  }
+  .clinical-notes-scrollbar::-webkit-scrollbar-thumb {
+    background: rgba(0, 17, 102, 0.15);
+    border-radius: 3px;
+  }
+  .clinical-notes-scrollbar::-webkit-scrollbar-thumb:hover {
+    background: rgba(0, 17, 102, 0.3);
+  }
+`;
+document.head.appendChild(styleSheet);
 
 export default DentistAnalyticsPage;
