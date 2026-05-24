@@ -152,7 +152,7 @@ function AdminDentistList() {
       <div style={styles.container}>
         <header style={styles.header} className="dashboard-page-header">
           <div style={styles.searchBox} className="header-search-box">
-            <Search size={18} color="rgba(255,255,255,0.6)" />
+            <ChevronDown size={18} color="rgba(255,255,255,0.6)" />
             <input
               type="text"
               placeholder="Quick search..."
@@ -167,7 +167,7 @@ function AdminDentistList() {
               className="mobile-search-toggle-btn"
               onClick={() => setIsSearchOpen(!isSearchOpen)}
             >
-              {isSearchOpen ? <ChevronUp size={24} /> : <Search size={20} />}
+              {isSearchOpen ? <ChevronUp size={24} /> : <ChevronDown size={24} />}
             </button>
 
             <Bell size={20} color="white" style={{ cursor: 'pointer' }} />

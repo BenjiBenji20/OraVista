@@ -211,9 +211,6 @@ function LoginPage() {
     display: "flex", justifyContent: "center", alignItems: "center", zIndex: 2000, backdropFilter: "blur(5px)",
     padding: "20px", boxSizing: "border-box" // Added padding for mobile breathing room
   };
-  const modalContentStyle = {
-    backgroundColor: "white", padding: "40px", borderRadius: "25px", textAlign: "center", maxWidth: "450px", width: "100%", boxShadow: "0 20px 40px rgba(0,0,0,0.4)", position: "relative", boxSizing: "border-box"
-  };
   const labelStyle = { display: "block", fontWeight: "700", fontSize: "14px", marginBottom: "8px", textAlign: "left", color: brandBlue };
   const inputStyle = (error) => ({
     width: "100%", padding: "12px 15px", borderRadius: "8px", border: error ? "2px solid red" : "1px solid #ddd",
