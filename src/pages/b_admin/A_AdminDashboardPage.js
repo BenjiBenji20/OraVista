@@ -1,8 +1,9 @@
 import React, { useState, useEffect } from "react";
 import AdminLayout from "../../components/AdminLayout";
-import { Search, Bell, MessageSquare, User, Download, MapPin, Loader2 } from "lucide-react";
+import { Search, Bell, MessageSquare, User, Download, MapPin, ChevronDown, ChevronUp } from "lucide-react";
 
 function AdminDashboard() {
+  const [isSearchOpen, setIsSearchOpen] = useState(false);
   // States for dynamic clinic data
   const [appointments, setAppointments] = useState([]);
   const [branchEarnings, setBranchEarnings] = useState({});
@@ -59,25 +60,35 @@ function AdminDashboard() {
     <AdminLayout>
       <div style={styles.container}>
         {/* HEADER */}
-        <header style={styles.header}>
-          <div style={styles.searchBox}>
-            <Search size={18} color="rgba(255,255,255,0.6)" />
-            <input
-              type="text"
-              placeholder="Search patients, appointments..."
-              style={styles.searchInput}
-            />
-          </div>
-          <div style={styles.headerActions}>
+        <header style={styles.header} className="dashboard-page-header">
+          <div style={styles.headerActions} className="header-actions">
+            <div style={styles.searchBox} className="header-search-box">
+              <Search size={18} color="rgba(255,255,255,0.6)" />
+              <input
+                type="text"
+                placeholder="Search patients, appointments..."
+                style={styles.searchInput}
+              />
+            </div>
+
             {/* Generate Report Button */}
-            <button style={styles.reportBtn} onClick={handleGenerateReport}>
+            <button style={styles.reportBtn} className="header-report-btn" onClick={handleGenerateReport}>
               <Download size={16} />
               Generate Report
             </button>
+            
+            {/* Mobile Search Toggle */}
+            <button 
+              className="mobile-search-toggle-btn"
+              onClick={() => setIsSearchOpen(!isSearchOpen)}
+            >
+              {isSearchOpen ? <ChevronUp size={20} /> : <ChevronDown size={20} />}
+            </button>
+
             <Bell size={20} color="white" style={styles.actionIcon} />
             <MessageSquare size={20} color="white" style={styles.actionIcon} />
-            <div style={styles.profile}>
-              <div style={styles.profileText}>
+            <div style={styles.profile} className="header-profile">
+              <div style={styles.profileText} className="header-profile-text">
                 <p style={styles.userName}>Admin User</p>
                 <p style={styles.userRole}>Administrator</p>
               </div>
@@ -88,10 +99,27 @@ function AdminDashboard() {
           </div>
         </header>
 
-        {/* DASHBOARD CONTENT */}
-        <div style={styles.content}>
-          <div style={styles.gridTop}>
+        {/* Mobile Collapsible Search & Actions */}
+        {isSearchOpen && (
+          <div className="mobile-search-collapsible">
+            <div style={{ ...styles.searchBox, width: "100%" }}>
+              <Search size={18} color="rgba(255,255,255,0.6)" />
+              <input
+                type="text"
+                placeholder="Search patients, appointments..."
+                style={styles.searchInput}
+              />
+            </div>
+            <button style={{ ...styles.reportBtn, width: "100%", justifyContent: "center" }} onClick={handleGenerateReport}>
+              <Download size={16} />
+              Generate Report
+            </button>
+          </div>
+        )}
 
+        {/* DASHBOARD CONTENT */}
+        <div style={styles.content} className="settings-content">
+          <div style={styles.gridTop} className="dashboard-grid-top">
             {/* CARD 1: TOTAL APPOINTMENTS */}
             <div style={styles.card}>
               <p style={styles.cardLabel}>Total Appointments</p>
@@ -136,7 +164,7 @@ function AdminDashboard() {
             </div>
           </div>
 
-          <div style={styles.gridMid}>
+          <div style={styles.gridMid} className="dashboard-grid-mid">
             {/* CENTRALIZED BRANCH REVENUE Overview */}
             <div style={styles.chartCard}>
               <p style={styles.sectionTitle}>Daily Earnings (Per Branch)</p>
@@ -144,7 +172,7 @@ function AdminDashboard() {
                 {Object.keys(branchEarnings).length > 0 ? (
                   Object.entries(branchEarnings).map(([branch, amount], index) => (
                     <div key={index} style={styles.earningRow}>
-                      <div style={{ display: "flex", alignItems: "center", gap: "10px" }}>
+                       <div style={{ display: "flex", alignItems: "center", gap: "10px" }}>
                         <div style={styles.iconCircle}>
                           <MapPin size={18} color="#001166" />
                         </div>
@@ -165,7 +193,7 @@ function AdminDashboard() {
             </div>
           </div>
 
-          <div style={styles.gridBottom}>
+          <div style={styles.gridBottom} className="dashboard-grid-bottom">
             <div style={styles.listCard}>
               <p style={{ ...styles.sectionTitle, color: "white" }}>
                 Recent Patient Visits
@@ -226,7 +254,7 @@ const styles = {
     background: "#001166",
     display: "flex",
     alignItems: "center",
-    justifyContent: "space-between",
+    justifyContent: "flex-end",
     padding: "0 40px",
     position: "sticky",
     top: 0,

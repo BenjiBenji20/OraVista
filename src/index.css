@@ -494,3 +494,139 @@ code {
     gap: 20px !important;
   }
 }
+
+/* ==========================================================
+   5. RESPONSIVE DASHBOARD GRIDS & COLLAPSIBLE CONTROLS
+   ========================================================== */
+
+/* Grid layout rules */
+.dashboard-grid-top {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 20px;
+  margin-bottom: 25px;
+}
+
+.dashboard-grid-mid {
+  display: grid;
+  grid-template-columns: 1.6fr 1fr;
+  gap: 20px;
+  margin-bottom: 25px;
+}
+
+.dashboard-grid-bottom {
+  display: grid;
+  grid-template-columns: 1.6fr 1fr;
+  gap: 20px;
+}
+
+/* Patient Dashboard layout */
+.patient-dashboard-grid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 25px;
+}
+
+.patient-content-wrapper {
+  padding: 40px;
+  display: flex;
+  flex-direction: column;
+  gap: 25px;
+  box-sizing: border-box;
+}
+
+/* Collapsible search toggles and sections */
+.mobile-search-toggle-btn {
+  display: none;
+  background: none;
+  border: none;
+  color: white;
+  cursor: pointer;
+  align-items: center;
+  justify-content: center;
+}
+
+.mobile-search-collapsible {
+  display: none;
+  flex-direction: column;
+  gap: 12px;
+  background-color: #000c4a;
+  padding: 15px 20px;
+  border-bottom: 1px solid rgba(255,255,255,0.1);
+  box-sizing: border-box;
+}
+
+.patient-search-toggle-btn {
+  display: none;
+}
+
+.patient-search-collapsible {
+  display: none;
+}
+
+/* Responsive Overrides */
+@media (max-width: 1024px) {
+  .dashboard-grid-top {
+    grid-template-columns: repeat(2, 1fr) !important;
+    gap: 15px !important;
+  }
+  .dashboard-grid-mid,
+  .dashboard-grid-bottom {
+    grid-template-columns: 1fr !important;
+    gap: 15px !important;
+  }
+  .patient-dashboard-grid {
+    grid-template-columns: 1fr !important;
+    gap: 15px !important;
+  }
+}
+
+@media (max-width: 768px) {
+  .header-report-btn {
+    display: none !important; /* Hide Report button in desktop header on mobile */
+  }
+  .mobile-search-toggle-btn {
+    display: flex !important;
+  }
+  .mobile-search-collapsible {
+    display: flex !important;
+  }
+  .patient-header-row {
+    flex-direction: column !important;
+    align-items: flex-start !important;
+    gap: 15px;
+  }
+  .patient-header-actions {
+    width: 100% !important;
+    justify-content: flex-end !important;
+    gap: 20px !important;
+  }
+  .patient-search-box {
+    display: none !important;
+  }
+  .patient-search-toggle-btn {
+    display: flex !important;
+    align-items: center;
+    justify-content: center;
+  }
+  .patient-search-collapsible {
+    display: flex !important;
+    background-color: #f0f2f5;
+    padding: 15px;
+    border-radius: 15px;
+    width: 100%;
+    box-sizing: border-box;
+    margin-bottom: 10px;
+  }
+  .patient-content-wrapper {
+    padding: 20px 15px !important;
+    gap: 15px !important;
+  }
+}
+
+@media (max-width: 576px) {
+  .dashboard-grid-top {
+    grid-template-columns: 1fr !important;
+    gap: 15px !important;
+  }
+}

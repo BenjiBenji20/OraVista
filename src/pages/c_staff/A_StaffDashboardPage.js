@@ -1,8 +1,9 @@
 import React, { useState, useEffect } from "react";
 import AdminLayout from "../../components/AdminLayout";
-import { Search, Bell, MessageSquare, User } from "lucide-react";
+import { Search, Bell, MessageSquare, User, ChevronDown, ChevronUp } from "lucide-react";
 
 function StaffDashboard() {
+  const [isSearchOpen, setIsSearchOpen] = useState(false);
   // Mirroring Admin State structure
   const [appointments, setAppointments] = useState([]);
   const [stats, setStats] = useState({
@@ -50,20 +51,29 @@ function StaffDashboard() {
     <AdminLayout>
       <div style={styles.container}>
         {/* HEADER */}
-        <header style={styles.header}>
-          <div style={styles.searchBox}>
-            <Search size={18} color="rgba(255,255,255,0.6)" />
-            <input
-              type="text"
-              placeholder="Search patients, appointments..."
-              style={styles.searchInput}
-            />
-          </div>
-          <div style={styles.headerActions}>
+        <header style={styles.header} className="dashboard-page-header">
+          <div style={styles.headerActions} className="header-actions">
+            <div style={styles.searchBox} className="header-search-box">
+              <Search size={18} color="rgba(255,255,255,0.6)" />
+              <input
+                type="text"
+                placeholder="Search patients, appointments..."
+                style={styles.searchInput}
+              />
+            </div>
+
+            {/* Mobile Search Toggle */}
+            <button 
+              className="mobile-search-toggle-btn"
+              onClick={() => setIsSearchOpen(!isSearchOpen)}
+            >
+              {isSearchOpen ? <ChevronUp size={20} /> : <ChevronDown size={20} />}
+            </button>
+
             <Bell size={20} color="white" style={styles.actionIcon} />
             <MessageSquare size={20} color="white" style={styles.actionIcon} />
-            <div style={styles.profile}>
-              <div style={styles.profileText}>
+            <div style={styles.profile} className="header-profile">
+              <div style={styles.profileText} className="header-profile-text">
                 <p style={styles.userName}>Staff User</p>
                 <p style={styles.userRole}>Receptionist</p>
               </div>
@@ -74,10 +84,23 @@ function StaffDashboard() {
           </div>
         </header>
 
-        {/* DASHBOARD CONTENT */}
-        <div style={styles.content}>
-          <div style={styles.gridTop}>
+        {/* Mobile Collapsible Search & Actions */}
+        {isSearchOpen && (
+          <div className="mobile-search-collapsible">
+            <div style={{ ...styles.searchBox, width: "100%" }}>
+              <Search size={18} color="rgba(255,255,255,0.6)" />
+              <input
+                type="text"
+                placeholder="Search patients, appointments..."
+                style={styles.searchInput}
+              />
+            </div>
+          </div>
+        )}
 
+        {/* DASHBOARD CONTENT */}
+        <div style={styles.content} className="settings-content">
+          <div style={styles.gridTop} className="dashboard-grid-top">
             {/* CARD 1: TODAY'S APPOINTMENTS */}
             <div style={styles.card}>
               <p style={styles.cardLabel}>Today's Appointments</p>
@@ -121,7 +144,7 @@ function StaffDashboard() {
             </div>
           </div>
 
-          <div style={styles.gridMid}>
+          <div style={styles.gridMid} className="dashboard-grid-mid">
             <div style={styles.chartCard}>
               <p style={styles.sectionTitle}>Revenue Overview</p>
               <div style={styles.placeholder}>Chart Placeholder</div>
@@ -132,7 +155,7 @@ function StaffDashboard() {
             </div>
           </div>
 
-          <div style={styles.gridBottom}>
+          <div style={styles.gridBottom} className="dashboard-grid-bottom">
             <div style={styles.listCard}>
               <p style={{ ...styles.sectionTitle, color: "white" }}>
                 Recent Patient Visits
@@ -193,7 +216,7 @@ const styles = {
     background: "#001166",
     display: "flex",
     alignItems: "center",
-    justifyContent: "space-between",
+    justifyContent: "flex-end",
     padding: "0 40px",
     position: "sticky",
     top: 0,

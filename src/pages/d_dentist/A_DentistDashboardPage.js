@@ -1,8 +1,9 @@
 import React, { useState, useEffect } from 'react';
 import AdminLayout from '../../components/AdminLayout';
-import { Search, Bell, MessageSquare, User } from 'lucide-react';
+import { Search, Bell, MessageSquare, User, ChevronDown, ChevronUp } from 'lucide-react';
 
 function DentistDashboard() {
+  const [isSearchOpen, setIsSearchOpen] = useState(false);
   // UPDATED: State management for real-time database data mirrored from Admin/Staff
   const [stats, setStats] = useState({
     todayCount: 0,
@@ -38,16 +39,25 @@ function DentistDashboard() {
     <AdminLayout>
       <div style={styles.container}>
         {/* HEADER - Dentist Specific Profile */}
-        <header style={styles.header}>
-          <div style={styles.searchBox}>
-            <Search size={18} color="rgba(255,255,255,0.6)" />
-            <input type="text" placeholder="Search patients, appointments..." style={styles.searchInput} />
-          </div>
-          <div style={styles.headerActions}>
+        <header style={styles.header} className="dashboard-page-header">
+          <div style={styles.headerActions} className="header-actions">
+            <div style={styles.searchBox} className="header-search-box">
+              <Search size={18} color="rgba(255,255,255,0.6)" />
+              <input type="text" placeholder="Search patients, appointments..." style={styles.searchInput} />
+            </div>
+
+            {/* Mobile Search Toggle */}
+            <button 
+              className="mobile-search-toggle-btn"
+              onClick={() => setIsSearchOpen(!isSearchOpen)}
+            >
+              {isSearchOpen ? <ChevronUp size={20} /> : <ChevronDown size={20} />}
+            </button>
+
             <Bell size={20} color="white" />
             <MessageSquare size={20} color="white" />
-            <div style={styles.profile}>
-              <div style={styles.profileText}>
+            <div style={styles.profile} className="header-profile">
+              <div style={styles.profileText} className="header-profile-text">
                 <p style={styles.userName}>Dr. Smith</p>
                 <p style={styles.userRole}>Dentist</p>
               </div>
@@ -56,11 +66,25 @@ function DentistDashboard() {
           </div>
         </header>
 
+        {/* Mobile Collapsible Search & Actions */}
+        {isSearchOpen && (
+          <div className="mobile-search-collapsible">
+            <div style={{ ...styles.searchBox, width: "100%" }}>
+              <Search size={18} color="rgba(255,255,255,0.6)" />
+              <input
+                type="text"
+                placeholder="Search patients, appointments..."
+                style={styles.searchInput}
+              />
+            </div>
+          </div>
+        )}
+
         {/* CONTENT AREA */}
-        <div style={styles.content}>
+        <div style={styles.content} className="settings-content">
 
           {/* TOP STAT CARDS - Now functional and mirrored */}
-          <div style={styles.gridTop}>
+          <div style={styles.gridTop} className="dashboard-grid-top">
             <div style={styles.card}>
               <p style={styles.cardLabel}>Today's Appointments</p>
               <h2 style={styles.cardValue}>{loading ? "..." : stats.todayCount}</h2>
@@ -88,7 +112,7 @@ function DentistDashboard() {
           </div>
 
           {/* ANALYTICS GRID */}
-          <div style={styles.gridMid}>
+          <div style={styles.gridMid} className="dashboard-grid-mid">
             <div style={styles.chartCard}>
               <p style={styles.sectionTitle}>Revenue Overview</p>
               <div style={styles.placeholder}>Chart Placeholder</div>
@@ -100,7 +124,7 @@ function DentistDashboard() {
           </div>
 
           {/* LOWER GRID: VISITS & SCHEDULE */}
-          <div style={styles.gridBottom}>
+          <div style={styles.gridBottom} className="dashboard-grid-bottom">
             <div style={styles.listCard}>
               <p style={styles.sectionTitle}>Recent Patient Visits</p>
               {[1, 2, 3, 4, 5].map(i => (
@@ -145,7 +169,7 @@ function DentistDashboard() {
 
 const styles = {
   container: { display: 'flex', flexDirection: 'column', width: '100%' },
-  header: { height: '80px', background: '#001166', display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '0 40px', position: 'sticky', top: 0, zIndex: 10 },
+  header: { height: '80px', background: '#001166', display: 'flex', alignItems: 'center', justifyContent: 'flex-end', padding: '0 40px', position: 'sticky', top: 0, zIndex: 10 },
   searchBox: { display: 'flex', alignItems: 'center', background: 'rgba(255,255,255,0.1)', padding: '10px 20px', borderRadius: '12px', width: '350px' },
   searchInput: { border: 'none', background: 'transparent', marginLeft: '10px', outline: 'none', width: '100%', color: 'white' },
   headerActions: { display: 'flex', alignItems: 'center', gap: '25px' },

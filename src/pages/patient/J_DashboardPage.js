@@ -34,6 +34,8 @@ function DashboardPage() {
   const navigate = useNavigate();
   const location = useLocation();
   const [isCollapsed, setIsCollapsed] = useState(false);
+  const [isMobileOpen, setIsMobileOpen] = useState(false);
+  const [isSearchOpen, setIsSearchOpen] = useState(false);
   const [showNotifications, setShowNotifications] = useState(false);
   const [appLanguage] = useState(localStorage.getItem("language") || "English");
 
@@ -144,107 +146,167 @@ function DashboardPage() {
   };
 
   return (
-    <div style={{ display: "flex", minHeight: "100vh", width: "100%" }}>
-      {/* Sidebar */}
-      <div style={sidebarStyle}>
-        <div
-          style={{
-            display: "flex",
-            justifyContent: isCollapsed ? "center" : "space-between",
-            alignItems: "center",
-            marginBottom: "40px",
-          }}
+    <div style={{ display: "flex", minHeight: "100vh", width: "100%", flexDirection: "column" }}>
+      {/* Mobile Top Bar */}
+      <header className="mobile-top-bar">
+        <button 
+          className="mobile-hamburger-btn"
+          onClick={() => setIsMobileOpen(!isMobileOpen)}
+          aria-label="Toggle Menu"
         >
-          {!isCollapsed && (
-            <h2 style={{ fontSize: "28px", fontWeight: "800", margin: 0 }}>
-              OraVista
-            </h2>
-          )}
+          <Menu size={24} />
+        </button>
+        <span style={{ fontWeight: 'bold', fontSize: '18px' }}>OraVista</span>
+        <div style={{ width: '24px' }}></div> {/* Spacer to center name */}
+      </header>
+
+      <div style={{ display: "flex", flex: 1, position: "relative" }}>
+        
+        {/* Backdrop Overlay */}
+        <div 
+          className={`sidebar-overlay ${isMobileOpen ? 'active' : ''}`} 
+          onClick={() => setIsMobileOpen(false)}
+        />
+
+        {/* Sidebar */}
+        <div 
+          className={`sidebar-container ${isMobileOpen ? 'sidebar-open' : ''}`}
+          style={{ ...sidebarStyle, position: "fixed" }}
+        >
           <div
-            onClick={() => setIsCollapsed(!isCollapsed)}
-            style={{ cursor: "pointer" }}
+            style={{
+              display: "flex",
+              justifyContent: isCollapsed ? "center" : "space-between",
+              alignItems: "center",
+              marginBottom: "40px",
+            }}
           >
-            {isCollapsed ? <Menu size={24} /> : <X size={24} />}
-          </div>
-        </div>
-
-        <nav style={{ flexGrow: 1 }}>
-          <div style={getNavItemStyle("/dashboard")} onClick={() => navigate("/dashboard")}>
-            <LayoutDashboard size={20} style={{ flexShrink: 0 }} /> {!isCollapsed && "Dashboard"}
-          </div>
-          <div style={getNavItemStyle("/profile")} onClick={() => navigate("/profile")}>
-            <User size={20} style={{ flexShrink: 0 }} /> {!isCollapsed && "Profile"}
-          </div>
-          <div style={getNavItemStyle("/booking")} onClick={() => navigate("/booking")}>
-            <CalendarHeart size={20} style={{ flexShrink: 0 }} /> {!isCollapsed && "Book an Appointment"}
-          </div>
-          <div style={getNavItemStyle("/appointments")} onClick={() => navigate("/appointments")}>
-            <History size={20} style={{ flexShrink: 0 }} /> {!isCollapsed && "My Appointments"}
-          </div>
-          <div style={getNavItemStyle("/records")} onClick={() => navigate("/records")}>
-            <FileText size={20} style={{ flexShrink: 0 }} /> {!isCollapsed && "Records"}
-          </div>
-          {/* NEW: Billings Button Added */}
-          <div style={getNavItemStyle("/billings")} onClick={() => navigate("/billings")}>
-            <CreditCard size={20} style={{ flexShrink: 0 }} /> {!isCollapsed && "Billings"}
-          </div>
-        </nav>
-
-        <div style={{ borderTop: "1px solid rgba(255,255,255,0.2)", paddingTop: "10px" }}>
-          <div style={getNavItemStyle("/settings")} onClick={() => navigate("/settings")}>
-            <Settings size={20} style={{ flexShrink: 0 }} /> {!isCollapsed && "Settings"}
-          </div>
-          <div style={{ ...getNavItemStyle("/logout"), color: "#ff4d4d" }} onClick={handleLogout}>
-            <LogOut size={20} style={{ flexShrink: 0 }} /> {!isCollapsed && "Logout"}
-          </div>
-        </div>
-      </div>
-
-      {/* Main Content */}
-      <div style={mainContainerStyle}>
-        <div style={{ padding: "40px", display: "flex", flexDirection: "column", gap: "25px" }}>
-          <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start", marginBottom: "15px" }}>
-            <div>
-              <h1 style={{ color: "#001166", fontSize: "42px", fontWeight: "800", margin: 0 }}>
-                {appLanguage === "Tagalog" ? "Mabuhay" : "Hi"}, {userData.firstName}
-              </h1>
-              <p style={{ color: "#001166", fontSize: "18px", marginTop: "5px" }}>
-                You're in {userData.selectedBranch} Branch
-              </p>
+            {!isCollapsed && (
+              <h2 style={{ fontSize: "28px", fontWeight: "800", margin: 0 }}>
+                OraVista
+              </h2>
+            )}
+            <div
+              onClick={() => setIsCollapsed(!isCollapsed)}
+              className="sidebar-desktop-toggle-btn"
+              style={{ cursor: "pointer" }}
+            >
+              {isCollapsed ? <Menu size={24} /> : <X size={24} />}
             </div>
+            <div 
+              onClick={() => setIsMobileOpen(false)} 
+              className="sidebar-mobile-close-btn"
+              style={{ cursor: "pointer", display: "none" }}
+            >
+              <X size={24} />
+            </div>
+          </div>
 
-            <div style={{ display: "flex", alignItems: "center", gap: "25px" }}>
-              <div style={{ position: "relative" }}>
-                <Search style={{ position: "absolute", left: "15px", top: "12px", color: "#666" }} size={20} />
-                <input type="text" placeholder="Search here..." style={{ padding: "12px 15px 12px 45px", borderRadius: "25px", border: "none", backgroundColor: "#f0f2f5", width: "300px", fontSize: "14px" }} />
+          <nav style={{ flexGrow: 1 }}>
+            <div style={getNavItemStyle("/dashboard")} onClick={() => { navigate("/dashboard"); setIsMobileOpen(false); }}>
+              <LayoutDashboard size={20} style={{ flexShrink: 0 }} /> {!isCollapsed && "Dashboard"}
+            </div>
+            <div style={getNavItemStyle("/profile")} onClick={() => { navigate("/profile"); setIsMobileOpen(false); }}>
+              <User size={20} style={{ flexShrink: 0 }} /> {!isCollapsed && "Profile"}
+            </div>
+            <div style={getNavItemStyle("/booking")} onClick={() => { navigate("/booking"); setIsMobileOpen(false); }}>
+              <CalendarHeart size={20} style={{ flexShrink: 0 }} /> {!isCollapsed && "Book an Appointment"}
+            </div>
+            <div style={getNavItemStyle("/appointments")} onClick={() => { navigate("/appointments"); setIsMobileOpen(false); }}>
+              <History size={20} style={{ flexShrink: 0 }} /> {!isCollapsed && "My Appointments"}
+            </div>
+            <div style={getNavItemStyle("/records")} onClick={() => { navigate("/records"); setIsMobileOpen(false); }}>
+              <FileText size={20} style={{ flexShrink: 0 }} /> {!isCollapsed && "Records"}
+            </div>
+            {/* NEW: Billings Button Added */}
+            <div style={getNavItemStyle("/billings")} onClick={() => { navigate("/billings"); setIsMobileOpen(false); }}>
+              <CreditCard size={20} style={{ flexShrink: 0 }} /> {!isCollapsed && "Billings"}
+            </div>
+          </nav>
+
+          <div style={{ borderTop: "1px solid rgba(255,255,255,0.2)", paddingTop: "10px" }}>
+            <div style={getNavItemStyle("/settings")} onClick={() => { navigate("/settings"); setIsMobileOpen(false); }}>
+              <Settings size={20} style={{ flexShrink: 0 }} /> {!isCollapsed && "Settings"}
+            </div>
+            <div style={{ ...getNavItemStyle("/logout"), color: "#ff4d4d" }} onClick={() => { handleLogout(); setIsMobileOpen(false); }}>
+              <LogOut size={20} style={{ flexShrink: 0 }} /> {!isCollapsed && "Logout"}
+            </div>
+          </div>
+        </div>
+
+        {/* Main Content */}
+        <div style={mainContainerStyle} className="admin-main-content">
+          <div className="patient-content-wrapper" style={{ padding: "40px", display: "flex", flexDirection: "column", gap: "25px" }}>
+            <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start", marginBottom: "15px" }} className="patient-header-row">
+              <div>
+                <h1 style={{ color: "#001166", fontSize: "42px", fontWeight: "800", margin: 0 }}>
+                  {appLanguage === "Tagalog" ? "Mabuhay" : "Hi"}, {userData.firstName}
+                </h1>
+                <p style={{ color: "#001166", fontSize: "18px", marginTop: "5px" }}>
+                  You're in {userData.selectedBranch} Branch
+                </p>
               </div>
 
-              <Mail color="#001166" size={24} cursor="pointer" onClick={() => alert("Inbox is currently empty.")} />
+              <div style={{ display: "flex", alignItems: "center", gap: "25px" }} className="patient-header-actions">
+                {/* Search Toggle Button for Patient Dashboard */}
+                <button 
+                  className="patient-search-toggle-btn"
+                  onClick={() => setIsSearchOpen(!isSearchOpen)}
+                  style={{
+                    background: "none",
+                    border: "none",
+                    cursor: "pointer",
+                    color: "#001166",
+                    padding: "5px",
+                    display: "flex",
+                    alignItems: "center",
+                    justifyContent: "center"
+                  }}
+                >
+                  <Search size={24} />
+                </button>
 
-              <div style={{ position: "relative" }}>
-                <div style={{ cursor: "pointer", position: "relative" }} onClick={() => setShowNotifications(!showNotifications)}>
-                  <Bell color="#001166" size={24} />
-                  <div style={{ position: "absolute", top: "-2px", right: "-2px", width: "10px", height: "10px", backgroundColor: "#ff4d4d", borderRadius: "50%", border: "2px solid white" }}></div>
+                <div style={{ position: "relative" }} className="patient-search-box">
+                  <Search style={{ position: "absolute", left: "15px", top: "12px", color: "#666" }} size={20} />
+                  <input type="text" placeholder="Search here..." style={{ padding: "12px 15px 12px 45px", borderRadius: "25px", border: "none", backgroundColor: "#f0f2f5", width: "300px", fontSize: "14px" }} />
                 </div>
 
-                {showNotifications && (
-                  <div style={{ position: "absolute", top: "40px", right: "-10px", width: "320px", backgroundColor: "white", boxShadow: "0 15px 35px rgba(0,0,0,0.15)", borderRadius: "15px", padding: "20px", zIndex: 2000, border: "1px solid #f0f0f0" }}>
-                    <h4 style={{ margin: "0 0 15px 0", color: "#001166", borderBottom: "2px solid #f0f4ff", paddingBottom: "10px" }}>Notifications</h4>
-                    <div style={{ marginBottom: "12px", padding: "12px", backgroundColor: "#f0f4ff", borderRadius: "10px", borderLeft: "4px solid #001166" }}>
-                      <p style={{ margin: 0, fontSize: "14px", color: "#001166", fontWeight: "700" }}>Welcome to OraVista!</p>
-                      <p style={{ margin: "5px 0 0 0", fontSize: "12px", color: "#555", lineHeight: "1.4" }}>Please complete your profile details to make booking appointments faster.</p>
-                    </div>
-                    <div style={{ padding: "12px", backgroundColor: "#f9f9f9", borderRadius: "10px", borderLeft: "4px solid #ccc" }}>
-                      <p style={{ margin: 0, fontSize: "14px", color: "#333", fontWeight: "700" }}>System Reminder</p>
-                      <p style={{ margin: "5px 0 0 0", fontSize: "12px", color: "#777", lineHeight: "1.4" }}>Check your appointment history regularly to stay updated on your dental health.</p>
-                    </div>
+                <Mail color="#001166" size={24} cursor="pointer" onClick={() => alert("Inbox is currently empty.")} />
+
+                <div style={{ position: "relative" }}>
+                  <div style={{ cursor: "pointer", position: "relative" }} onClick={() => setShowNotifications(!showNotifications)}>
+                    <Bell color="#001166" size={24} />
+                    <div style={{ position: "absolute", top: "-2px", right: "-2px", width: "10px", height: "10px", backgroundColor: "#ff4d4d", borderRadius: "50%", border: "2px solid white" }}></div>
                   </div>
-                )}
+
+                  {showNotifications && (
+                    <div style={{ position: "absolute", top: "40px", right: "-10px", width: "320px", backgroundColor: "white", boxShadow: "0 15px 35px rgba(0,0,0,0.15)", borderRadius: "15px", padding: "20px", zIndex: 2000, border: "1px solid #f0f0f0" }}>
+                      <h4 style={{ margin: "0 0 15px 0", color: "#001166", borderBottom: "2px solid #f0f4ff", paddingBottom: "10px" }}>Notifications</h4>
+                      <div style={{ marginBottom: "12px", padding: "12px", backgroundColor: "#f0f4ff", borderRadius: "10px", borderLeft: "4px solid #001166" }}>
+                        <p style={{ margin: 0, fontSize: "14px", color: "#001166", fontWeight: "700" }}>Welcome to OraVista!</p>
+                        <p style={{ margin: "5px 0 0 0", fontSize: "12px", color: "#555", lineHeight: "1.4" }}>Please complete your profile details to make booking appointments faster.</p>
+                      </div>
+                      <div style={{ padding: "12px", backgroundColor: "#f9f9f9", borderRadius: "10px", borderLeft: "4px solid #ccc" }}>
+                        <p style={{ margin: 0, fontSize: "14px", color: "#333", fontWeight: "700" }}>System Reminder</p>
+                        <p style={{ margin: "5px 0 0 0", fontSize: "12px", color: "#777", lineHeight: "1.4" }}>Check your appointment history regularly to stay updated on your dental health.</p>
+                      </div>
+                    </div>
+                  )}
+                </div>
               </div>
             </div>
-          </div>
 
-          <div style={{ display: "grid", gridTemplateColumns: "repeat(3, 1fr)", gap: "25px" }}>
+            {/* Patient Collapsible Search Bar */}
+            {isSearchOpen && (
+              <div className="patient-search-collapsible">
+                <div style={{ position: "relative", width: "100%" }}>
+                  <Search style={{ position: "absolute", left: "15px", top: "12px", color: "#666" }} size={20} />
+                  <input type="text" placeholder="Search here..." style={{ padding: "12px 15px 12px 45px", borderRadius: "25px", border: "none", backgroundColor: "#ffffff", width: "100%", fontSize: "14px", boxSizing: "border-box" }} />
+                </div>
+              </div>
+            )}
+
+            <div style={{ display: "grid", gridTemplateColumns: "repeat(3, 1fr)", gap: "25px" }} className="patient-dashboard-grid">
 
             <div style={cardStyle}>
               <h3 style={{ margin: 0, fontSize: "20px" }}>Upcoming Appointment</h3>
@@ -328,6 +390,7 @@ function DashboardPage() {
 
           </div>
         </div>
+      </div>
       </div>
     </div>
   );
