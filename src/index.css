@@ -630,3 +630,34 @@ code {
     gap: 15px !important;
   }
 }
+
+/* ==========================================================
+   6. RESPONSIVE PATIENT LIST TABLES & CONTROLS
+   ========================================================== */
+.patient-table-container {
+  overflow-x: auto !important;
+}
+
+@media (max-width: 768px) {
+  .patient-table-container {
+    max-height: 450px !important;
+    overflow-y: auto !important;
+  }
+  
+  .table-controls-row {
+    flex-direction: column !important;
+    align-items: stretch !important;
+    gap: 15px !important;
+  }
+  
+  .table-controls-row > div {
+    width: 100% !important;
+  }
+}
+
+.table-controls-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 20px;
+}

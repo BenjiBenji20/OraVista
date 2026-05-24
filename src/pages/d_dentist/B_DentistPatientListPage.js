@@ -1,10 +1,11 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import AdminLayout from '../../components/AdminLayout';
-import { Search, Bell, MessageSquare, User, Eye, FileText, ClipboardList } from 'lucide-react';
+import { Search, Bell, MessageSquare, User, Eye, FileText, ClipboardList, ChevronDown, ChevronUp } from 'lucide-react';
 
 function DentistPatientList() {
   const navigate = useNavigate();
+  const [isSearchOpen, setIsSearchOpen] = useState(false);
   const [patients, setPatients] = useState([]);
   const [filteredPatients, setFilteredPatients] = useState([]);
   const [loading, setLoading] = useState(true);
@@ -56,16 +57,25 @@ function DentistPatientList() {
     <AdminLayout>
       <div style={styles.container}>
         {/* HEADER - Dentist Profile */}
-        <header style={styles.header}>
-          <div style={styles.searchBox}>
-            <Search size={18} color="rgba(255,255,255,0.6)" />
-            <input type="text" placeholder="Search your patients..." style={styles.searchInput} />
-          </div>
-          <div style={styles.headerActions}>
+        <header style={styles.header} className="dashboard-page-header">
+          <div style={styles.headerActions} className="header-actions">
+            <div style={styles.searchBox} className="header-search-box">
+              <Search size={18} color="rgba(255,255,255,0.6)" />
+              <input type="text" placeholder="Search your patients..." style={styles.searchInput} />
+            </div>
+
+            {/* Mobile Search Toggle */}
+            <button 
+              className="mobile-search-toggle-btn"
+              onClick={() => setIsSearchOpen(!isSearchOpen)}
+            >
+              {isSearchOpen ? <ChevronUp size={20} /> : <ChevronDown size={20} />}
+            </button>
+
             <Bell size={20} color="white" />
             <MessageSquare size={20} color="white" />
-            <div style={styles.profile}>
-              <div style={styles.profileText}>
+            <div style={styles.profile} className="header-profile">
+              <div style={styles.profileText} className="header-profile-text">
                 <p style={styles.userName}>Dr. Smith</p>
                 <p style={styles.userRole}>Dentist</p>
               </div>
@@ -74,14 +84,24 @@ function DentistPatientList() {
           </div>
         </header>
 
+        {/* Mobile Collapsible Search & Actions */}
+        {isSearchOpen && (
+          <div className="mobile-search-collapsible">
+            <div style={{ ...styles.searchBox, width: "100%" }}>
+              <Search size={18} color="rgba(255,255,255,0.6)" />
+              <input type="text" placeholder="Search your patients..." style={styles.searchInput} />
+            </div>
+          </div>
+        )}
+
         {/* CONTENT */}
-        <div style={styles.content}>
+        <div style={styles.content} className="settings-content">
           <div style={styles.titleSection}>
             <h1 style={styles.pageTitle}>My Patient List</h1>
             <p style={styles.pageSubtitle}>Review clinical records and procedure history</p>
           </div>
 
-          <div style={styles.tableControls}>
+          <div style={styles.tableControls} className="table-controls-row">
             <div style={styles.innerSearch}>
               <Search size={16} color="#999" style={styles.innerSearchIcon} />
               <input
@@ -95,7 +115,7 @@ function DentistPatientList() {
           </div>
 
           {/* PATIENT TABLE */}
-          <div style={styles.tableContainer}>
+          <div style={styles.tableContainer} className="patient-table-container">
             {loading ? (
               <p style={{ padding: '20px', color: 'white' }}>Loading patients...</p>
             ) : (
@@ -154,7 +174,7 @@ function DentistPatientList() {
 
 const styles = {
   container: { display: 'flex', flexDirection: 'column', width: '100%' },
-  header: { height: '80px', background: '#001166', display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '0 40px', position: 'sticky', top: 0, zIndex: 10 },
+  header: { height: '80px', background: '#001166', display: 'flex', alignItems: 'center', justifyContent: 'flex-end', padding: '0 40px', position: 'sticky', top: 0, zIndex: 10 },
   searchBox: { display: 'flex', alignItems: 'center', background: 'rgba(255,255,255,0.1)', padding: '10px 20px', borderRadius: '12px', width: '350px' },
   searchInput: { border: 'none', background: 'transparent', marginLeft: '10px', outline: 'none', width: '100%', color: 'white' },
   headerActions: { display: 'flex', alignItems: 'center', gap: '25px' },
