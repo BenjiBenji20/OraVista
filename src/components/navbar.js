@@ -1,8 +1,10 @@
-import React from 'react';
+import React, { useState } from 'react';
 import { Link, useLocation } from 'react-router-dom';
+import { Menu, X } from 'lucide-react';
 
 function Navbar() {
   const location = useLocation();
+  const [isOpen, setIsOpen] = useState(false);
 
   const navbarStyle = {
     display: 'flex',
@@ -47,12 +49,21 @@ function Navbar() {
 
   return (
     <nav style={navbarStyle}>
-      <Link to="/" style={brandStyle}>OraVista</Link>
-      <div style={linkContainerStyle}>
-        <Link to="/" style={getLinkStyle('/')}>Home</Link>
-        <Link to="/about" style={getLinkStyle('/about')}>About Us</Link>
-        <Link to="/services" style={getLinkStyle('/services')}>Services</Link>
-        <Link to="/contact" style={getLinkStyle('/contact')}>Contact</Link>
+      <Link to="/" style={brandStyle} className="navbar-brand">OraVista</Link>
+      
+      <button 
+        className="navbar-mobile-toggle"
+        onClick={() => setIsOpen(!isOpen)}
+        aria-label="Toggle menu"
+      >
+        {isOpen ? <X size={28} /> : <Menu size={28} />}
+      </button>
+
+      <div className={`navbar-links ${isOpen ? 'menu-open' : ''}`} style={linkContainerStyle}>
+        <Link to="/" style={getLinkStyle('/')} onClick={() => setIsOpen(false)}>Home</Link>
+        <Link to="/about" style={getLinkStyle('/about')} onClick={() => setIsOpen(false)}>About Us</Link>
+        <Link to="/services" style={getLinkStyle('/services')} onClick={() => setIsOpen(false)}>Services</Link>
+        <Link to="/contact" style={getLinkStyle('/contact')} onClick={() => setIsOpen(false)}>Contact</Link>
       </div>
     </nav>
   );

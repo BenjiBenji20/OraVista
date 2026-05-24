@@ -256,29 +256,115 @@ function DentistAnalyticsPage() {
     }
   }, [highRiskQueue, currentRiskIndex, fetchTreatmentOutcomes, fetchPatientDiagnostics]);
 
+  const styleSheet = document.createElement("style");
+styleSheet.innerText = `
+  /* GRID & RESPONSIVENESS */
+  .analytics-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 30px;
+    align-items: stretch;
+  }
+
+  /* --- ADD THESE NEW HEADER STYLES --- */
+  @media (max-width: 768px) {
+    .dashboard-header-row {
+      flex-direction: column !important;
+      align-items: flex-start !important;
+      gap: 15px;
+      margin-bottom: 20px !important;
+    }
+    
+    .responsive-title {
+      font-size: 24px !important;
+      line-height: 1.2;
+      margin-bottom: 8px !important;
+    }
+  }
+  /* ----------------------------------- */
+
+  .analytics-col-left, .analytics-col-right {
+    display: flex;
+    flex-direction: column;
+    gap: 30px;
+  }
+
+  @media (min-width: 1025px) {
+    .analytics-col-left, .analytics-col-right {
+      min-height: 800px;
+    }
+  }
+
+  .card-diagnostic-findings {
+    grid-column: 1 / -1; 
+  }
+
+  .diagnostic-internal-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 20px;
+  }
+
+  @media (max-width: 1024px) {
+    .analytics-grid {
+      grid-template-columns: 1fr; 
+    }
+    .card-diagnostic-findings {
+      grid-column: span 1;
+    }
+    .analytics-col-left, .analytics-col-right {
+      min-height: auto; 
+    }
+  }
+
+  @media (max-width: 768px) {
+    .diagnostic-internal-grid {
+      grid-template-columns: 1fr; 
+    }
+  }
+
+  .clinical-notes-scrollbar::-webkit-scrollbar,
+  .custom-scrollbar::-webkit-scrollbar {
+    width: 6px;
+  }
+  .clinical-notes-scrollbar::-webkit-scrollbar-track,
+  .custom-scrollbar::-webkit-scrollbar-track {
+    background: transparent;
+  }
+  .clinical-notes-scrollbar::-webkit-scrollbar-thumb,
+  .custom-scrollbar::-webkit-scrollbar-thumb {
+    background: rgba(0, 17, 102, 0.15);
+    border-radius: 3px;
+  }
+  .clinical-notes-scrollbar::-webkit-scrollbar-thumb:hover,
+  .custom-scrollbar::-webkit-scrollbar-thumb:hover {
+    background: rgba(0, 17, 102, 0.3);
+  }
+`;
+document.head.appendChild(styleSheet);
   return (
     <AdminLayout>
       <div style={styles.container}>
         {/* ... HEADER CODE REMAINS SAME ... */}
 
         <div style={styles.content}>
-          <div style={styles.topRow}>
+ <div className="dashboard-header-row" style={styles.topRow}>
             <div>
-              <h1 style={styles.pageTitle}>Preventative & Predictive Analytics</h1>
+              <h1 className="responsive-title" style={styles.pageTitle}>Preventative & Predictive Analytics</h1>
               <p style={styles.pageSubtitle}>Machine Learning forecasts for clinical outcomes and clinic operations</p>
             </div>
             <div style={styles.aiBadge}>
-              <BrainCircuit size={18} />
-              OraVista ML Engine Active
+              <BrainCircuit size={18} style={{ flexShrink: 0 }} />
+              <span style={{ whiteSpace: 'nowrap' }}>OraVista ML Engine Active</span>
             </div>
           </div>
 
-          <div style={styles.mainLayout}>
+          <div className="analytics-grid">
             {/* LEFT COLUMN: Predictive Risk & Treatment Outcomes */}
-            <div style={{ display: 'flex', flexDirection: 'column', gap: '30px' }}>
+            <div className="analytics-col-left">
 
               {/* 1 & 3. Predictive Risk Queue (DYNAMIC) */}
-              <div style={styles.queueCard}>
+              <div className="card-risk-queue" style={styles.queueCard}>
                 <div style={styles.cardHeader}>
                   <h3 style={styles.cardTitleBlack}>1 & 3. Predictive Risk Queue</h3>
                   <div style={{ display: 'flex', alignItems: 'center', gap: '15px' }}>
@@ -357,7 +443,8 @@ function DentistAnalyticsPage() {
 
               {/* 2. Treatment Outcome Predictions (DYNAMIC) */}
               <div
-                style={{ ...styles.insightsCard, display: 'flex', flexDirection: 'column', cursor: 'pointer', transition: 'transform 0.2s' }}
+                className="card-treatment-outcome"
+                style={{ ...styles.insightsCard, display: 'flex', flexDirection: 'column', cursor: 'pointer', transition: 'transform 0.2s', width: '100%' }}
                 onClick={() => {
                   if (treatmentOutcomes && treatmentOutcomes.length > 0) {
                     handleReviewOutcome(treatmentOutcomes[0]);
@@ -393,139 +480,23 @@ function DentistAnalyticsPage() {
                 )}
               </div>
 
-              {/* Patient Diagnostic Findings */}
-              <div style={styles.whiteCard}>
-                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '20px' }}>
-                  <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
-                    <ActivitySquare size={20} color="#001166" />
-                    <h3 style={styles.cardTitleBlack}>4. Patient Diagnostic Findings</h3>
-                  </div>
-                </div>
-
-                {isDiagnosticsLoading ? (
-                  <p style={{ textAlign: 'center', color: '#666', marginTop: '20px' }}>Loading Diagnostic Findings...</p>
-                ) : diagnosticFindings ? (
-                  <div style={{ display: 'flex', flexDirection: 'column', gap: '15px' }}>
-                    
-                    {/* Findings list */}
-                    <div>
-                      <span style={styles.actionLabel}>Detected Pathologies / Annotations:</span>
-                      {(() => {
-                        const findings = (diagnosticFindings.ai_findings?.annotations && diagnosticFindings.ai_findings.annotations.length > 0)
-                          ? diagnosticFindings.ai_findings.annotations
-                          : (diagnosticFindings.ai_findings?.predictions || []);
-                        const humanVerified = diagnosticFindings.ai_findings?.human_verified;
-                        
-                        if (findings.length === 0) {
-                          return <p style={{ fontSize: '13px', color: '#666', margin: '5px 0 0 0' }}>No findings detected.</p>;
-                        }
-                        
-                        return (
-                          <div style={{ display: 'flex', flexDirection: 'column', gap: '8px', marginTop: '8px' }}>
-                            {findings.map((item, idx) => {
-                              const conf = item.confidence <= 1 ? Math.round(item.confidence * 100) : Math.round(item.confidence);
-                              return (
-                                <div 
-                                  key={idx} 
-                                  style={{
-                                    display: 'flex',
-                                    justifyContent: 'space-between',
-                                    alignItems: 'center',
-                                    padding: '10px 14px',
-                                    borderRadius: '10px',
-                                    backgroundColor: '#fafbfc',
-                                    border: '1px solid #f0f2f5',
-                                    fontSize: '13px',
-                                    fontWeight: '600',
-                                    color: '#333'
-                                  }}
-                                >
-                                  <span>{item.name}</span>
-                                  <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-                                    <span style={{
-                                      color: humanVerified ? '#10b981' : '#ef4444',
-                                      backgroundColor: humanVerified ? '#ecfdf5' : '#fef2f2',
-                                      padding: '2px 8px',
-                                      borderRadius: '12px',
-                                      fontSize: '12px',
-                                      fontWeight: '700'
-                                    }}>
-                                      {conf}%
-                                    </span>
-                                    <span style={{
-                                      fontSize: '10px',
-                                      padding: '2px 6px',
-                                      borderRadius: '6px',
-                                      backgroundColor: humanVerified ? '#10b981' : '#6b7280',
-                                      color: 'white',
-                                      fontWeight: '700'
-                                    }}>
-                                      {humanVerified ? 'Verified' : 'AI'}
-                                    </span>
-                                  </div>
-                                </div>
-                              );
-                            })}
-                          </div>
-                        );
-                      })()}
-                    </div>
-
-                    {/* Clinical Notes */}
-                    {diagnosticFindings.clinical_notes && (
-                      <div style={{ marginTop: '10px' }}>
-                        <span style={styles.actionLabel}>Clinical Notes:</span>
-                        <div 
-                          className="clinical-notes-scrollbar"
-                          style={{
-                            maxHeight: '120px',
-                            overflowY: 'auto',
-                            backgroundColor: '#fafbfc',
-                            border: '1px solid #f0f2f5',
-                            borderRadius: '10px',
-                            padding: '12px',
-                            marginTop: '6px',
-                            fontSize: '13px',
-                            lineHeight: '1.5',
-                            color: '#444'
-                          }}
-                        >
-                          {diagnosticFindings.clinical_notes}
-                        </div>
-                      </div>
-                    )}
-
-                    {/* Scan date / metadata */}
-                    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', borderTop: '1px solid #eee', paddingTop: '12px', marginTop: '5px' }}>
-                      <span style={{ fontSize: '11px', color: '#888' }}>
-                        Scan Date: {diagnosticFindings.scan_date ? new Date(diagnosticFindings.scan_date).toLocaleDateString() : 'N/A'}
-                      </span>
-                    </div>
-
-                  </div>
-                ) : (
-                  <p style={{ textAlign: 'center', color: '#666', marginTop: '20px' }}>No diagnostic records found for this patient.</p>
-                )}
-              </div>
-
             </div>
 
             {/* RIGHT COLUMN: Clinic Operations & Population Group */}
-            <div style={{ display: 'flex', flexDirection: 'column', gap: '30px' }}>
+            <div className="analytics-col-right">
 
-              {/* 6. Clinic Risk Stratification */}
-              <div style={styles.whiteCard}>
+              {/* 5. Clinic Risk Stratification */}
+              <div className="card-risk-stratification" style={styles.whiteCard}>
                 <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '20px' }}>
                   <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
                     <Users size={20} color="#001166" />
                     <h3 style={styles.cardTitleBlack}>5. Clinic Risk Stratification</h3>
                   </div>
-
                 </div>
                 <select
                   value={selectedBranch}
                   onChange={(e) => setSelectedBranch(e.target.value)}
-                  style={{ padding: '6px 12px', borderRadius: '8px', border: '1px solid #ccc', backgroundColor: '#f9fafb', fontSize: '13px', color: '#333', outline: 'none', cursor: 'pointer' }}
+                  style={{ padding: '6px 12px', borderRadius: '8px', border: '1px solid #ccc', backgroundColor: '#f9fafb', fontSize: '13px', color: '#333', outline: 'none', cursor: 'pointer', width: '100%', marginBottom: '15px' }}
                 >
                   <option value="Main Branch">Main Branch</option>
                   <option value="Gil Puyat, Pasay">Gil Puyat</option>
@@ -554,26 +525,25 @@ function DentistAnalyticsPage() {
                 )}
               </div>
 
-              {/* 5. No-Show Flight Risk */}
-              <div style={{ ...styles.whiteCard, borderLeft: '4px solid #f59e0b', maxHeight: '500px', overflowY: 'auto' }}>
+              {/* 6. No-Show Flight Risk */}
+              <div className="card-no-show" style={{ ...styles.whiteCard, borderLeft: '4px solid #f59e0b' }}>
                 <div style={{
                   display: 'flex',
                   alignItems: 'center',
                   gap: '10px',
-                  position: 'sticky',
-                  top: 0,
                   backgroundColor: 'white',
-                  padding: '20px 20px 15px 20px', // Padding moved here
+                  padding: '0 0 15px 0',
                   zIndex: 10,
-                  borderBottom: '1px solid #f0f2f5' // Added subtle line to prevent "floating" look
+                  borderBottom: '1px solid #f0f2f5',
+                  marginBottom: '15px'
                 }}>
                   <CalendarX size={20} color="#f59e0b" />
                   <h3 style={{ ...styles.cardTitleBlack, margin: 0 }}>6. No-Show Flight Risk</h3>
                 </div>
                 {isNoShowLoading ? (
-                  <p style={{ textAlign: 'center', color: '#666' }}>Loading Schedule...</p>
+                  <p style={{ textAlign: 'center', color: '#666', padding: '20px' }}>Loading Schedule...</p>
                 ) : noShowPredictions.length > 0 ? (
-                  <div style={{ display: 'flex', flexDirection: 'column', gap: '15px' }}>
+                  <div className="no-show-list-scroll" style={{ display: 'flex', flexDirection: 'column', gap: '15px' }}>
                     {noShowPredictions.map((appt) => (
                       <div key={appt.appointment_id} style={styles.noShowItem}>
                         <div style={{ flex: 1 }}>
@@ -615,11 +585,129 @@ function DentistAnalyticsPage() {
                     ))}
                   </div>
                 ) : (
-                  <p style={{ textAlign: 'center', color: '#666' }}>No upcoming appointments found.</p>
+                  <p style={{ textAlign: 'center', color: '#666', padding: '20px' }}>No upcoming appointments found.</p>
                 )}
               </div>
 
             </div>
+
+            {/* 4. Patient Diagnostic Findings */}
+            <div className="card-diagnostic-findings" style={styles.whiteCard}>
+              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '20px' }}>
+                <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
+                  <ActivitySquare size={20} color="#001166" />
+                  <h3 style={styles.cardTitleBlack}>4. Patient Diagnostic Findings</h3>
+                </div>
+              </div>
+
+              {isDiagnosticsLoading ? (
+                <p style={{ textAlign: 'center', color: '#666', marginTop: '20px' }}>Loading Diagnostic Findings...</p>
+              ) : diagnosticFindings ? (
+                <div className="diagnostic-internal-grid">
+                  
+                  {/* Left Column: Detected Pathologies / Annotations */}
+                  <div className="col-left">
+                    <span style={styles.actionLabel}>Detected Pathologies / Annotations:</span>
+                    {(() => {
+                      const findings = (diagnosticFindings.ai_findings?.annotations && diagnosticFindings.ai_findings.annotations.length > 0)
+                        ? diagnosticFindings.ai_findings.annotations
+                        : (diagnosticFindings.ai_findings?.predictions || []);
+                      const humanVerified = diagnosticFindings.ai_findings?.human_verified;
+                      
+                      if (findings.length === 0) {
+                        return <p style={{ fontSize: '13px', color: '#666', margin: '5px 0 0 0' }}>No findings detected.</p>;
+                      }
+                      
+                      return (
+                        <div className="annotations-list-scroll" style={{ display: 'flex', flexDirection: 'column', gap: '8px', marginTop: '8px' }}>
+                          {findings.map((item, idx) => {
+                            const conf = item.confidence <= 1 ? Math.round(item.confidence * 100) : Math.round(item.confidence);
+                            return (
+                              <div 
+                                key={idx} 
+                                style={{
+                                  display: 'flex',
+                                  justifyContent: 'space-between',
+                                  alignItems: 'center',
+                                  padding: '10px 14px',
+                                  borderRadius: '10px',
+                                  backgroundColor: '#fafbfc',
+                                  border: '1px solid #f0f2f5',
+                                  fontSize: '13px',
+                                  fontWeight: '600',
+                                  color: '#333'
+                                }}
+                              >
+                                <span>{item.name}</span>
+                                <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                                  <span style={{
+                                    color: humanVerified ? '#10b981' : '#ef4444',
+                                    backgroundColor: humanVerified ? '#ecfdf5' : '#fef2f2',
+                                    padding: '2px 8px',
+                                    borderRadius: '12px',
+                                    fontSize: '12px',
+                                    fontWeight: '700'
+                                  }}>
+                                    {conf}%
+                                  </span>
+                                  <span style={{
+                                    fontSize: '10px',
+                                    padding: '2px 6px',
+                                    borderRadius: '6px',
+                                    backgroundColor: humanVerified ? '#10b981' : '#6b7280',
+                                    color: 'white',
+                                    fontWeight: '700'
+                                  }}>
+                                    {humanVerified ? 'Verified' : 'AI'}
+                                  </span>
+                                </div>
+                              </div>
+                            );
+                          })}
+                        </div>
+                      );
+                    })()}
+                  </div>
+
+                  {/* Right Column: Clinical Notes */}
+                  <div className="col-right">
+                    {diagnosticFindings.clinical_notes && (
+                      <div>
+                        <span style={styles.actionLabel}>Clinical Notes:</span>
+                        <div 
+                          className="clinical-notes-scrollbar"
+                          style={{
+                            maxHeight: '180px',
+                            overflowY: 'auto',
+                            backgroundColor: '#fafbfc',
+                            border: '1px solid #f0f2f5',
+                            borderRadius: '10px',
+                            padding: '12px',
+                            marginTop: '6px',
+                            fontSize: '13px',
+                            lineHeight: '1.5',
+                            color: '#444'
+                          }}
+                        >
+                          {diagnosticFindings.clinical_notes}
+                        </div>
+                      </div>
+                    )}
+
+                    {/* Scan date / metadata */}
+                    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', borderTop: '1px solid #eee', paddingTop: '12px', marginTop: '15px' }}>
+                      <span style={{ fontSize: '11px', color: '#888' }}>
+                        Scan Date: {diagnosticFindings.scan_date ? new Date(diagnosticFindings.scan_date).toLocaleDateString() : 'N/A'}
+                      </span>
+                    </div>
+                  </div>
+
+                </div>
+              ) : (
+                <p style={{ textAlign: 'center', color: '#666', marginTop: '20px' }}>No diagnostic records found for this patient.</p>
+              )}
+            </div>
+
           </div>
         </div>
 

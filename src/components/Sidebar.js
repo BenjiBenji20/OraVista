@@ -2,21 +2,32 @@ import React, { useState, useEffect } from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
 import { 
   LayoutDashboard, Users, UserRound, Calendar, 
-  Stethoscope, UserPlus, Settings, LogOut, ChevronLeft, ChevronRight,
-  ActivitySquare // NEW: Imported icon for Analytics
+  Stethoscope, UserPlus, Settings, LogOut, ChevronLeft, ChevronRight, X,
+  ActivitySquare
 } from 'lucide-react';
 
-const Sidebar = ({ onToggle }) => {
+const Sidebar = ({ onToggle, isMobileOpen, onMobileClose }) => {
   const navigate = useNavigate();
   const location = useLocation();
   const [isCollapsed, setIsCollapsed] = useState(false);
-  
+  const [isMobile, setIsMobile] = useState(window.innerWidth <= 1024);
+
   const user = JSON.parse(localStorage.getItem("user")) || { role: "" };
   const role = user.role.toLowerCase();
 
   useEffect(() => {
-    onToggle(isCollapsed);
-  }, [isCollapsed, onToggle]);
+    const handleResize = () => {
+      setIsMobile(window.innerWidth <= 1024);
+    };
+    window.addEventListener('resize', handleResize);
+    return () => window.removeEventListener('resize', handleResize);
+  }, []);
+
+  const collapsed = isMobile ? false : isCollapsed;
+
+  useEffect(() => {
+    onToggle(collapsed);
+  }, [collapsed, onToggle]);
 
   const menuConfig = {
     admin: [
@@ -40,7 +51,6 @@ const Sidebar = ({ onToggle }) => {
       { name: 'Profile', path: '/dentist/profile', icon: <UserRound size={20}/> },
       { name: 'Appointments', path: '/dentist/appointments', icon: <Calendar size={20}/> },
       { name: 'Diagnostics', path: '/dentist/diagnostics', icon: <Stethoscope size={20}/> },
-      // NEW: Added Predictive Analytics to Dentist Menu
       { name: 'Predictive Analytics', path: '/dentist/analytics', icon: <ActivitySquare size={20}/> },
       { name: 'Settings', path: '/dentist/settings', icon: <Settings size={20}/> },
     ]
@@ -49,14 +59,43 @@ const Sidebar = ({ onToggle }) => {
   const menuItems = menuConfig[role] || [];
 
   return (
-    <div style={{...styles.sidebar, width: isCollapsed ? '80px' : '260px'}}>
-      <button onClick={() => setIsCollapsed(!isCollapsed)} style={styles.toggleBtn}>
-        {isCollapsed ? <ChevronRight size={18} /> : <ChevronLeft size={18} />}
+    <div 
+      style={{...styles.sidebar, width: collapsed ? '80px' : '260px'}} 
+      className={`sidebar-container ${isMobileOpen ? 'sidebar-open' : ''}`}
+    >
+      <button 
+        onClick={() => setIsCollapsed(!isCollapsed)} 
+        style={styles.toggleBtn}
+        className="sidebar-desktop-toggle"
+      >
+        {collapsed ? <ChevronRight size={18} /> : <ChevronLeft size={18} />}
       </button>
+
+      {isMobile && (
+        <button 
+          onClick={onMobileClose} 
+          style={{
+            position: 'absolute',
+            right: '15px',
+            top: '15px',
+            background: 'none',
+            border: 'none',
+            color: 'white',
+            cursor: 'pointer',
+            padding: '5px',
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'center'
+          }}
+          aria-label="Close sidebar"
+        >
+          <X size={20} />
+        </button>
+      )}
 
       <div style={styles.logoSection}>
         <div style={styles.logoIcon}></div>
-        {!isCollapsed && <h2 style={styles.logoText}>OraVista</h2>}
+        {!collapsed && <h2 style={styles.logoText}>OraVista</h2>}
       </div>
 
       <nav style={styles.nav}>
@@ -65,25 +104,35 @@ const Sidebar = ({ onToggle }) => {
           return (
             <div 
               key={item.name} 
-              onClick={() => navigate(item.path)}
+              onClick={() => {
+                navigate(item.path);
+                if (onMobileClose) onMobileClose();
+              }}
               style={{
                 ...styles.navItem,
                 backgroundColor: isActive ? 'white' : 'transparent',
                 color: isActive ? '#001166' : 'white',
-                justifyContent: isCollapsed ? 'center' : 'flex-start'
+                justifyContent: collapsed ? 'center' : 'flex-start'
               }}
             >
               {item.icon}
-              {!isCollapsed && <span style={styles.navText}>{item.name}</span>}
+              {!collapsed && <span style={styles.navText}>{item.name}</span>}
             </div>
           );
         })}
       </nav>
 
-      <div style={styles.logoutSection} onClick={() => { localStorage.clear(); window.location.href='/management'; }}>
-        <div style={{...styles.navItem, justifyContent: isCollapsed ? 'center' : 'flex-start', color: 'white'}}>
+      <div 
+        style={styles.logoutSection} 
+        onClick={() => { 
+          localStorage.clear(); 
+          window.location.href='/management'; 
+          if (onMobileClose) onMobileClose();
+        }}
+      >
+        <div style={{...styles.navItem, justifyContent: collapsed ? 'center' : 'flex-start', color: 'white'}}>
           <LogOut size={20} />
-          {!isCollapsed && <span style={styles.navText}>Log Out</span>}
+          {!collapsed && <span style={styles.navText}>Log Out</span>}
         </div>
       </div>
     </div>
