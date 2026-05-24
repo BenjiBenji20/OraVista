@@ -3,7 +3,8 @@ import { useParams } from 'react-router-dom';
 import AdminLayout from '../../components/AdminLayout';
 import {
   Search, Bell, MessageSquare, User, Mail, Phone, MapPin,
-  Calendar, Edit, Download, FileText, X, ExternalLink, Clock
+  Calendar, Edit, Download, FileText, X, ExternalLink, Clock,
+  ChevronDown, ChevronUp
 } from 'lucide-react';
 import AIDiagnosticModal from '../../components/AIDiagnosticModal';
 import { exportPatientPDF } from '../../utils/exportPDF';
@@ -11,7 +12,6 @@ import { exportPatientPDF } from '../../utils/exportPDF';
 function AdminPatientProfile() {
   const { id } = useParams();
 
-  // State Management
   const [patient, setPatient] = useState(null);
   const [history, setHistory] = useState([]);
   const [records, setRecords] = useState([]);
@@ -25,18 +25,23 @@ function AdminPatientProfile() {
     policy_number: ''
   });
   const [isExporting, setIsExporting] = useState(false);
+  const [searchExpanded, setSearchExpanded] = useState(false);
+  const [isMobile, setIsMobile] = useState(false);
 
-  // Fetch Data from Backend
+  useEffect(() => {
+    const checkMobile = () => setIsMobile(window.innerWidth <= 768);
+    checkMobile();
+    window.addEventListener('resize', checkMobile);
+    return () => window.removeEventListener('resize', checkMobile);
+  }, []);
+
   const fetchPatientDetails = useCallback(async () => {
     try {
       setLoading(true);
       const dbId = id.replace('PT-100', '');
-
-      // Fetch Basic Info
       const response = await fetch(`http://localhost:5000/api/patients`);
       const allPatients = await response.json();
       const currentPatient = allPatients.find(p => p.id.toString() === dbId);
-
       if (currentPatient) {
         setPatient(currentPatient);
         setFormData({
@@ -45,13 +50,9 @@ function AdminPatientProfile() {
           insurance: currentPatient.insurance || 'None',
           policy_number: currentPatient.policy_number || 'N/A'
         });
-
-        // Fetch Visit History
         const historyRes = await fetch(`http://localhost:5000/api/user-appointments/${dbId}`);
         const historyData = await historyRes.json();
         setHistory(historyData);
-
-        // Fetch Patient Uploaded Records[cite: 3]
         const recordsRes = await fetch(`http://localhost:5000/api/patient-records/${dbId}`);
         if (recordsRes.ok) {
           const recordsData = await recordsRes.json();
@@ -96,7 +97,6 @@ function AdminPatientProfile() {
           email: patient.email || ''
         }),
       });
-
       if (response.ok) {
         setShowEditModal(false);
         fetchPatientDetails();
@@ -109,63 +109,193 @@ function AdminPatientProfile() {
   if (loading) return <AdminLayout><div style={styles.loading}>Loading Profile...</div></AdminLayout>;
   if (!patient) return <AdminLayout><div style={styles.loading}>Patient not found.</div></AdminLayout>;
 
-  // Get earliest record (index 0) and check if it has clinical notes
   const earliestRecord = records[0];
   const hasClinicalNotes = earliestRecord && earliestRecord.clinical_notes && earliestRecord.clinical_notes.trim() !== "";
 
   return (
     <AdminLayout>
+      <style>{`
+        *, *::before, *::after { box-sizing: border-box; }
+
+        /* ── DESKTOP HEADER FIX ── */
+        .profile-header-bar {
+          display: flex !important;
+          flex-direction: row !important;
+          align-items: center !important;
+          justify-content: space-between !important;
+          height: 70px !important;
+          padding: 0 32px !important;
+        }
+        .header-actions-row {
+          display: flex;
+          flex-direction: row;
+          align-items: center;
+          justify-content: flex-end;
+          gap: 20px;
+        }
+        .search-toggle-btn { display: none; }
+        .desktop-search {
+          display: flex;
+          align-items: center;
+          background: rgba(255,255,255,0.1);
+          padding: 8px 16px;
+          border-radius: 10px;
+          width: 260px;
+        }
+        .mobile-search-row { display: none; }
+
+        /* ── MOBILE OVERRIDES ── */
+        @media (max-width: 768px) {
+          .profile-header-bar {
+            flex-direction: column !important;
+            height: auto !important;
+            padding: 10px 16px !important;
+            gap: 0 !important;
+            align-items: stretch !important;
+          }
+          .header-actions-row {
+            justify-content: flex-end;
+            gap: 14px;
+          }
+          .desktop-search { display: none !important; }
+          .search-toggle-btn {
+            display: flex !important;
+            align-items: center;
+            gap: 4px;
+            background: rgba(255,255,255,0.1);
+            border: none;
+            border-radius: 8px;
+            padding: 7px 10px;
+            cursor: pointer;
+          }
+          .mobile-search-row {
+            display: block;
+            width: 100%;
+            overflow: hidden;
+            max-height: 0;
+            opacity: 0;
+            transition: max-height 0.3s ease, opacity 0.3s ease, margin 0.3s ease;
+            margin-bottom: 0;
+          }
+          .mobile-search-row.expanded {
+            max-height: 60px;
+            opacity: 1;
+            margin-bottom: 8px;
+          }
+          .mobile-search-inner {
+            display: flex;
+            align-items: center;
+            background: rgba(255,255,255,0.1);
+            padding: 8px 14px;
+            border-radius: 10px;
+            width: 100%;
+          }
+          .dashboard-grid {
+            grid-template-columns: 1fr !important;
+          }
+          .medical-grid {
+            grid-template-columns: 1fr 1fr !important;
+          }
+          .profile-content-pad {
+            padding: 16px !important;
+            width: 100% !important;
+            overflow-x: hidden !important;
+          }
+          .top-row-wrap {
+            flex-direction: column !important;
+            align-items: flex-start !important;
+            gap: 12px !important;
+          }
+          .data-table-wrap { overflow-x: auto; width: 100%; }
+          .modal-content-resp { width: 90vw !important; padding: 24px 16px !important; }
+          .form-grid-resp { grid-template-columns: 1fr !important; }
+          .dashboard-grid > div,
+          .dashboard-grid > div > div {
+            width: 100% !important;
+            max-width: 100% !important;
+            min-width: 0 !important;
+          }
+          .profile-content-pad > * { max-width: 100% !important; }
+        }
+      `}</style>
+
       <div style={styles.container}>
-        {/* HEADER */}
-        <header style={styles.header}>
-          <div style={styles.searchBox}>
-            <Search size={18} color="rgba(255,255,255,0.6)" />
+
+        {/* ── HEADER ── */}
+        <header style={styles.header} className="profile-header-bar">
+          {/* Desktop search — hidden on mobile via CSS */}
+          <div className="desktop-search">
+            <Search size={16} color="rgba(255,255,255,0.6)" />
             <input type="text" placeholder="Search..." style={styles.searchInput} />
           </div>
-          <div style={styles.headerActions}>
-            <Bell size={20} color="white" style={styles.actionIcon} />
-            <MessageSquare size={20} color="white" style={styles.actionIcon} />
+
+          {/* Right side actions */}
+          <div className="header-actions-row">
+            {/* Mobile search toggle */}
+            <button
+              className="search-toggle-btn"
+              onClick={() => setSearchExpanded(v => !v)}
+              aria-label="Toggle search"
+            >
+              <Search size={17} color="white" />
+              {searchExpanded ? <ChevronUp size={14} color="white" /> : <ChevronDown size={14} color="white" />}
+            </button>
+
+            <Bell size={19} color="white" style={{ cursor: 'pointer' }} />
+            <MessageSquare size={19} color="white" style={{ cursor: 'pointer' }} />
             <div style={styles.profileHeader}>
               <div style={styles.profileText}>
                 <p style={styles.userName}>Admin User</p>
                 <p style={styles.userRole}>Administrator</p>
               </div>
-              <div style={styles.avatar}><User size={20} color="#001166" /></div>
+              <div style={styles.avatar}><User size={18} color="#001166" /></div>
             </div>
           </div>
+
+          {/* Mobile collapsible search */}
+          {isMobile && (
+            <div className={`mobile-search-row${searchExpanded ? ' expanded' : ''}`}>
+              <div className="mobile-search-inner">
+                <Search size={16} color="rgba(255,255,255,0.6)" />
+                <input type="text" placeholder="Search..." style={styles.searchInput} />
+              </div>
+            </div>
+          )}
         </header>
 
-        <div style={styles.content}>
-          <div style={styles.topRow}>
+        {/* ── MAIN CONTENT ── */}
+        <div style={styles.content} className="profile-content-pad">
+          <div style={styles.topRow} className="top-row-wrap">
             <div>
               <h1 style={styles.pageTitle}>Patient Profile</h1>
               <p style={styles.pageSubtitle}>View detailed patient information and history</p>
             </div>
             <button style={styles.editProfileBtn} onClick={() => setShowEditModal(true)}>
-              <Edit size={16} style={{ marginRight: '8px' }} /> Edit Profile
+              <Edit size={14} style={{ marginRight: '7px' }} /> Edit Profile
             </button>
           </div>
 
-          <div style={styles.dashboardGrid}>
+          <div style={styles.dashboardGrid} className="dashboard-grid">
+
             {/* LEFT COLUMN */}
             <div style={styles.leftCol}>
               <div style={styles.mainCard}>
                 <div style={styles.profileSection}>
-                  <div style={styles.largeAvatar}><User size={50} color="#001166" /></div>
+                  <div style={styles.largeAvatar}><User size={44} color="#001166" /></div>
                   <h2 style={styles.patientNameDisplay}>{patient.name}</h2>
                   <p style={styles.patientIdDisplay}>Patient ID: {id}</p>
                 </div>
                 <div style={styles.infoList}>
-                  <div style={styles.infoItem}><Mail size={16} /> {patient.email || 'No email provided'}</div>
-                  <div style={styles.infoItem}><Phone size={16} /> {patient.contact || 'No phone provided'}</div>
-                  <div style={styles.infoItem}><MapPin size={16} /> STI Sta. Mesa, Manila</div>
-                  <div style={styles.infoItem}><Calendar size={16} /> Age: {patient.age}</div>
+                  <div style={styles.infoItem}><Mail size={14} /> {patient.email || 'No email provided'}</div>
+                  <div style={styles.infoItem}><Phone size={14} /> {patient.contact || 'No phone provided'}</div>
+                  <div style={styles.infoItem}><MapPin size={14} /> STI Sta. Mesa, Manila</div>
+                  <div style={styles.infoItem}><Calendar size={14} /> Age: {patient.age}</div>
                 </div>
               </div>
 
               <div style={styles.mainCard}>
                 <h3 style={styles.cardTitle}>Medical Information</h3>
-                <div style={styles.medicalGrid}>
+                <div style={styles.medicalGrid} className="medical-grid">
                   <div><p style={styles.medLabel}>Blood Type</p><p style={styles.medValue}>{formData.blood_type}</p></div>
                   <div><p style={styles.medLabel}>Allergies</p><p style={styles.medValue}>{formData.allergies}</p></div>
                   <div><p style={styles.medLabel}>Insurance</p><p style={styles.medValue}>{formData.insurance}</p></div>
@@ -176,7 +306,7 @@ function AdminPatientProfile() {
               <div style={{ ...styles.mainCard, background: '#000d4d' }}>
                 <h3 style={styles.cardTitle}>Quick Stats</h3>
                 <div style={styles.statsRow}>
-                  <span>Total Visits</span>
+                  <span style={{ fontSize: '13px' }}>Total Visits</span>
                   <span style={styles.statNumber}>{history.length}</span>
                 </div>
               </div>
@@ -184,93 +314,97 @@ function AdminPatientProfile() {
 
             {/* RIGHT COLUMN */}
             <div style={styles.rightCol}>
+
               {/* Visit History */}
               <div style={styles.whiteCard}>
                 <div style={styles.cardHeader}>
                   <h3 style={styles.cardTitleBlack}>Visit History</h3>
-                  <button 
-                    style={styles.exportBtn} 
-                    onClick={handleExportPDF}
-                    disabled={isExporting}
-                  >
-                    <Download size={14} /> {isExporting ? 'Exporting...' : 'Export'}
+                  <button style={styles.exportBtn} onClick={handleExportPDF} disabled={isExporting}>
+                    <Download size={13} /> {isExporting ? 'Exporting...' : 'Export'}
                   </button>
                 </div>
-                <table style={styles.dataTable}>
-                  <thead>
-                    <tr>
-                      <th style={styles.thBlack}>Date</th>
-                      <th style={styles.thBlack}>Service</th>
-                      <th style={styles.thBlack}>Dentist</th>
-                      <th style={styles.thBlack}>Status</th>
-                    </tr>
-                  </thead>
-                  <tbody>
-                    {history.map((visit, idx) => (
-                      <tr key={idx} style={styles.trBlack}>
-                        <td style={styles.tdPadding}>{new Date(visit.appointment_date).toLocaleDateString()}</td>
-                        <td style={styles.tdPadding}>{visit.service_type}</td>
-                        <td style={styles.tdPadding}>{visit.dentist_name}</td>
-                        <td style={styles.tdPadding}><span style={styles.statusBadge}>{visit.status}</span></td>
+                <div className="data-table-wrap">
+                  <table style={styles.dataTable}>
+                    <thead>
+                      <tr>
+                        <th style={styles.thBlack}>Date</th>
+                        <th style={styles.thBlack}>Service</th>
+                        <th style={styles.thBlack}>Dentist</th>
+                        <th style={styles.thBlack}>Status</th>
                       </tr>
-                    ))}
-                  </tbody>
-                </table>
+                    </thead>
+                    <tbody>
+                      {history.map((visit, idx) => (
+                        <tr key={idx} style={styles.trBlack}>
+                          <td style={styles.tdPadding}>{new Date(visit.appointment_date).toLocaleDateString()}</td>
+                          <td style={styles.tdPadding}>{visit.service_type}</td>
+                          <td style={styles.tdPadding}>{visit.dentist_name}</td>
+                          <td style={styles.tdPadding}><span style={styles.statusBadge}>{visit.status}</span></td>
+                        </tr>
+                      ))}
+                    </tbody>
+                  </table>
+                </div>
               </div>
 
-              {/* NEW: PATIENT DOCUMENTS TABLE[cite: 3] */}
+              {/* Patient Documents — scrollable tbody */}
               <div style={styles.whiteCard}>
                 <div style={styles.cardHeader}>
                   <h3 style={styles.cardTitleBlack}>Patient Documents</h3>
                 </div>
                 {records.length > 0 ? (
-                  <table style={styles.dataTable}>
-                    <thead>
-                      <tr>
-                        <th style={styles.thBlack}>File Name</th>
-                        <th style={styles.thBlack}>Upload Date</th>
-                        <th style={styles.thBlack}>Action</th>
-                      </tr>
-                    </thead>
-                    <tbody>
-                      {records.map((rec, idx) => (
-                        <tr key={rec.file_path || idx} style={styles.trBlack}>
-                          <td style={{ ...styles.tdPadding, display: 'flex', alignItems: 'center', gap: '10px' }}>
-                            <FileText size={16} color="#001166" />
-                            {rec.file_name}
-                          </td>
-                          <td style={styles.tdPadding}>
-                            <div style={{ display: 'flex', alignItems: 'center', gap: '6px', color: '#666' }}>
-                              <Clock size={14} />
-                              {new Date(rec.upload_date).toLocaleDateString()}
-                            </div>
-                          </td>
-                          <td style={styles.tdPadding}>
-                            <button
-                              onClick={() => setActiveRecordForModal(rec)}
-                              style={{
-                                background: 'none',
-                                border: 'none',
-                                color: '#001166',
-                                fontWeight: '700',
-                                cursor: 'pointer',
-                                display: 'flex',
-                                alignItems: 'center',
-                                gap: '5px',
-                                padding: 0,
-                                fontFamily: 'inherit',
-                                fontSize: 'inherit'
-                              }}
-                            >
-                              View <ExternalLink size={14} />
-                            </button>
-                          </td>
+                  <div style={styles.scrollTableWrap}>
+                    <table style={{ ...styles.dataTable, tableLayout: 'fixed' }}>
+                      <thead>
+                        <tr>
+                          <th style={{ ...styles.thBlack, width: '50%' }}>File Name</th>
+                          <th style={{ ...styles.thBlack, width: '30%' }}>Upload Date</th>
+                          <th style={{ ...styles.thBlack, width: '20%' }}>Action</th>
                         </tr>
-                      ))}
-                    </tbody>
-                  </table>
+                      </thead>
+                    </table>
+                    {/* Scrollable body */}
+                    <div style={styles.scrollableBody}>
+                      <table style={{ ...styles.dataTable, tableLayout: 'fixed' }}>
+                        <colgroup>
+                          <col style={{ width: '50%' }} />
+                          <col style={{ width: '30%' }} />
+                          <col style={{ width: '20%' }} />
+                        </colgroup>
+                        <tbody>
+                          {records.map((rec, idx) => (
+                            <tr key={rec.file_path || idx} style={styles.trBlack}>
+                              <td style={{ ...styles.tdPadding, display: 'flex', alignItems: 'center', gap: '8px', overflow: 'hidden' }}>
+                                <FileText size={14} color="#001166" style={{ flexShrink: 0 }} />
+                                <span style={{ overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{rec.file_name}</span>
+                              </td>
+                              <td style={styles.tdPadding}>
+                                <div style={{ display: 'flex', alignItems: 'center', gap: '5px', color: '#666' }}>
+                                  <Clock size={13} />
+                                  {new Date(rec.upload_date).toLocaleDateString()}
+                                </div>
+                              </td>
+                              <td style={styles.tdPadding}>
+                                <button
+                                  onClick={() => setActiveRecordForModal(rec)}
+                                  style={{
+                                    background: 'none', border: 'none', color: '#001166',
+                                    fontWeight: '700', cursor: 'pointer',
+                                    display: 'flex', alignItems: 'center', gap: '4px',
+                                    padding: 0, fontFamily: 'inherit', fontSize: 'inherit'
+                                  }}
+                                >
+                                  View <ExternalLink size={13} />
+                                </button>
+                              </td>
+                            </tr>
+                          ))}
+                        </tbody>
+                      </table>
+                    </div>
+                  </div>
                 ) : (
-                  <p style={{ color: '#999', fontSize: '14px', padding: '10px 0' }}>No documents uploaded by this patient yet.</p>
+                  <p style={{ color: '#999', fontSize: '13px', padding: '10px 0' }}>No documents uploaded by this patient yet.</p>
                 )}
               </div>
 
@@ -282,23 +416,23 @@ function AdminPatientProfile() {
                     <p style={styles.noteContent}>{earliestRecord.clinical_notes}</p>
                   </div>
                 ) : (
-                  <p style={{ opacity: 0.6, fontSize: '14px' }}>No treatment notes available</p>
+                  <p style={{ opacity: 0.6, fontSize: '13px' }}>No treatment notes available</p>
                 )}
               </div>
             </div>
           </div>
         </div>
 
-        {/* EDIT MEDICAL MODAL */}
+        {/* EDIT MODAL */}
         {showEditModal && (
           <div style={styles.modalOverlay}>
-            <div style={styles.modalContent}>
+            <div style={styles.modalContent} className="modal-content-resp">
               <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '20px' }}>
-                <h2 style={{ color: '#001166', margin: 0 }}>Edit Medical Profile</h2>
-                <X onClick={() => setShowEditModal(false)} style={{ cursor: 'pointer' }} />
+                <h2 style={{ color: '#001166', margin: 0, fontSize: '18px' }}>Edit Medical Profile</h2>
+                <X onClick={() => setShowEditModal(false)} style={{ cursor: 'pointer' }} size={20} />
               </div>
               <form onSubmit={handleUpdateSubmit}>
-                <div style={styles.formGrid}>
+                <div style={styles.formGrid} className="form-grid-resp">
                   <div style={styles.inputGroup}>
                     <label style={styles.label}>Blood Type</label>
                     <input type="text" value={formData.blood_type} onChange={(e) => setFormData({ ...formData, blood_type: e.target.value })} style={styles.modalInput} />
@@ -324,6 +458,7 @@ function AdminPatientProfile() {
             </div>
           </div>
         )}
+
         <AIDiagnosticModal
           isOpen={!!activeRecordForModal}
           onClose={() => setActiveRecordForModal(null)}
@@ -336,70 +471,66 @@ function AdminPatientProfile() {
 
 const styles = {
   container: { display: 'flex', flexDirection: 'column', width: '100%', minHeight: '100vh', backgroundColor: '#f4f6f9' },
-  header: { height: '80px', background: '#001166', display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '0 40px', position: 'sticky', top: 0, zIndex: 10 },
-  searchBox: { display: 'flex', alignItems: 'center', background: 'rgba(255,255,255,0.1)', padding: '10px 20px', borderRadius: '12px', width: '300px' },
-  searchInput: { border: 'none', background: 'transparent', marginLeft: '10px', outline: 'none', width: '100%', color: 'white' },
-  headerActions: { display: 'flex', alignItems: 'center', gap: '25px' },
-  profileHeader: { display: 'flex', alignItems: 'center', gap: '15px', borderLeft: '1px solid rgba(255,255,255,0.2)', paddingLeft: '20px' },
+  header: { background: '#001166', position: 'sticky', top: 0, zIndex: 10 },
+  searchInput: { border: 'none', background: 'transparent', marginLeft: '10px', outline: 'none', width: '100%', color: 'white', fontSize: '13px' },
+  profileHeader: { display: 'flex', alignItems: 'center', gap: '12px', borderLeft: '1px solid rgba(255,255,255,0.2)', paddingLeft: '16px' },
   profileText: { textAlign: 'right' },
-  userName: { margin: 0, fontWeight: 'bold', fontSize: '14px', color: 'white' },
-  userRole: { margin: 0, fontSize: '12px', color: 'rgba(255,255,255,0.6)' },
-  avatar: { width: '40px', height: '40px', background: 'white', borderRadius: '50%', display: 'flex', alignItems: 'center', justifyContent: 'center' },
+  userName: { margin: 0, fontWeight: 'bold', fontSize: '13px', color: 'white' },
+  userRole: { margin: 0, fontSize: '11px', color: 'rgba(255,255,255,0.6)' },
+  avatar: { width: '36px', height: '36px', background: 'white', borderRadius: '50%', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 },
   loading: { color: '#001166', padding: '40px', fontWeight: 'bold' },
 
-  content: { padding: '40px' },
-  topRow: { display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '30px' },
-  pageTitle: { fontSize: '28px', fontWeight: '800', color: '#001166', margin: 0 },
-  pageSubtitle: { fontSize: '14px', color: '#666' },
-  editProfileBtn: { backgroundColor: '#001166', color: 'white', border: 'none', padding: '12px 24px', borderRadius: '10px', fontWeight: '700', cursor: 'pointer', display: 'flex', alignItems: 'center' },
+  content: { padding: '28px 32px', width: '100%', overflowX: 'hidden', boxSizing: 'border-box' },
+  topRow: { display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '24px' },
+  pageTitle: { fontSize: '22px', fontWeight: '800', color: '#001166', margin: 0 },
+  pageSubtitle: { fontSize: '12px', color: '#666', marginTop: '3px' },
+  editProfileBtn: { backgroundColor: '#001166', color: 'white', border: 'none', padding: '10px 20px', borderRadius: '10px', fontWeight: '700', cursor: 'pointer', display: 'flex', alignItems: 'center', fontSize: '13px' },
 
-  dashboardGrid: { display: 'grid', gridTemplateColumns: '350px 1fr', gap: '30px' },
-  mainCard: { background: '#001166', borderRadius: '25px', padding: '30px', color: 'white', marginBottom: '30px', boxShadow: '0 10px 30px rgba(0,17,102,0.1)' },
-  profileSection: { textAlign: 'center', marginBottom: '30px' },
-  largeAvatar: { width: '100px', height: '100px', backgroundColor: 'white', borderRadius: '50%', margin: '0 auto 20px', display: 'flex', alignItems: 'center', justifyContent: 'center' },
-  patientNameDisplay: { fontSize: '24px', fontWeight: '800', margin: '0 0 5px 0' },
-  patientIdDisplay: { fontSize: '14px', opacity: 0.7 },
-  infoList: { display: 'flex', flexDirection: 'column', gap: '18px' },
-  infoItem: { display: 'flex', alignItems: 'center', gap: '12px', fontSize: '14px', opacity: 0.9 },
+  dashboardGrid: { display: 'grid', gridTemplateColumns: '300px 1fr', gap: '24px', width: '100%', minWidth: 0 },
+  leftCol: { minWidth: 0 },
+  mainCard: { background: '#001166', borderRadius: '20px', padding: '24px', color: 'white', marginBottom: '24px', boxShadow: '0 8px 24px rgba(0,17,102,0.1)' },
+  profileSection: { textAlign: 'center', marginBottom: '24px' },
+  largeAvatar: { width: '88px', height: '88px', backgroundColor: 'white', borderRadius: '50%', margin: '0 auto 16px', display: 'flex', alignItems: 'center', justifyContent: 'center' },
+  patientNameDisplay: { fontSize: '20px', fontWeight: '800', margin: '0 0 4px 0' },
+  patientIdDisplay: { fontSize: '12px', opacity: 0.7 },
+  infoList: { display: 'flex', flexDirection: 'column', gap: '14px' },
+  infoItem: { display: 'flex', alignItems: 'center', gap: '10px', fontSize: '12px', opacity: 0.9 },
 
-  cardTitle: { fontSize: '18px', fontWeight: '700', margin: '0 0 20px 0' },
-  cardTitleBlack: { fontSize: '18px', fontWeight: '700', margin: '0 0 20px 0', color: '#001166' },
-  medicalGrid: { display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '20px' },
-  medLabel: { fontSize: '11px', opacity: 0.6, margin: '0 0 5px 0', textTransform: 'uppercase' },
-  medValue: { fontSize: '14px', fontWeight: '600', margin: 0 },
+  cardTitle: { fontSize: '15px', fontWeight: '700', margin: '0 0 16px 0' },
+  cardTitleBlack: { fontSize: '15px', fontWeight: '700', margin: '0 0 16px 0', color: '#001166' },
+  medicalGrid: { display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '16px' },
+  medLabel: { fontSize: '10px', opacity: 0.6, margin: '0 0 4px 0', textTransform: 'uppercase', letterSpacing: '0.5px' },
+  medValue: { fontSize: '13px', fontWeight: '600', margin: 0 },
   statsRow: { display: 'flex', justifyContent: 'space-between', alignItems: 'center' },
-  statNumber: { fontSize: '28px', fontWeight: '800' },
+  statNumber: { fontSize: '26px', fontWeight: '800' },
 
-  rightCol: { display: 'flex', flexDirection: 'column', gap: '30px' },
-  whiteCard: { background: 'white', borderRadius: '25px', padding: '30px', boxShadow: '0 10px 40px rgba(0,0,0,0.05)' },
-  cardHeader: { display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '20px' },
-  exportBtn: { background: 'none', border: '1px solid #ddd', padding: '8px 15px', borderRadius: '8px', fontSize: '12px', display: 'flex', alignItems: 'center', gap: '8px', cursor: 'pointer', color: '#666' },
+  rightCol: { display: 'flex', flexDirection: 'column', gap: '24px', minWidth: 0 },
+  whiteCard: { background: 'white', borderRadius: '20px', padding: '24px', boxShadow: '0 8px 32px rgba(0,0,0,0.05)' },
+  cardHeader: { display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '16px' },
+  exportBtn: { background: 'none', border: '1px solid #ddd', padding: '6px 13px', borderRadius: '8px', fontSize: '12px', display: 'flex', alignItems: 'center', gap: '6px', cursor: 'pointer', color: '#666' },
   dataTable: { width: '100%', borderCollapse: 'collapse' },
-  thBlack: { textAlign: 'left', padding: '15px', borderBottom: '2px solid #f0f2f8', color: '#001166', fontSize: '14px' },
-  trBlack: { borderBottom: '1px solid #f0f2f8', fontSize: '14px', color: '#444' },
-  tdPadding: { padding: '15px' },
-  statusBadge: { backgroundColor: '#e6fffa', color: '#047857', padding: '4px 12px', borderRadius: '20px', fontWeight: '700', fontSize: '11px' },
-  viewLink: { color: '#001166', fontWeight: '700', textDecoration: 'none', display: 'flex', alignItems: 'center', gap: '5px' },
+  thBlack: { textAlign: 'left', padding: '11px 13px', borderBottom: '2px solid #f0f2f8', color: '#001166', fontSize: '15px', fontWeight: '700' },
+  trBlack: { borderBottom: '1px solid #f0f2f8', fontSize: '12px', color: '#444' },
+  tdPadding: { padding: '11px 13px' },
+  statusBadge: { backgroundColor: '#e6fffa', color: '#047857', padding: '3px 10px', borderRadius: '20px', fontWeight: '700', fontSize: '10px' },
 
-  notesCard: { background: '#001166', borderRadius: '25px', padding: '30px', color: 'white' },
-  noteItem: { background: 'rgba(255,255,255,0.05)', borderRadius: '15px', padding: '20px', marginBottom: '20px' },
-  noteHeader: { display: 'flex', gap: '15px', marginBottom: '15px' },
-  noteIcon: { width: '40px', height: '40px', background: 'rgba(255,255,255,0.1)', borderRadius: '10px', display: 'flex', alignItems: 'center', justifyContent: 'center' },
-  noteTitle: { fontSize: '15px', fontWeight: '700', margin: 0 },
-  noteDate: { fontSize: '12px', opacity: 0.6, margin: 0 },
-  noteContent: { fontSize: '14px', opacity: 0.8, marginBottom: '15px' },
-  noteActions: { display: 'flex', gap: '20px', borderTop: '1px solid rgba(255,255,255,0.1)', paddingTop: '15px' },
-  noteBtn: { background: 'none', border: 'none', color: 'white', fontSize: '13px', display: 'flex', alignItems: 'center', gap: '6px', cursor: 'pointer' },
+  // Scrollable documents table
+  scrollTableWrap: { width: '100%' },
+  scrollableBody: { maxHeight: '220px', overflowY: 'auto', overflowX: 'hidden' },
+
+  notesCard: { background: '#001166', borderRadius: '20px', padding: '24px', color: 'white' },
+  noteItem: { background: 'rgba(255,255,255,0.05)', borderRadius: '12px', padding: '16px', marginBottom: '16px' },
+  noteContent: { fontSize: '13px', opacity: 0.8, margin: 0 },
 
   modalOverlay: { position: 'fixed', top: 0, left: 0, width: '100%', height: '100%', background: 'rgba(0,0,0,0.6)', display: 'flex', justifyContent: 'center', alignItems: 'center', zIndex: 2000 },
-  modalContent: { background: 'white', padding: '40px', borderRadius: '25px', width: '550px', boxShadow: '0 20px 60px rgba(0,0,0,0.2)' },
-  formGrid: { display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '25px', marginBottom: '30px' },
-  inputGroup: { display: 'flex', flexDirection: 'column', gap: '8px' },
-  label: { fontSize: '13px', fontWeight: '700', color: '#666' },
-  modalInput: { padding: '12px', borderRadius: '10px', border: '1px solid #ddd', fontSize: '14px', outline: 'none' },
-  modalActions: { display: 'flex', gap: '15px' },
-  cancelBtn: { flex: 1, padding: '14px', borderRadius: '12px', border: '1px solid #ddd', fontWeight: '700', cursor: 'pointer', background: 'white' },
-  saveBtn: { flex: 1, padding: '14px', borderRadius: '12px', border: 'none', background: '#001166', color: 'white', fontWeight: '700', cursor: 'pointer' },
+  modalContent: { background: 'white', padding: '36px', borderRadius: '20px', width: '520px', boxShadow: '0 20px 60px rgba(0,0,0,0.2)' },
+  formGrid: { display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '20px', marginBottom: '24px' },
+  inputGroup: { display: 'flex', flexDirection: 'column', gap: '7px' },
+  label: { fontSize: '12px', fontWeight: '700', color: '#666' },
+  modalInput: { padding: '11px', borderRadius: '10px', border: '1px solid #ddd', fontSize: '13px', outline: 'none' },
+  modalActions: { display: 'flex', gap: '12px' },
+  cancelBtn: { flex: 1, padding: '12px', borderRadius: '10px', border: '1px solid #ddd', fontWeight: '700', cursor: 'pointer', background: 'white', fontSize: '13px' },
+  saveBtn: { flex: 1, padding: '12px', borderRadius: '10px', border: 'none', background: '#001166', color: 'white', fontWeight: '700', cursor: 'pointer', fontSize: '13px' },
 };
 
 export default AdminPatientProfile;
