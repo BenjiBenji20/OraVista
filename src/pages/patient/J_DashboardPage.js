@@ -13,7 +13,9 @@ import {
   FileText,
   Settings,
   LogOut,
-  CreditCard // NEW: Imported CreditCard icon for Billings
+  CreditCard, // NEW: Imported CreditCard icon for Billings
+  ChevronDown,
+  ChevronUp
 } from "lucide-react";
 
 // --- FUN FACT DATA ---
@@ -263,7 +265,7 @@ function DashboardPage() {
                     justifyContent: "center"
                   }}
                 >
-                  <Search size={24} />
+                  {isSearchOpen ? <ChevronUp size={24} /> : <ChevronDown size={24} />}
                 </button>
 
                 <div style={{ position: "relative" }} className="patient-search-box">
