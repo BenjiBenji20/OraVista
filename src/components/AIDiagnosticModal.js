@@ -14,7 +14,7 @@ function AIDiagnosticModal({ isOpen, onClose, record }) {
     if (filePath.startsWith('http://') || filePath.startsWith('https://')) {
       return filePath;
     }
-    return `https://oravista-server-temporary-756513026425.asia-southeast1.run.app/${filePath}`;
+    return `http://localhost:5000/${filePath}`;
   };
 
   // Safe parse of ai_findings JSON if it is a string

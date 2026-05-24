@@ -289,7 +289,7 @@ export const exportPatientPDF = async (patient, medicalInfo, history, records) =
       if (rec.file_path) {
         let imageUrl = rec.file_path;
         if (!imageUrl.startsWith('http://') && !imageUrl.startsWith('https://')) {
-          imageUrl = `https://oravista-server-temporary-756513026425.asia-southeast1.run.app/${imageUrl}`;
+          imageUrl = `http://localhost:5000/${imageUrl}`;
         }
 
         try {

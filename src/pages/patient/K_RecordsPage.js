@@ -417,7 +417,7 @@ function RecordsPage() {
                         {new Date(record.upload_date).toLocaleDateString("en-US", { year: "numeric", month: "long", day: "numeric" })}
                       </td>
                       <td style={{ padding: "15px", textAlign: "center" }}>
-                        <a href={`https://oravista-server-temporary-756513026425.asia-southeast1.run.app/${record.file_path}`} target="_blank" rel="noreferrer"
+                        <a href={`http://localhost:5000/${record.file_path}`} target="_blank" rel="noreferrer"
                           style={{ display: "inline-flex", alignItems: "center", gap: "5px", color: "#001166", fontWeight: "700", textDecoration: "none" }}>
                           View <ExternalLink size={16} />
                         </a>

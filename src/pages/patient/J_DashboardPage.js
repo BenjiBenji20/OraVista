@@ -51,7 +51,7 @@ function DashboardPage() {
 
   const fetchAppointments = useCallback(async (userId) => {
     try {
-      const response = await fetch(`https://oravista-server-temporary-756513026425.asia-southeast1.run.app/api/user-appointments/${userId}`);
+      const response = await fetch(`http://localhost:5000/api/user-appointments/${userId}`);
       if (response.ok) {
         const data = await response.json();
         setAppointments(data);

@@ -34,7 +34,7 @@ function StaffAppointments() {
   // FETCH LOGIC
   const fetchAppointments = useCallback(async () => {
     try {
-      const response = await fetch('https://oravista-server-temporary-756513026425.asia-southeast1.run.app/api/dashboard/stats');
+      const response = await fetch('http://localhost:5000/api/dashboard/stats');
       const data = await response.json();
 
       if (data.schedule) {
@@ -73,7 +73,7 @@ function StaffAppointments() {
   // APPROVAL LOGIC
   const handleApprove = async (appointmentId) => {
     try {
-      const response = await fetch('https://oravista-server-temporary-756513026425.asia-southeast1.run.app/api/update-appointment-status', {
+      const response = await fetch('http://localhost:5000/api/update-appointment-status', {
         method: 'PUT',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({

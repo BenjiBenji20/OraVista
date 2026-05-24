@@ -21,7 +21,7 @@ function DentistDashboard() {
 
     const fetchDashboardData = async () => {
       try {
-        const response = await fetch('https://oravista-server-temporary-756513026425.asia-southeast1.run.app/api/dashboard/stats');
+        const response = await fetch('http://localhost:5000/api/dashboard/stats');
         const data = await response.json();
         setStats(data);
       } catch (err) {
