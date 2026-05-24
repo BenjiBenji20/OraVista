@@ -1,8 +1,9 @@
 import React, { useState, useEffect, useCallback } from 'react';
 import AdminLayout from '../../components/AdminLayout';
-import { Search, Bell, MessageSquare, User, ChevronLeft, ChevronRight, Plus } from 'lucide-react';
+import { Search, Bell, MessageSquare, User, ChevronLeft, ChevronRight, Plus, ChevronDown, ChevronUp } from 'lucide-react';
 
 function AdminAppointments() {
+  const [isSearchOpen, setIsSearchOpen] = useState(false);
   const [appointments, setAppointments] = useState([]);
   const [summary, setSummary] = useState({ total: 0, confirmed: 0, pending: 0, completed: 0, canceled: 0 });
   const [loading, setLoading] = useState(true);
@@ -97,16 +98,25 @@ function AdminAppointments() {
     <AdminLayout>
       <div style={styles.container}>
         {/* HEADER */}
-        <header style={styles.header}>
-          <div style={styles.searchBox}>
-            <Search size={18} color="rgba(255,255,255,0.6)" />
-            <input type="text" placeholder="Search patients, appointments..." style={styles.searchInput} />
-          </div>
-          <div style={styles.headerActions}>
+        <header style={styles.header} className="dashboard-page-header">
+          <div style={styles.headerActions} className="header-actions">
+            <div style={styles.searchBox} className="header-search-box">
+              <Search size={18} color="rgba(255,255,255,0.6)" />
+              <input type="text" placeholder="Search patients, appointments..." style={styles.searchInput} />
+            </div>
+
+            {/* Mobile Search Toggle */}
+            <button 
+              className="mobile-search-toggle-btn"
+              onClick={() => setIsSearchOpen(!isSearchOpen)}
+            >
+              {isSearchOpen ? <ChevronUp size={20} /> : <ChevronDown size={20} />}
+            </button>
+
             <Bell size={20} color="white" />
             <MessageSquare size={20} color="white" />
-            <div style={styles.profile}>
-              <div style={styles.profileText}>
+            <div style={styles.profile} className="header-profile">
+              <div style={styles.profileText} className="header-profile-text">
                 <p style={styles.userName}>Admin User</p>
                 <p style={styles.userRole}>Administrator</p>
               </div>
@@ -115,14 +125,28 @@ function AdminAppointments() {
           </div>
         </header>
 
+        {/* Mobile Collapsible Search & Actions */}
+        {isSearchOpen && (
+          <div className="mobile-search-collapsible">
+            <div style={{ ...styles.searchBox, width: "100%" }}>
+              <Search size={18} color="rgba(255,255,255,0.6)" />
+              <input
+                type="text"
+                placeholder="Search patients, appointments..."
+                style={styles.searchInput}
+              />
+            </div>
+          </div>
+        )}
+
         {/* CONTENT */}
-        <div style={styles.content}>
+        <div style={styles.content} className="settings-content">
           <div style={styles.titleSection}>
             <h1 style={styles.pageTitle}>Appointments</h1>
             <p style={styles.pageSubtitle}>Schedule and manage patient appointments</p>
           </div>
 
-          <div style={styles.mainGrid}>
+          <div style={styles.mainGrid} className="appointment-main-grid">
             <div style={styles.leftCol}>
               <div style={styles.calendarCard}>
                 <div style={styles.calHeader}>
@@ -177,58 +201,60 @@ function AdminAppointments() {
                 <button style={styles.newAppBtn}><Plus size={18} /> New Appointment</button>
               </div>
 
-              {loading ? <p>Loading...</p> : filteredAppointments.length === 0 ? (
-                <p style={{ color: "#666" }}>No appointments found for this selection.</p>
-              ) : filteredAppointments.map((app) => {
+              <div className="appointment-list-scrollable">
+                {loading ? <p>Loading...</p> : filteredAppointments.length === 0 ? (
+                  <p style={{ color: "#666" }}>No appointments found for this selection.</p>
+                ) : filteredAppointments.map((app) => {
 
-                const isCanceled = app.status === 'Canceled' || app.status === 'Cancelled';
-                let badgeColor = '#f59e0b';
-                let badgeText = '#001166';
-                if (app.status === 'Confirmed') { badgeColor = '#10b981'; badgeText = 'white'; }
-                if (isCanceled) { badgeColor = '#ef4444'; badgeText = 'white'; }
+                  const isCanceled = app.status === 'Canceled' || app.status === 'Cancelled';
+                  let badgeColor = '#f59e0b';
+                  let badgeText = '#001166';
+                  if (app.status === 'Confirmed') { badgeColor = '#10b981'; badgeText = 'white'; }
+                  if (isCanceled) { badgeColor = '#ef4444'; badgeText = 'white'; }
 
-                return (
-                  <div key={app.id} style={styles.appCard}>
-                    <div style={styles.appMain}>
-                      <div style={styles.appTimeRow}>
-                        <span style={styles.appTime}>🕒 {app.time}</span>
-                        <span style={{ ...styles.statusBadge, backgroundColor: badgeColor, color: badgeText }}>
-                          {app.status}
-                        </span>
+                  return (
+                    <div key={app.id} style={styles.appCard} className="appointment-card">
+                      <div style={styles.appMain}>
+                        <div style={styles.appTimeRow} className="appointment-time-row">
+                          <span style={styles.appTime}>🕒 {app.time}</span>
+                          <span style={{ ...styles.statusBadge, backgroundColor: badgeColor, color: badgeText }}>
+                            {app.status}
+                          </span>
+                        </div>
+                        <div style={styles.appInfoGrid} className="appointment-info-grid">
+                          <div className="appointment-info-item"><p style={styles.infoLabel}>Patient</p><p style={styles.infoVal}>{app.patient}</p></div>
+                          <div className="appointment-info-item"><p style={styles.infoLabel}>Dentist</p><p style={styles.infoVal}>{app.dentist}</p></div>
+                          <div className="appointment-info-item"><p style={styles.infoLabel}>Type</p><p style={styles.infoVal}>{app.type}</p></div>
+                          <div className="appointment-info-item"><p style={styles.infoLabel}>ID</p><p style={styles.infoVal}>{app.id}</p></div>
+                        </div>
                       </div>
-                      <div style={styles.appInfoGrid}>
-                        <div><p style={styles.infoLabel}>Patient</p><p style={styles.infoVal}>{app.patient}</p></div>
-                        <div><p style={styles.infoLabel}>Dentist</p><p style={styles.infoVal}>{app.dentist}</p></div>
-                        <div><p style={styles.infoLabel}>Type</p><p style={styles.infoVal}>{app.type}</p></div>
-                        <div><p style={styles.infoLabel}>ID</p><p style={styles.infoVal}>{app.id}</p></div>
-                      </div>
+
+                      {!isCanceled ? (
+                        <div style={styles.appActions} className="app-actions-container">
+                          <button
+                            onClick={() => !app.approved && handleApprove(app.dbId)}
+                            style={{
+                              ...styles.actionBtn,
+                              background: app.approved ? '#10b981' : 'transparent',
+                              border: app.approved ? 'none' : '1px solid #10b981',
+                              color: app.approved ? 'white' : '#10b981',
+                              cursor: app.approved ? 'default' : 'pointer'
+                            }}>
+                            {app.approved ? 'Approved' : 'Approve'}
+                          </button>
+                          <button style={styles.actionBtnOutline}>Reschedule</button>
+                        </div>
+                      ) : (
+                        <div style={styles.appActions} className="app-actions-container">
+                          <span style={{ fontSize: '13px', color: '#ef4444', fontWeight: 'bold', fontStyle: 'italic', paddingRight: '10px' }}>
+                            Canceled by Patient
+                          </span>
+                        </div>
+                      )}
                     </div>
-
-                    {!isCanceled ? (
-                      <div style={styles.appActions}>
-                        <button
-                          onClick={() => !app.approved && handleApprove(app.dbId)}
-                          style={{
-                            ...styles.actionBtn,
-                            background: app.approved ? '#10b981' : 'transparent',
-                            border: app.approved ? 'none' : '1px solid #10b981',
-                            color: app.approved ? 'white' : '#10b981',
-                            cursor: app.approved ? 'default' : 'pointer'
-                          }}>
-                          {app.approved ? 'Approved' : 'Approve'}
-                        </button>
-                        <button style={styles.actionBtnOutline}>Reschedule</button>
-                      </div>
-                    ) : (
-                      <div style={styles.appActions}>
-                        <span style={{ fontSize: '13px', color: '#ef4444', fontWeight: 'bold', fontStyle: 'italic', paddingRight: '10px' }}>
-                          Canceled by Patient
-                        </span>
-                      </div>
-                    )}
-                  </div>
-                );
-              })}
+                  );
+                })}
+              </div>
             </div>
           </div>
         </div>
@@ -239,7 +265,7 @@ function AdminAppointments() {
 
 const styles = {
   container: { display: 'flex', flexDirection: 'column', width: '100%' },
-  header: { height: '80px', background: '#001166', display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '0 40px', position: 'sticky', top: 0, zIndex: 10 },
+  header: { height: '80px', background: '#001166', display: 'flex', alignItems: 'center', justifyContent: 'flex-end', padding: '0 40px', position: 'sticky', top: 0, zIndex: 10 },
   searchBox: { display: 'flex', alignItems: 'center', background: 'rgba(255,255,255,0.1)', padding: '10px 20px', borderRadius: '12px', width: '350px' },
   searchInput: { border: 'none', background: 'transparent', marginLeft: '10px', outline: 'none', width: '100%', color: 'white' },
   headerActions: { display: 'flex', alignItems: 'center', gap: '25px' },
@@ -268,7 +294,7 @@ const styles = {
   listHeader: { display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '10px' },
   listTitle: { fontSize: '16px', fontWeight: 'bold', color: '#333' },
   newAppBtn: { background: '#001166', color: 'white', border: 'none', padding: '10px 20px', borderRadius: '8px', fontWeight: 'bold', cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '8px' },
-  appCard: { background: '#001166', borderRadius: '15px', padding: '20px', color: 'white', display: 'flex', justifyContent: 'space-between', alignItems: 'center' },
+  appCard: { background: '#001166', borderRadius: '15px', padding: '14px 20px', color: 'white', display: 'flex', justifyContent: 'space-between', alignItems: 'center' },
   appMain: { flex: 1 },
   appTimeRow: { display: 'flex', alignItems: 'center', gap: '10px', marginBottom: '15px' },
   appTime: { fontSize: '14px', fontWeight: 'bold' },

@@ -661,3 +661,163 @@ code {
   align-items: center;
   margin-bottom: 20px;
 }
+
+/* ==========================================================
+   7. RESPONSIVE APPOINTMENTS LAYOUTS
+   ========================================================== */
+.appointment-main-grid {
+  display: grid;
+  grid-template-columns: 320px 1fr;
+  gap: 25px;
+  align-items: start;
+}
+
+.appointment-info-grid {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 20px;
+  align-items: center;
+}
+
+.appointment-card {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 20px;
+}
+
+.app-actions-container {
+  display: flex;
+  gap: 10px;
+  align-items: center;
+}
+
+.appointment-list-scrollable {
+  display: flex;
+  flex-direction: column;
+  gap: 15px; /* Added spacing between elements */
+  max-height: 650px;
+  overflow-y: auto;
+  padding-right: 8px;
+}
+
+/* Custom Scrollbar for Appointment Scrollable Container */
+.appointment-list-scrollable::-webkit-scrollbar {
+  width: 6px;
+}
+.appointment-list-scrollable::-webkit-scrollbar-track {
+  background: transparent;
+}
+.appointment-list-scrollable::-webkit-scrollbar-thumb {
+  background: rgba(0, 17, 102, 0.15);
+  border-radius: 3px;
+}
+.appointment-list-scrollable::-webkit-scrollbar-thumb:hover {
+  background: rgba(0, 17, 102, 0.3);
+}
+
+@media (max-width: 1024px) {
+  .appointment-main-grid {
+    grid-template-columns: 1fr !important;
+    gap: 20px !important;
+  }
+}
+
+@media (max-width: 768px) {
+  .appointment-info-grid {
+    grid-template-columns: 1fr 1fr !important;
+    gap: 12px !important;
+  }
+
+  /* Type and ID in 1 column on mobile view */
+  .appointment-info-grid > div:nth-child(3) {
+    grid-column: 1 / 2 !important;
+  }
+  .appointment-info-grid > div:nth-child(4) {
+    grid-column: 1 / 2 !important;
+  }
+  
+  .appointment-card {
+    flex-direction: column !important;
+    align-items: stretch !important;
+    gap: 15px !important;
+    padding: 12px 15px !important; /* Reduced card size */
+  }
+  
+  .app-actions-container {
+    width: 100% !important;
+    justify-content: flex-start !important;
+    flex-direction: row !important;
+    gap: 10px !important;
+  }
+
+  /* Reduce all the buttons size on mobile view */
+  .app-actions-container button,
+  .app-actions-container a,
+  .app-actions-container span {
+    padding: 6px 12px !important;
+    font-size: 11px !important;
+    width: auto !important;
+    height: auto !important;
+    border-radius: 6px !important;
+  }
+  
+  .appointment-list-scrollable {
+    max-height: 500px !important;
+  }
+
+  /* Header (100% width within its card): space-between the time and status */
+  .appointment-time-row {
+    width: 100% !important;
+    display: flex !important;
+    justify-content: space-between !important;
+    align-items: center !important;
+  }
+
+  /* Reduce profile photo size */
+  .patient-profile-avatar {
+    width: 32px !important;
+    height: 32px !important;
+  }
+
+  .patient-profile-cell {
+    font-size: 13px !important;
+    gap: 10px !important;
+  }
+
+  /* Role / Label should be at the bottom of name / value */
+  .appointment-info-item {
+    display: flex !important;
+    flex-direction: column-reverse !important;
+  }
+
+  /* Text Sizing Overrides for Mobile View */
+  .appointment-card .infoLabel,
+  .appointment-card [class*="infoLabel"] {
+    font-size: 9px !important;
+    margin-bottom: 2px !important;
+    margin-top: 4px !important;
+  }
+
+  .appointment-card .infoVal,
+  .appointment-card [class*="infoVal"] {
+    font-size: 11px !important;
+  }
+
+  .appointment-card .appTime,
+  .appointment-card [class*="appTime"] {
+    font-size: 12px !important;
+  }
+
+  .appointment-card .statusBadge,
+  .appointment-card .badge,
+  .appointment-card [class*="statusBadge"],
+  .appointment-card [class*="badge"] {
+    font-size: 10px !important;
+    padding: 2px 8px !important;
+  }
+}
+
+@media (max-width: 480px) {
+  /* Keep standard columns layout from 768px media query */
+}

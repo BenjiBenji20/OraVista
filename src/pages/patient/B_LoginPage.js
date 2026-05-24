@@ -282,12 +282,11 @@ function LoginPage() {
     fontSize: "14px", boxSizing: "border-box", fontFamily: "'Poppins', sans-serif", outline: "none", backgroundColor: isLocked ? "#f0f0f0" : "#fff",
   });
   const errorTextStyle = { color: "red", fontSize: "11px", display: "block", textAlign: "left", marginTop: "4px", fontWeight: "600" };
+  
   const modalOverlayStyle = {
     position: "fixed", top: 0, left: 0, width: "100%", height: "100%", backgroundColor: "rgba(0,0,0,0.6)",
     display: "flex", justifyContent: "center", alignItems: "center", zIndex: 2000, backdropFilter: "blur(5px)",
-  };
-  const modalContentStyle = {
-    backgroundColor: "white", padding: "40px", borderRadius: "25px", textAlign: "center", maxWidth: "450px", width: "90%", boxShadow: "0 20px 40px rgba(0,0,0,0.4)", position: "relative"
+    padding: "20px", boxSizing: "border-box"
   };
 
   const RequirementItem = ({ met, label }) => (
@@ -298,12 +297,69 @@ function LoginPage() {
   );
 
   return (
-    <div style={{ backgroundImage: `url(${loginBg})`, backgroundSize: "cover", backgroundPosition: "center", height: "100vh", width: "100%", display: "flex", justifyContent: "center", alignItems: "center", fontFamily: "'Poppins', sans-serif", position: "relative" }}>
+    <div style={{ backgroundImage: `url(${loginBg})`, backgroundSize: "cover", backgroundPosition: "center", height: "100vh", width: "100%", display: "flex", justifyContent: "center", alignItems: "center", fontFamily: "'Poppins', sans-serif", position: "relative", padding: "20px", boxSizing: "border-box" }}>
+
+      <style>
+        {`
+          .responsive-login-box {
+            background-color: rgba(255, 255, 255, 0.96);
+            padding: 40px 45px;
+            border-radius: 30px;
+            width: 100%;
+            max-width: 450px;
+            text-align: center;
+            box-shadow: 0 15px 35px rgba(0,0,0,0.2);
+            box-sizing: border-box;
+          }
+
+          .responsive-modal-box {
+            background-color: white;
+            padding: 40px;
+            border-radius: 25px;
+            text-align: center;
+            max-width: 450px;
+            width: 100%;
+            box-shadow: 0 20px 40px rgba(0,0,0,0.4);
+            position: relative;
+            box-sizing: border-box;
+          }
+
+          .criteria-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 10px;
+            text-align: left;
+            margin-bottom: 25px;
+          }
+
+          .login-title {
+            color: ${brandBlue};
+            font-size: 32px;
+            font-weight: 800;
+            margin-bottom: 25px;
+          }
+
+          @media (max-width: 480px) {
+            .responsive-login-box {
+              padding: 30px 20px !important;
+            }
+            .responsive-modal-box {
+              padding: 30px 20px !important;
+            }
+            .criteria-grid {
+              grid-template-columns: 1fr !important;
+            }
+            .login-title {
+              font-size: 26px !important;
+            }
+          }
+        `}
+      </style>
 
       {/* 2FA LOGIN VERIFICATION MODAL (NEW) */}
       {showLoginOtpModal && (
         <div style={modalOverlayStyle}>
-          <div style={modalContentStyle}>
+          <div className="responsive-modal-box">
             <X size={24} onClick={() => setShowLoginOtpModal(false)} style={{ position: "absolute", right: "20px", top: "20px", cursor: "pointer", color: "#999" }} />
 
             <div style={{ backgroundColor: "#f0f4ff", width: "60px", height: "60px", borderRadius: "50%", display: "flex", justifyContent: "center", alignItems: "center", margin: "0 auto 15px" }}>
@@ -345,7 +401,7 @@ function LoginPage() {
       {/* SUCCESS MODAL (LOGIN) */}
       {showSuccessModal && (
         <div style={modalOverlayStyle}>
-          <div style={modalContentStyle}>
+          <div className="responsive-modal-box">
             <div style={{ backgroundColor: "#e6f4ea", width: "70px", height: "70px", borderRadius: "50%", display: "flex", justifyContent: "center", alignItems: "center", margin: "0 auto 20px" }}>
               <CheckCircle2 size={40} color="#28a745" />
             </div>
@@ -361,7 +417,7 @@ function LoginPage() {
       {/* FEEDBACK POPUP MODAL (Replaces Alerts) */}
       {feedbackModal.show && (
         <div style={{ ...modalOverlayStyle, zIndex: 3000 }}>
-          <div style={{ ...modalContentStyle, padding: "30px", maxWidth: "350px" }}>
+          <div className="responsive-modal-box" style={{ maxWidth: "350px" }}>
             <div style={{
               backgroundColor: feedbackModal.type === "success" ? "#e6f4ea" : "#fdecea",
               width: "60px", height: "60px", borderRadius: "50%",
@@ -383,7 +439,7 @@ function LoginPage() {
       {/* FORGOT PASSWORD MODAL */}
       {showForgotModal && (
         <div style={modalOverlayStyle}>
-          <div style={modalContentStyle}>
+          <div className="responsive-modal-box">
             <X size={24} onClick={() => { setShowForgotModal(false); setOtpStep("email"); setOtpMessage(""); }} style={{ position: "absolute", right: "20px", top: "20px", cursor: "pointer", color: "#999" }} />
             <h2 style={{ color: brandBlue, fontWeight: "800", marginBottom: "10px" }}>Forgot Password?</h2>
             <p style={{ fontSize: "13px", color: "#666", marginBottom: "20px" }}>
@@ -429,7 +485,7 @@ function LoginPage() {
       {/* RESET PASSWORD MODAL */}
       {showResetModal && (
         <div style={modalOverlayStyle}>
-          <div style={modalContentStyle}>
+          <div className="responsive-modal-box">
             <X size={24} onClick={() => setShowResetModal(false)} style={{ position: "absolute", right: "20px", top: "20px", cursor: "pointer", color: "#999" }} />
             <h2 style={{ color: brandBlue, fontWeight: "800", marginBottom: "20px" }}>Reset Password</h2>
 
@@ -461,7 +517,7 @@ function LoginPage() {
             </div>
 
             {/* REAL TIME CONDITIONS GRID */}
-            <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "10px", textAlign: "left", marginBottom: "25px" }}>
+            <div className="criteria-grid">
               <RequirementItem met={passwordCriteria.lower} label="One lowercase" />
               <RequirementItem met={passwordCriteria.upper} label="One uppercase" />
               <RequirementItem met={passwordCriteria.number} label="One number" />
@@ -480,8 +536,8 @@ function LoginPage() {
       )}
 
       {/* MAIN LOGIN FORM */}
-      <div style={{ backgroundColor: "rgba(255, 255, 255, 0.96)", padding: "40px 45px", borderRadius: "30px", width: "100%", maxWidth: "450px", textAlign: "center", boxShadow: "0 15px 35px rgba(0,0,0,0.2)" }}>
-        <h2 style={{ color: brandBlue, fontSize: "32px", fontWeight: "800", marginBottom: "25px" }}>Login</h2>
+      <div className="responsive-login-box">
+        <h2 className="login-title">Login</h2>
         <form onSubmit={handleLogin} noValidate>
           <div style={{ marginBottom: "20px" }}>
             <label style={labelStyle}>Email Address</label>
@@ -533,7 +589,7 @@ function LoginPage() {
             </div>
           )}
 
-          <button type="submit" disabled={isLocked} style={{ width: "100%", padding: "14px", backgroundColor: isLocked ? "#ccc" : brandBlue, color: "#fff", border: "none", borderRadius: "10px", fontWeight: "700", fontSize: "16px", cursor: isLocked ? "not-allowed" : "pointer" }}>
+          <button type="submit" disabled={isLocked} style={{ width: "100%", padding: "14px", backgroundColor: isLocked ? "#ccc" : brandBlue, color: "#fff", border: "none", borderRadius: "10px", fontWeight: "700", fontSize: "16px", cursor: isLocked ? "not-allowed" : "pointer", transition: "background-color 0.3s ease" }}>
             {isLocked ? `LOCKED (${timer}s)` : "LOGIN"}
           </button>
         </form>

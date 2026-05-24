@@ -18,27 +18,11 @@ function Navbar() {
     };
   }, [isOpen]);
 
-  const navbarStyle = {
-    display: 'flex',
-    justifyContent: 'space-between',
-    alignItems: 'center',
-    padding: '1rem 3rem',
-    width: '100%',
-    boxSizing: 'border-box',
-    position: 'absolute',
-    top: 0,
-    zIndex: 1000,
-    backgroundColor: 'transparent',
-  };
-
-  const brandStyle = {
-    fontSize: '32px',
-    fontWeight: '700',
-    color: '#001166',
-    textDecoration: 'none',
-    fontFamily: "'Poppins', sans-serif",
-    zIndex: 1100, // Keep above the overlay
-  };
+  // 🛑 CRITICAL FIX: Hide this global Navbar on the Landing Page ('/') 
+  // This prevents the broken duplicate menu because LandingPage.js already has its own built-in navbar.
+  if (location.pathname === '/') {
+    return null;
+  }
 
   const getLinkStyle = (path) => {
     const isActive = location.pathname === path;
@@ -57,32 +41,54 @@ function Navbar() {
 
   return (
     <>
+      {/* We use brand new "clean-nav" classes here to completely detach from the broken index.css rules */}
       <style>
         {`
-          .navbar-mobile-toggle {
+          .clean-nav-container {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 1rem 3rem;
+            width: 100%;
+            box-sizing: border-box;
+            position: absolute;
+            top: 0;
+            z-index: 2000;
+            background-color: transparent;
+          }
+
+          .clean-nav-brand {
+            font-size: 32px;
+            font-weight: 700;
+            color: #001166;
+            text-decoration: none;
+            font-family: 'Poppins', sans-serif;
+            z-index: 2100;
+          }
+
+          .clean-nav-hamburger {
             display: none;
             background: none;
             border: none;
             cursor: pointer;
             color: #001166;
-            z-index: 1100;
+            z-index: 2100;
           }
 
-          /* Container to push everything to the right */
-          .navbar-right-section {
+          .clean-nav-menu {
             display: flex;
             align-items: center;
             gap: 40px;
-            margin-left: auto; /* Forces right alignment */
+            margin-left: auto;
           }
 
-          .navbar-links {
+          .clean-nav-links-wrapper {
             display: flex;
             align-items: center;
             gap: 40px;
           }
 
-          .profile-section {
+          .clean-nav-profile {
             display: flex;
             align-items: center;
             gap: 15px;
@@ -90,25 +96,13 @@ function Navbar() {
             padding-left: 20px;
           }
 
-          .desktop-profile-text {
+          .clean-nav-user-text {
             text-align: right;
             color: #001166;
             font-family: 'Poppins', sans-serif;
           }
 
-          .user-name {
-            margin: 0;
-            font-weight: 700;
-            font-size: 14px;
-          }
-
-          .user-role {
-            margin: 0;
-            font-size: 12px;
-            opacity: 0.8;
-          }
-
-          .avatar {
+          .clean-nav-avatar {
             width: 40px;
             height: 40px;
             background: #001166;
@@ -119,60 +113,56 @@ function Navbar() {
           }
 
           @media (max-width: 1024px) {
-            .navbar-right-section {
-              gap: 20px;
-            }
-            .navbar-links {
-              gap: 20px;
-            }
-            .profile-section {
-              padding-left: 15px;
-            }
+            .clean-nav-menu { gap: 20px; }
+            .clean-nav-links-wrapper { gap: 20px; }
+            .clean-nav-profile { padding-left: 15px; }
           }
 
           /* Mobile Responsive Styles */
           @media (max-width: 768px) {
-            .navbar-container {
+            .clean-nav-container {
               padding: 1rem 1.5rem !important;
-              justify-content: center !important; /* Centers brand on mobile */
+              justify-content: space-between !important;
             }
             
-            .navbar-mobile-toggle {
-              display: block;
-              position: absolute;
-              left: 1.5rem; /* Places hamburger on the left */
+            .clean-nav-brand {
+              font-size: 26px !important;
             }
 
-            .navbar-right-section {
+            .clean-nav-hamburger {
+              display: block !important;
+            }
+
+            .clean-nav-menu {
               position: fixed;
               top: 0;
-              left: -100%; /* Start hidden off-screen */
+              left: -100%; /* Slides cleanly from the left now */
               width: 280px;
               height: 100vh;
               background-color: white;
               flex-direction: column;
               align-items: flex-start;
               justify-content: flex-start;
-              padding: 80px 30px 30px 30px;
+              padding: 90px 30px 30px 30px;
               transition: left 0.3s ease-in-out;
-              z-index: 1060;
+              z-index: 2050;
               box-shadow: 5px 0 15px rgba(0,0,0,0.1);
               margin-left: 0;
               gap: 30px;
             }
 
-            .navbar-right-section.menu-open {
-              left: 0; /* Slide in */
+            .clean-nav-menu.open {
+              left: 0 !important; 
             }
 
-            .navbar-links {
+            .clean-nav-links-wrapper {
               flex-direction: column;
               align-items: flex-start;
               gap: 25px;
               width: 100%;
             }
 
-            .profile-section {
+            .clean-nav-profile {
               border-left: none;
               border-top: 1px solid rgba(0, 17, 102, 0.1);
               padding-left: 0;
@@ -181,38 +171,39 @@ function Navbar() {
               justify-content: flex-start;
             }
 
-            .desktop-profile-text {
+            .clean-nav-user-text {
               text-align: left;
             }
           }
         `}
       </style>
 
-      <nav style={navbarStyle} className="navbar-container">
+      <nav className="clean-nav-container">
+        {/* Hamburger Icon moved to the left for better mobile flow */}
         <button 
-          className="navbar-mobile-toggle"
+          className="clean-nav-hamburger"
           onClick={() => setIsOpen(!isOpen)}
           aria-label="Toggle menu"
         >
           {isOpen ? <X size={28} /> : <Menu size={28} />}
         </button>
 
-        <Link to="/" style={brandStyle} className="navbar-brand">OraVista</Link>
+        <Link to="/" className="clean-nav-brand">OraVista</Link>
 
-        <div className={`navbar-right-section ${isOpen ? 'menu-open' : ''}`}>
-          <div className="navbar-links">
+        <div className={`clean-nav-menu ${isOpen ? 'open' : ''}`}>
+          <div className="clean-nav-links-wrapper">
             <Link to="/" style={getLinkStyle('/')} onClick={() => setIsOpen(false)}>Home</Link>
             <Link to="/about" style={getLinkStyle('/about')} onClick={() => setIsOpen(false)}>About Us</Link>
             <Link to="/services" style={getLinkStyle('/services')} onClick={() => setIsOpen(false)}>Services</Link>
             <Link to="/contact" style={getLinkStyle('/contact')} onClick={() => setIsOpen(false)}>Contact</Link>
           </div>
 
-          <div className="profile-section">
-            <div className="desktop-profile-text">
-              <p className="user-name">Admin User</p>
-              <p className="user-role">Clinic Owner</p>
+          <div className="clean-nav-profile">
+            <div className="clean-nav-user-text">
+              <p style={{ margin: 0, fontWeight: 700, fontSize: '14px' }}>Admin User</p>
+              <p style={{ margin: 0, fontSize: '12px', opacity: 0.8 }}>Clinic Owner</p>
             </div>
-            <div className="avatar">
+            <div className="clean-nav-avatar">
               <User color="white" size={20} />
             </div>
           </div>
@@ -231,7 +222,7 @@ function Navbar() {
             bottom: 0,
             backgroundColor: 'rgba(0, 0, 0, 0.4)',
             backdropFilter: 'blur(3px)',
-            zIndex: 1050,
+            zIndex: 2040,
           }}
         />
       )}

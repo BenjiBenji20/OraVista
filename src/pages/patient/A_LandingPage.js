@@ -1,12 +1,13 @@
 import React, { useState, useRef } from "react";
 import { useNavigate } from "react-router-dom"; 
-import { Phone, Mail, MapPin, Facebook, Instagram, Twitter, ShieldCheck } from "lucide-react";
+import { Phone, Mail, MapPin, Facebook, Instagram, Twitter, ShieldCheck, Menu, X } from "lucide-react";
 import landingBg from "../../assets/BG_IMG.png";
 import playIcon from "../../assets/gpslogo.png";
 import serviceImage from '../../assets/dentimage.jpg'; 
 
 function LandingPage() {
   const [isOpen, setIsOpen] = useState(false);
+  const [isNavOpen, setIsNavOpen] = useState(false);
   const [selectedBranch, setSelectedBranch] = useState("Select Branch");
   const navigate = useNavigate(); 
 
@@ -18,9 +19,10 @@ function LandingPage() {
 
   const scrollToSection = (elementRef) => {
     window.scrollTo({
-      top: elementRef.current.offsetTop - 80, // Offset for the sticky navbar
+      top: elementRef.current.offsetTop - 80, 
       behavior: "smooth",
     });
+    setIsNavOpen(false); // Close mobile nav after clicking
   };
 
   const branches = [
@@ -38,10 +40,9 @@ function LandingPage() {
     }, 300);
   };
 
-  // --- UPDATED: Management Portal Navigation Handler[cite: 8] ---
+  // --- Management Portal Navigation Handler ---
   const handlePortalClick = () => {
     console.log("Navigating to Management Portal...");
-    // This route should match the path for A_LandingPage_4.js in your App.js[cite: 8]
     navigate("/management"); 
   };
 
@@ -61,6 +62,7 @@ function LandingPage() {
     justifyContent: "center",
     alignItems: "flex-start",
     paddingLeft: "8%",
+    paddingRight: "8%",
     boxSizing: "border-box",
   };
 
@@ -92,12 +94,12 @@ function LandingPage() {
   // STYLES: ABOUT US
   // ==========================================
   const aboutStyles = {
-    container: { maxWidth: '1200px', margin: '0 auto', padding: '0 40px', fontFamily: "'Poppins', sans-serif", color: '#001166' },
+    container: { maxWidth: '1200px', margin: '0 auto', padding: '0 40px', fontFamily: "'Poppins', sans-serif", color: '#001166', boxSizing: 'border-box' },
     topSection: { display: 'flex', flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', gap: '50px', marginBottom: '40px' },
     textContent: { flex: 1 },
     header: { fontSize: '42px', fontWeight: '900', marginBottom: '25px', marginTop: 0, color: '#001166' },
     paragraph: { fontSize: '16px', lineHeight: '1.7', color: '#333', marginBottom: '20px', maxWidth: '550px' },
-    imageContainer: { flex: 1.2 },
+    imageContainer: { flex: 1.2, width: '100%' },
     image: { width: '100%', height: '500px', borderRadius: '8px', objectFit: 'cover', marginTop: '25px', display: 'block', marginLeft: 'auto' },
     whyChooseSection: { marginTop: '40px', marginBottom: '60px' },
     whyChooseHeaderContainer: { display: 'flex', alignItems: 'center', gap: '20px', marginBottom: '30px' },
@@ -116,7 +118,7 @@ function LandingPage() {
   // STYLES: SERVICES
   // ==========================================
   const servicesStyles = {
-    container: { maxWidth: '1200px', margin: '0 auto', padding: '0 40px', fontFamily: "'Poppins', sans-serif", textAlign: 'center' },
+    container: { maxWidth: '1200px', margin: '0 auto', padding: '0 40px', fontFamily: "'Poppins', sans-serif", textAlign: 'center', boxSizing: 'border-box' },
     headerSection: { display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '20px', marginBottom: '15px' },
     blueLine: { flex: 1, height: '3px', backgroundColor: '#001166' },
     title: { fontSize: '42px', fontWeight: '900', color: '#001166', margin: 0, whiteSpace: 'nowrap' },
@@ -139,7 +141,7 @@ function LandingPage() {
   // STYLES: CONTACT
   // ==========================================
   const contactStyles = {
-    container: { maxWidth: '1200px', margin: '0 auto', padding: '0 40px', fontFamily: "'Poppins', sans-serif", color: '#001166', textAlign: 'left' },
+    container: { maxWidth: '1200px', margin: '0 auto', padding: '0 40px', fontFamily: "'Poppins', sans-serif", color: '#001166', textAlign: 'left', boxSizing: 'border-box' },
     header: { fontSize: '42px', fontWeight: '800', marginBottom: '40px' },
     grid: { display: 'grid', gridTemplateColumns: '1.2fr 1fr 2fr', gap: '50px', marginBottom: '60px' },
     sectionTitle: { fontSize: '22px', fontWeight: '800', marginBottom: '25px' },
@@ -157,24 +159,99 @@ function LandingPage() {
   return (
     <div style={{ width: "100%", overflowX: "hidden", backgroundColor: "#fafafa" }}>
       
+      {/* --- RESPONSIVE CSS INJECTION --- */}
+      <style>
+        {`
+          .mobile-nav-toggle { display: none; }
+          
+          @media (max-width: 900px) {
+            .landing-nav { padding: 0 5% !important; }
+            .mobile-nav-toggle { 
+              display: block; 
+              cursor: pointer; 
+              color: #001166; 
+              background: none; 
+              border: none; 
+              z-index: 1001; 
+            }
+            .nav-links-container {
+              position: fixed;
+              top: 80px;
+              left: -100%;
+              width: 100%;
+              height: calc(100vh - 80px);
+              background: rgba(255, 255, 255, 0.98);
+              flex-direction: column !important;
+              justify-content: flex-start !important;
+              align-items: center !important;
+              padding-top: 40px;
+              gap: 30px !important;
+              transition: left 0.3s ease-in-out;
+              z-index: 999;
+            }
+            .nav-links-container.open { left: 0; }
+            
+            .hero-section {
+              align-items: center !important;
+              text-align: center !important;
+            }
+            .hero-title {
+              font-size: 38px !important;
+              line-height: 1.2 !important;
+              white-space: normal !important;
+            }
+            .hero-subtitle {
+              font-size: 16px !important;
+              white-space: normal !important;
+            }
+            .hero-promo {
+              flex-direction: column !important;
+              align-items: center !important;
+              text-align: center !important;
+            }
+
+            .responsive-container { padding: 0 20px !important; }
+            
+            .about-top { flex-direction: column !important; gap: 30px !important; }
+            .about-img { height: 300px !important; }
+            .about-bottom-grid { grid-template-columns: 1fr !important; gap: 30px !important; }
+            .ratings-card { flex-direction: column !important; padding: 30px !important; text-align: center !important; }
+            .reviews-section { padding-left: 0 !important; text-align: center !important; }
+            
+            .services-grid { grid-template-columns: 1fr !important; }
+            .services-title { font-size: 32px !important; white-space: normal !important; text-align: center !important; }
+            .booking-banner { flex-direction: column !important; }
+            .booking-text { padding: 30px !important; }
+            .booking-img { min-height: 250px !important; width: 100% !important; }
+
+            .contact-grid { grid-template-columns: 1fr !important; gap: 40px !important; }
+            .contact-locations-grid { grid-template-columns: 1fr !important; }
+            .contact-footer { flex-direction: column !important; gap: 15px !important; text-align: center !important; }
+          }
+        `}
+      </style>
+
       {/* ----------------- STICKY NAVBAR ----------------- */}
-      <nav style={{ 
+      <nav className="landing-nav" style={{ 
         position: "fixed", top: 0, left: 0, width: "100%", height: "80px", 
         backgroundColor: "rgba(255, 255, 255, 0.95)", backdropFilter: "blur(10px)",
         display: "flex", justifyContent: "space-between", alignItems: "center", 
         padding: "0 10%", boxShadow: "0 2px 15px rgba(0,0,0,0.05)", zIndex: 1000,
         boxSizing: "border-box", fontFamily: "'Poppins', sans-serif"
       }}>
-        <h1 style={{ color: brandBlue, fontWeight: "800", fontSize: "28px", margin: 0, cursor: "pointer" }} onClick={() => scrollToSection(homeRef)}>
+        <h1 style={{ color: brandBlue, fontWeight: "800", fontSize: "28px", margin: 0, cursor: "pointer", zIndex: 1001 }} onClick={() => scrollToSection(homeRef)}>
           OraVista
         </h1>
         
-        <div style={{ display: "flex", gap: "30px", alignItems: "center" }}>
+        <button className="mobile-nav-toggle" onClick={() => setIsNavOpen(!isNavOpen)}>
+          {isNavOpen ? <X size={30} /> : <Menu size={30} />}
+        </button>
+
+        <div className={`nav-links-container ${isNavOpen ? "open" : ""}`} style={{ display: "flex", gap: "30px", alignItems: "center" }}>
           <span style={navLinkStyle} onClick={() => scrollToSection(homeRef)}>Home</span>
           <span style={navLinkStyle} onClick={() => scrollToSection(aboutRef)}>About Us</span>
           <span style={navLinkStyle} onClick={() => scrollToSection(servicesRef)}>Services</span>
           <span style={navLinkStyle} onClick={() => scrollToSection(contactRef)}>Contact</span>
-          {/* Portal Button to Management Side[cite: 8] */}
           <button 
             style={portalBtnStyle} 
             onClick={handlePortalClick}
@@ -188,15 +265,15 @@ function LandingPage() {
       </nav>
 
       {/* ----------------- HOME / HERO SECTION ----------------- */}
-      <div ref={homeRef} style={heroSectionStyle}>
-        <h1 style={{ fontSize: "64px", fontWeight: "800", color: "#001166", marginBottom: "0px", lineHeight: "1.0", fontFamily: "'Poppins', sans-serif" }}>
+      <div ref={homeRef} className="hero-section" style={heroSectionStyle}>
+        <h1 className="hero-title" style={{ fontSize: "64px", fontWeight: "800", color: "#001166", marginBottom: "0px", lineHeight: "1.0", fontFamily: "'Poppins', sans-serif" }}>
           Welcome to King Epres Dental Clinic
         </h1>
-        <p style={{ fontSize: "26px", color: "#001166", marginTop: "10px", marginBottom: "30px", whiteSpace: "nowrap", maxWidth: "none", fontFamily: "'Poppins', sans-serif" }}>
+        <p className="hero-subtitle" style={{ fontSize: "26px", color: "#001166", marginTop: "10px", marginBottom: "30px", whiteSpace: "nowrap", maxWidth: "none", fontFamily: "'Poppins', sans-serif" }}>
           Caring for your smile with professional and compassionate dental services.
         </p>
 
-        <div style={{ position: "relative", display: "inline-block", fontFamily: "'Poppins', sans-serif" }}>
+        <div style={{ position: "relative", display: "inline-block", fontFamily: "'Poppins', sans-serif", zIndex: 10 }}>
           <button 
             style={{ padding: "12px 24px", backgroundColor: "#001166", color: "white", border: "none", borderRadius: "8px", fontSize: "18px", cursor: "pointer", fontWeight: "600", display: "flex", alignItems: "center", gap: "10px", minWidth: "220px", justifyContent: "space-between" }} 
             onClick={() => setIsOpen(!isOpen)}
@@ -205,7 +282,7 @@ function LandingPage() {
           </button>
 
           {isOpen && (
-            <div style={{ position: "absolute", top: "100%", left: 0, backgroundColor: "#001166", borderRadius: "8px", marginTop: "5px", width: "100%", overflow: "hidden", boxShadow: "0 8px 16px rgba(0,0,0,0.2)", zIndex: 10 }}>
+            <div style={{ position: "absolute", top: "100%", left: 0, backgroundColor: "#001166", borderRadius: "8px", marginTop: "5px", width: "100%", overflow: "hidden", boxShadow: "0 8px 16px rgba(0,0,0,0.2)" }}>
               {branches.map((branch) => (
                 <div
                   key={branch}
@@ -222,8 +299,8 @@ function LandingPage() {
         </div>
 
         {/* MOBILE PROMO */}
-        <div style={{ marginTop: "60px", display: "flex", flexDirection: "row", alignItems: "flex-start", gap: "30px", fontFamily: "'Poppins', sans-serif", maxWidth: "800px" }}>
-          <div style={{ display: "flex", flexDirection: "column", alignItems: "flex-start", gap: "15px" }}>
+        <div className="hero-promo" style={{ marginTop: "60px", display: "flex", flexDirection: "row", alignItems: "flex-start", gap: "30px", fontFamily: "'Poppins', sans-serif", maxWidth: "800px" }}>
+          <div style={{ display: "flex", flexDirection: "column", alignItems: "flex-start", gap: "15px", flex: 1 }}>
             <p style={{ fontSize: "19px", color: "#001166", margin: 0, fontWeight: "600", lineHeight: "1.4" }}>
               Experience seamless dental care right at your fingertips. Download the OraVista mobile app to book appointments on the go, manage your personalized dental profile, and receive real-time updates on your clinic records.
             </p>
@@ -241,8 +318,8 @@ function LandingPage() {
 
       {/* ----------------- ABOUT US SECTION ----------------- */}
       <section ref={aboutRef} style={{ width: '100%', paddingTop: '100px', paddingBottom: '60px', backgroundColor: 'white' }}>
-        <div style={aboutStyles.container}>
-          <div style={aboutStyles.topSection}>
+        <div className="responsive-container" style={aboutStyles.container}>
+          <div className="about-top" style={aboutStyles.topSection}>
             <div style={aboutStyles.textContent}>
               <h1 style={aboutStyles.header}>About Us</h1>
               <p style={aboutStyles.paragraph}>
@@ -256,6 +333,7 @@ function LandingPage() {
               <img 
                 src="https://images.unsplash.com/photo-1606811841689-23dfddce3e95?q=80&w=2070&auto=format&fit=crop" 
                 alt="Dental Team" 
+                className="about-img"
                 style={aboutStyles.image} 
               />
             </div>
@@ -274,15 +352,15 @@ function LandingPage() {
             </p>
           </div>
 
-          <div style={aboutStyles.bottomGrid}>
-            <div style={aboutStyles.ratingsCard}>
+          <div className="about-bottom-grid" style={aboutStyles.bottomGrid}>
+            <div className="ratings-card" style={aboutStyles.ratingsCard}>
               <h2 style={aboutStyles.ratingsLabel}>Ratings</h2>
               <div style={aboutStyles.starsContainer}>
                 <div style={aboutStyles.stars}>★★★★★ <span style={{ color: 'white', fontSize: '18px', marginLeft: '5px' }}>4.9/5</span></div>
                 <p style={{ margin: 0, opacity: 0.9, fontSize: '14px' }}>(Based on 250+ reviews)</p>
               </div>
             </div>
-            <div style={aboutStyles.reviewsSection}>
+            <div className="reviews-section" style={aboutStyles.reviewsSection}>
               <h3 style={aboutStyles.reviewTitle}>Recent Reviews:</h3>
               <p style={aboutStyles.quote}>
                 "The staff made me feel at ease, and my treatment was quick and painless!" – Maria S.
@@ -297,10 +375,10 @@ function LandingPage() {
 
       {/* ----------------- SERVICES SECTION ----------------- */}
       <section ref={servicesRef} style={{ width: '100%', paddingTop: '100px', paddingBottom: '60px', backgroundColor: '#f9fafe' }}>
-        <div style={servicesStyles.container}>
+        <div className="responsive-container" style={servicesStyles.container}>
           <div style={servicesStyles.headerSection}>
             <div style={servicesStyles.blueLine}></div>
-            <h1 style={servicesStyles.title}>Our Services</h1>
+            <h1 className="services-title" style={servicesStyles.title}>Our Services</h1>
             <div style={servicesStyles.blueLine}></div>
           </div>
           
@@ -308,7 +386,7 @@ function LandingPage() {
             We offer a wide range of dental care to keep your smile healthy and beautiful
           </p>
 
-          <div style={servicesStyles.servicesGrid}>
+          <div className="services-grid" style={servicesStyles.servicesGrid}>
             <div style={servicesStyles.serviceCard}>
               <h2 style={servicesStyles.cardTitle}>General Dentistry</h2>
               <p style={servicesStyles.cardDescription}>
@@ -331,8 +409,8 @@ function LandingPage() {
             </div>
           </div>
 
-          <div style={servicesStyles.bookingBanner}>
-            <div style={servicesStyles.bookingText}>
+          <div className="booking-banner" style={servicesStyles.bookingBanner}>
+            <div className="booking-text" style={servicesStyles.bookingText}>
               <h3 style={servicesStyles.bookingTitle}>Book an Appointment</h3>
               <p style={servicesStyles.bookingPara}>
                 Scheduling your dental visit is quick and easy. At King Epres Dental Clinic, we offer flexible appointment times to fit your schedule. Whether it's a routine check-up, orthodontic consultation, or restorative treatment, you can book online or call us directly. Our friendly staff will guide you through the process and ensure your visit is smooth, efficient, and comfortable.
@@ -348,17 +426,17 @@ function LandingPage() {
                 Book Now →
               </button>
             </div>
-            <div style={servicesStyles.imageSection}></div>
+            <div className="booking-img" style={servicesStyles.imageSection}></div>
           </div>
         </div>
       </section>
 
       {/* ----------------- CONTACT / FOOTER SECTION ----------------- */}
       <section ref={contactRef} style={{ width: '100%', paddingTop: '100px', paddingBottom: '40px', backgroundColor: 'white' }}>
-        <div style={contactStyles.container}>
+        <div className="responsive-container" style={contactStyles.container}>
           <h1 style={contactStyles.header}>Contact Us</h1>
 
-          <div style={contactStyles.grid}>
+          <div className="contact-grid" style={contactStyles.grid}>
             <div>
               <h2 style={contactStyles.sectionTitle}>King Epres Dental Clinic</h2>
               <p style={contactStyles.description}>
@@ -383,7 +461,7 @@ function LandingPage() {
             </div>
 
             <div style={contactStyles.contactInfo}>
-              <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '40px' }}>
+              <div className="contact-locations-grid" style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '40px' }}>
                 <div style={contactStyles.locationGroup}>
                   <div style={contactStyles.locationTitle}><MapPin size={18} color="#ff4d4d" /> Gil Puyat, Pasay</div>
                   <div style={contactStyles.infoItem}><Phone size={14} /> Phone: +63 9XX XXX XXXX</div>
@@ -405,9 +483,9 @@ function LandingPage() {
             </div>
           </div>
 
-          <div style={contactStyles.footerLine}>
+          <div className="contact-footer" style={contactStyles.footerLine}>
             <div>© 2026 King Epres Dental Clinic. All rights reserved.</div>
-            <div style={{ display: 'flex', gap: '20px' }}>
+            <div style={{ display: 'flex', gap: '20px', justifyContent: 'center' }}>
               <span style={{ cursor: 'pointer' }}>Terms Of Service</span>
               <span style={{ cursor: 'pointer' }}>Privacy Policy</span>
               <span style={{ cursor: 'pointer' }}>Cookie Policy</span>
