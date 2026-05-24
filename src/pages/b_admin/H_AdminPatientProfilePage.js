@@ -6,6 +6,7 @@ import {
   Calendar, Edit, Download, FileText, X, ExternalLink, Clock
 } from 'lucide-react';
 import AIDiagnosticModal from '../../components/AIDiagnosticModal';
+import { exportPatientPDF } from '../../utils/exportPDF';
 
 function AdminPatientProfile() {
   const { id } = useParams();
@@ -23,6 +24,7 @@ function AdminPatientProfile() {
     insurance: '',
     policy_number: ''
   });
+  const [isExporting, setIsExporting] = useState(false);
 
   // Fetch Data from Backend
   const fetchPatientDetails = useCallback(async () => {
@@ -66,6 +68,18 @@ function AdminPatientProfile() {
   useEffect(() => {
     fetchPatientDetails();
   }, [fetchPatientDetails]);
+
+  const handleExportPDF = async () => {
+    setIsExporting(true);
+    try {
+      await exportPatientPDF(patient, formData, history, records);
+    } catch (err) {
+      console.error("PDF Export failed:", err);
+      alert("Failed to export patient profile report.");
+    } finally {
+      setIsExporting(false);
+    }
+  };
 
   const handleUpdateSubmit = async (e) => {
     e.preventDefault();
@@ -174,7 +188,13 @@ function AdminPatientProfile() {
               <div style={styles.whiteCard}>
                 <div style={styles.cardHeader}>
                   <h3 style={styles.cardTitleBlack}>Visit History</h3>
-                  <button style={styles.exportBtn}><Download size={14} /> Export</button>
+                  <button 
+                    style={styles.exportBtn} 
+                    onClick={handleExportPDF}
+                    disabled={isExporting}
+                  >
+                    <Download size={14} /> {isExporting ? 'Exporting...' : 'Export'}
+                  </button>
                 </div>
                 <table style={styles.dataTable}>
                   <thead>

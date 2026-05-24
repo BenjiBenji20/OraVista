@@ -1,8 +1,9 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import AdminLayout from '../../components/AdminLayout';
-import { Search, Bell, MessageSquare, User, Eye, Edit, Plus, X, FileText, ExternalLink } from 'lucide-react';
+import { Search, Bell, MessageSquare, User, Eye, Edit, Plus, X, FileText, ExternalLink, Download } from 'lucide-react';
 import AIDiagnosticModal from '../../components/AIDiagnosticModal';
+import { exportPatientPDF } from '../../utils/exportPDF';
 
 function AdminPatientList() {
   const navigate = useNavigate();
@@ -16,6 +17,9 @@ function AdminPatientList() {
   const [patientRecords, setPatientRecords] = useState([]);
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [activeRecordForModal, setActiveRecordForModal] = useState(null);
+  const [patientHistory, setPatientHistory] = useState([]);
+  const [patientMedical, setPatientMedical] = useState(null);
+  const [isExporting, setIsExporting] = useState(false);
 
   useEffect(() => {
     const fetchPatients = async () => {
@@ -59,14 +63,56 @@ function AdminPatientList() {
     e.stopPropagation(); // Prevent row click navigation
     setSelectedPatient(patient);
     setIsModalOpen(true);
+    setPatientRecords([]);
+    setPatientHistory([]);
+    setPatientMedical(null);
     try {
-      const response = await fetch(`http://localhost:5000/api/patient-records/${patient.dbId}`);
-      if (response.ok) {
-        const data = await response.json();
+      const [recordsRes, historyRes, patientsRes] = await Promise.all([
+        fetch(`http://localhost:5000/api/patient-records/${patient.dbId}`),
+        fetch(`http://localhost:5000/api/user-appointments/${patient.dbId}`),
+        fetch(`http://localhost:5000/api/patients`)
+      ]);
+
+      if (recordsRes.ok) {
+        const data = await recordsRes.json();
         setPatientRecords(data);
       }
+      if (historyRes.ok) {
+        const histData = await historyRes.json();
+        setPatientHistory(histData);
+      }
+      if (patientsRes.ok) {
+        const allPatients = await patientsRes.json();
+        const currentPatient = allPatients.find(p => p.id === patient.dbId);
+        if (currentPatient) {
+          setPatientMedical({
+            blood_type: currentPatient.blood_type || 'O+',
+            allergies: currentPatient.allergies || 'None',
+            insurance: currentPatient.insurance || 'None',
+            policy_number: currentPatient.policy_number || 'N/A'
+          });
+        }
+      }
     } catch (err) {
-      console.error("Error fetching records:", err);
+      console.error("Error fetching records/history/medical:", err);
+    }
+  };
+
+  const handleExportPDF = async () => {
+    setIsExporting(true);
+    try {
+      const patientObj = {
+        name: selectedPatient?.name,
+        dbId: selectedPatient?.dbId,
+        age: selectedPatient?.age,
+        contact: selectedPatient?.contact
+      };
+      await exportPatientPDF(patientObj, patientMedical, patientHistory, patientRecords);
+    } catch (err) {
+      console.error("PDF Export failed:", err);
+      alert("Failed to export patient clinical report.");
+    } finally {
+      setIsExporting(false);
     }
   };
 
@@ -83,7 +129,28 @@ function AdminPatientList() {
             <div style={styles.modalContent}>
               <div style={styles.modalHeader}>
                 <h2 style={styles.modalTitle}>Records for {selectedPatient?.name}</h2>
-                <X style={styles.closeIcon} onClick={() => setIsModalOpen(false)} />
+                <div style={{ display: 'flex', alignItems: 'center', gap: '15px' }}>
+                  <button
+                    onClick={handleExportPDF}
+                    disabled={isExporting}
+                    style={{
+                      background: '#001166',
+                      color: 'white',
+                      border: 'none',
+                      padding: '6px 12px',
+                      borderRadius: '6px',
+                      fontSize: '12px',
+                      fontWeight: 'bold',
+                      cursor: 'pointer',
+                      display: 'flex',
+                      alignItems: 'center',
+                      gap: '5px'
+                    }}
+                  >
+                    <Download size={14} /> {isExporting ? 'Exporting...' : 'Export'}
+                  </button>
+                  <X style={styles.closeIcon} onClick={() => setIsModalOpen(false)} />
+                </div>
               </div>
               <div style={styles.modalBody}>
                 {patientRecords.length > 0 ? (
