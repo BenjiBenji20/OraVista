@@ -24,6 +24,8 @@ function AppointmentsPage() {
   const navigate = useNavigate();
   const location = useLocation();
   const [isCollapsed, setIsCollapsed] = useState(false);
+  const [isMobile, setIsMobile] = useState(false);
+  const [isMobileOpen, setIsMobileOpen] = useState(false);
   const [appointments, setAppointments] = useState([]);
   const [userData, setUserData] = useState({ id: null, firstName: "User" });
 
@@ -41,7 +43,6 @@ function AppointmentsPage() {
 
   const [feedbackModal, setFeedbackModal] = useState({ show: false, message: "", type: "success" });
 
-  // UPDATED: Actual dentist list
   const dentistsList = [
     "Therese Madrid DMD",
     "Queenie Balmedina DMD",
@@ -51,6 +52,15 @@ function AppointmentsPage() {
   ];
 
   const statusList = ["Approved", "Pending", "Cancelled", "Completed", "Reschedule"];
+
+  useEffect(() => {
+    const checkMobile = () => {
+      setIsMobile(window.innerWidth < 768);
+    };
+    checkMobile();
+    window.addEventListener("resize", checkMobile);
+    return () => window.removeEventListener("resize", checkMobile);
+  }, []);
 
   const fetchAppointments = useCallback(async (userId) => {
     try {
@@ -92,9 +102,7 @@ function AppointmentsPage() {
     setIsEditing(true);
   };
 
-  const handleApplyClick = () => {
-    setShowSaveChanges(true);
-  };
+  const handleApplyClick = () => setShowSaveChanges(true);
 
   const handleConfirmSaveChanges = async () => {
     const modifiedAppointments = appointments.filter(appt => {
@@ -113,13 +121,9 @@ function AppointmentsPage() {
         fetch("http://localhost:5000/api/update-appointment-status", {
           method: "PUT",
           headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({
-            appointment_id: appt.id,
-            status: appt.status
-          }),
+          body: JSON.stringify({ appointment_id: appt.id, status: appt.status }),
         })
       ));
-
       setIsEditing(false);
       setShowSaveChanges(false);
       showFeedback("Changes saved successfully!", "success");
@@ -136,11 +140,10 @@ function AppointmentsPage() {
 
   const handleStatusClick = (appt) => {
     if (!isEditing) return;
-    const currentStatus = appt.status;
-    if (currentStatus === "Pending") {
+    if (appt.status === "Pending") {
       setAppointmentToCancel(appt);
       setShowConfirmCancel(true);
-    } else if (currentStatus === "Approved" || currentStatus === "Confirmed") {
+    } else if (appt.status === "Approved" || appt.status === "Confirmed") {
       setAppointmentToCancel(appt);
       setShowCancelWarning(true);
     }
@@ -162,28 +165,25 @@ function AppointmentsPage() {
 
   const getStatusStyle = (status) => {
     const base = {
-      padding: "8px 20px", borderRadius: "20px", fontSize: "13px", fontWeight: "700", color: "white",
-      display: "inline-block", width: "120px", textAlign: "center",
+      padding: "6px 14px",
+      borderRadius: "20px",
+      fontSize: "12px",
+      fontWeight: "700",
+      color: "white",
+      display: "inline-block",
+      textAlign: "center",
       cursor: isEditing && (status === "Pending" || status === "Approved" || status === "Confirmed") ? "pointer" : "not-allowed",
-      opacity: isEditing ? 1 : 0.8,
-      boxShadow: isEditing && (status === "Pending" || status === "Approved" || status === "Confirmed") ? "0 2px 5px rgba(0,0,0,0.2)" : "none",
-      transition: "all 0.3s"
+      transition: "all 0.3s",
+      whiteSpace: "nowrap",
     };
-
     switch (status) {
       case "Approved":
-      case "Confirmed":
-        return { ...base, backgroundColor: "#10b981" }; // Green
-      case "Pending":
-        return { ...base, backgroundColor: "#ffc107" }; // Yellow
-      case "Reschedule":
-        return { ...base, backgroundColor: "#007bff" };
-      case "Completed":
-        return { ...base, backgroundColor: "#cc33cc" };
-      case "Cancelled":
-        return { ...base, backgroundColor: "#ff4444" };
-      default:
-        return { ...base, backgroundColor: "#ffc107" };
+      case "Confirmed": return { ...base, backgroundColor: "#10b981" };
+      case "Pending": return { ...base, backgroundColor: "#ffc107" };
+      case "Reschedule": return { ...base, backgroundColor: "#007bff" };
+      case "Completed": return { ...base, backgroundColor: "#cc33cc" };
+      case "Cancelled": return { ...base, backgroundColor: "#ff4444" };
+      default: return { ...base, backgroundColor: "#ffc107" };
     }
   };
 
@@ -191,40 +191,102 @@ function AppointmentsPage() {
     const service = (appt.service_type || "").toLowerCase();
     const dentist = (appt.dentist_name || "").toLowerCase();
     const search = searchTerm.toLowerCase();
-
     const matchesSearch = service.includes(search) || dentist.includes(search);
     const matchesDentist = selectedDentist ? appt.dentist_name === selectedDentist : true;
     const matchesStatus = selectedStatus ? appt.status === selectedStatus : true;
-
     return matchesSearch && matchesDentist && matchesStatus;
   });
 
   const sidebarWidth = isCollapsed ? "80px" : "260px";
+
   const getNavItemStyle = (path) => ({
-    display: "flex", alignItems: "center", gap: "15px", color: "white", textDecoration: "none",
-    padding: "12px 15px", margin: "5px 0", fontSize: "16px", cursor: "pointer", borderRadius: "10px",
-    transition: "all 0.3s ease", whiteSpace: "normal",
+    display: "flex",
+    alignItems: "center",
+    gap: "15px",
+    color: "white",
+    textDecoration: "none",
+    padding: "12px 15px",
+    margin: "5px 0",
+    fontSize: "16px",
+    cursor: "pointer",
+    borderRadius: "10px",
+    transition: "all 0.3s ease",
+    whiteSpace: "nowrap",
+    overflow: "hidden",
     backgroundColor: location.pathname === path ? "rgba(255, 255, 255, 0.2)" : "transparent",
     fontWeight: location.pathname === path ? "700" : "400",
     borderLeft: location.pathname === path ? "4px solid white" : "4px solid transparent",
   });
 
-  return (
-    <div style={{ display: "flex", minHeight: "100vh", width: "100%", backgroundColor: "white" }}>
+  const modalOverlay = {
+    position: "fixed", top: 0, left: 0, width: "100%", height: "100%",
+    backgroundColor: "rgba(0,0,0,0.5)", display: "flex",
+    justifyContent: "center", alignItems: "center",
+    padding: "20px", boxSizing: "border-box",
+  };
 
+  const modalBox = {
+    backgroundColor: "white", padding: "30px", borderRadius: "20px",
+    textAlign: "center", width: "100%", maxWidth: "400px",
+    boxShadow: "0 10px 25px rgba(0,0,0,0.2)",
+  };
+
+  const SidebarContent = () => (
+    <>
+      <div style={{ display: "flex", justifyContent: isCollapsed && !isMobile ? "center" : "space-between", alignItems: "center", marginBottom: "40px" }}>
+        {(!isCollapsed || isMobile) && <h2 style={{ fontSize: "28px", fontWeight: "800", margin: 0 }}>OraVista</h2>}
+        {isMobile ? (
+          <div onClick={() => setIsMobileOpen(false)} style={{ cursor: "pointer" }}><X size={24} /></div>
+        ) : (
+          <div onClick={() => setIsCollapsed(!isCollapsed)} style={{ cursor: "pointer" }}>
+            {isCollapsed ? <Menu size={24} /> : <X size={24} />}
+          </div>
+        )}
+      </div>
+
+      <nav style={{ flexGrow: 1 }}>
+        {[
+          { path: "/dashboard", icon: <LayoutDashboard size={20} style={{ flexShrink: 0 }} />, label: "Dashboard" },
+          { path: "/profile", icon: <User size={20} style={{ flexShrink: 0 }} />, label: "Profile" },
+          { path: "/booking", icon: <CalendarHeart size={20} style={{ flexShrink: 0 }} />, label: "Book an Appointment" },
+          { path: "/appointments", icon: <History size={20} style={{ flexShrink: 0 }} />, label: "My Appointments" },
+          { path: "/records", icon: <FileText size={20} style={{ flexShrink: 0 }} />, label: "Records" },
+        ].map(({ path, icon, label }) => (
+          <div key={path} style={getNavItemStyle(path)} onClick={() => { navigate(path); if (isMobile) setIsMobileOpen(false); }}>
+            {icon}
+            {(!isCollapsed || isMobile) && <span style={{ overflow: "hidden", textOverflow: "ellipsis" }}>{label}</span>}
+          </div>
+        ))}
+      </nav>
+
+      <div style={{ borderTop: "1px solid rgba(255,255,255,0.2)", paddingTop: "10px" }}>
+        <div style={getNavItemStyle("/settings")} onClick={() => { navigate("/settings"); if (isMobile) setIsMobileOpen(false); }}>
+          <Settings size={20} style={{ flexShrink: 0 }} />
+          {(!isCollapsed || isMobile) && "Settings"}
+        </div>
+        <div style={{ ...getNavItemStyle("/logout"), color: "#ff4d4d" }} onClick={handleLogout}>
+          <LogOut size={20} style={{ flexShrink: 0 }} />
+          {(!isCollapsed || isMobile) && "Logout"}
+        </div>
+      </div>
+    </>
+  );
+
+  return (
+    <div style={{ display: "flex", minHeight: "100vh", width: "100%", backgroundColor: "white", fontFamily: "'Poppins', sans-serif" }}>
+
+      {/* Modals */}
       {feedbackModal.show && (
-        <div style={{ position: "fixed", top: 0, left: 0, width: "100%", height: "100%", backgroundColor: "rgba(0,0,0,0.5)", display: "flex", justifyContent: "center", alignItems: "center", zIndex: 4000 }}>
-          <div style={{ backgroundColor: "white", padding: "30px", borderRadius: "20px", textAlign: "center", width: "350px", boxShadow: "0 10px 25px rgba(0,0,0,0.2)" }}>
-            {feedbackModal.type === "success" ? (
-              <CheckCircle2 size={50} color="#28a745" style={{ marginBottom: "15px", margin: "0 auto" }} />
-            ) : (
-              <XCircle size={50} color="#ff4d4d" style={{ marginBottom: "15px", margin: "0 auto" }} />
-            )}
+        <div style={{ ...modalOverlay, zIndex: 4000 }}>
+          <div style={modalBox}>
+            {feedbackModal.type === "success"
+              ? <CheckCircle2 size={50} color="#28a745" style={{ margin: "0 auto 15px" }} />
+              : <XCircle size={50} color="#ff4d4d" style={{ margin: "0 auto 15px" }} />}
             <h3 style={{ color: "#001166", fontWeight: "800", marginBottom: "10px" }}>
               {feedbackModal.type === "success" ? "Done!" : "Error"}
             </h3>
             <p style={{ color: "#666", fontSize: "14px", marginBottom: "20px" }}>{feedbackModal.message}</p>
-            <button onClick={() => setFeedbackModal({ ...feedbackModal, show: false })} style={{ width: "100%", padding: "12px", borderRadius: "10px", border: "none", backgroundColor: "#001166", color: "white", fontWeight: "700", cursor: "pointer" }}>
+            <button onClick={() => setFeedbackModal({ ...feedbackModal, show: false })} style={{ width: "100%", padding: "12px", borderRadius: "10px", border: "none", backgroundColor: "#001166", color: "white", fontWeight: "700", cursor: "pointer", fontFamily: "'Poppins', sans-serif" }}>
               Okay
             </button>
           </div>
@@ -232,148 +294,218 @@ function AppointmentsPage() {
       )}
 
       {showSaveChanges && (
-        <div style={{ position: "fixed", top: 0, left: 0, width: "100%", height: "100%", backgroundColor: "rgba(0,0,0,0.5)", display: "flex", justifyContent: "center", alignItems: "center", zIndex: 3500 }}>
-          <div style={{ backgroundColor: "white", padding: "30px", borderRadius: "20px", textAlign: "center", width: "400px" }}>
-            <Save size={50} color="#001166" style={{ marginBottom: "15px", margin: "0 auto" }} />
+        <div style={{ ...modalOverlay, zIndex: 3500 }}>
+          <div style={modalBox}>
+            <Save size={50} color="#001166" style={{ margin: "0 auto 15px" }} />
             <h3 style={{ color: "#001166", fontWeight: "800" }}>Save Changes?</h3>
-            <p style={{ color: "#555", fontSize: "14px", marginBottom: "20px" }}>
-              Do you want to save the changes you made to your appointments?
-            </p>
+            <p style={{ color: "#555", fontSize: "14px", marginBottom: "20px" }}>Do you want to save the changes you made to your appointments?</p>
             <div style={{ display: "flex", gap: "10px" }}>
-              <button onClick={handleDiscardChanges} style={{ flex: 1, padding: "12px", borderRadius: "10px", border: "1px solid #ccc", backgroundColor: "white", cursor: "pointer" }}>No</button>
-              <button onClick={handleConfirmSaveChanges} style={{ flex: 1, padding: "12px", borderRadius: "10px", border: "none", backgroundColor: "#001166", color: "white", cursor: "pointer" }}>Yes</button>
+              <button onClick={handleDiscardChanges} style={{ flex: 1, padding: "12px", borderRadius: "10px", border: "1px solid #ccc", backgroundColor: "white", cursor: "pointer", fontFamily: "'Poppins', sans-serif" }}>No</button>
+              <button onClick={handleConfirmSaveChanges} style={{ flex: 1, padding: "12px", borderRadius: "10px", border: "none", backgroundColor: "#001166", color: "white", cursor: "pointer", fontFamily: "'Poppins', sans-serif" }}>Yes</button>
             </div>
           </div>
         </div>
       )}
 
       {showCancelWarning && (
-        <div style={{ position: "fixed", top: 0, left: 0, width: "100%", height: "100%", backgroundColor: "rgba(0,0,0,0.5)", display: "flex", justifyContent: "center", alignItems: "center", zIndex: 3000 }}>
-          <div style={{ backgroundColor: "white", padding: "30px", borderRadius: "20px", textAlign: "center", width: "400px" }}>
-            <AlertTriangle size={50} color="#ff9800" style={{ marginBottom: "15px", margin: "0 auto" }} />
+        <div style={{ ...modalOverlay, zIndex: 3000 }}>
+          <div style={modalBox}>
+            <AlertTriangle size={50} color="#ff9800" style={{ margin: "0 auto 15px" }} />
             <h3 style={{ color: "#001166", fontWeight: "800" }}>Cancel Policy Warning</h3>
             <p style={{ color: "#555", fontSize: "14px", marginBottom: "20px" }}>
               You can only cancel <strong>one approved appointment per week</strong>. Proceeding may affect your ability to book future slots immediately.
             </p>
             <div style={{ display: "flex", gap: "10px" }}>
-              <button onClick={() => setShowCancelWarning(false)} style={{ flex: 1, padding: "12px", borderRadius: "10px", border: "1px solid #ccc", backgroundColor: "white", cursor: "pointer" }}>Go Back</button>
-              <button onClick={proceedToConfirmCancel} style={{ flex: 1, padding: "12px", borderRadius: "10px", border: "none", backgroundColor: "#ff4d4d", color: "white", cursor: "pointer" }}>Proceed</button>
+              <button onClick={() => setShowCancelWarning(false)} style={{ flex: 1, padding: "12px", borderRadius: "10px", border: "1px solid #ccc", backgroundColor: "white", cursor: "pointer", fontFamily: "'Poppins', sans-serif" }}>Go Back</button>
+              <button onClick={proceedToConfirmCancel} style={{ flex: 1, padding: "12px", borderRadius: "10px", border: "none", backgroundColor: "#ff4d4d", color: "white", cursor: "pointer", fontFamily: "'Poppins', sans-serif" }}>Proceed</button>
             </div>
           </div>
         </div>
       )}
 
       {showConfirmCancel && (
-        <div style={{ position: "fixed", top: 0, left: 0, width: "100%", height: "100%", backgroundColor: "rgba(0,0,0,0.5)", display: "flex", justifyContent: "center", alignItems: "center", zIndex: 3000 }}>
-          <div style={{ backgroundColor: "white", padding: "30px", borderRadius: "20px", textAlign: "center", width: "400px" }}>
-            <XCircle size={50} color="#ff4d4d" style={{ marginBottom: "15px", margin: "0 auto" }} />
+        <div style={{ ...modalOverlay, zIndex: 3000 }}>
+          <div style={modalBox}>
+            <XCircle size={50} color="#ff4d4d" style={{ margin: "0 auto 15px" }} />
             <h3 style={{ color: "#001166", fontWeight: "800" }}>Mark for Cancellation?</h3>
             <p style={{ color: "#555", fontSize: "14px", marginBottom: "20px" }}>
               This will mark the appointment with {appointmentToCancel?.dentist_name} as cancelled. Click "Apply" to save.
             </p>
             <div style={{ display: "flex", gap: "10px" }}>
-              <button onClick={() => setShowConfirmCancel(false)} style={{ flex: 1, padding: "12px", borderRadius: "10px", border: "1px solid #ccc", backgroundColor: "white", cursor: "pointer" }}>Cancel</button>
-              <button onClick={confirmCancellation} style={{ flex: 1, padding: "12px", borderRadius: "10px", border: "none", backgroundColor: "#ff4d4d", color: "white", cursor: "pointer" }}>Confirm</button>
+              <button onClick={() => setShowConfirmCancel(false)} style={{ flex: 1, padding: "12px", borderRadius: "10px", border: "1px solid #ccc", backgroundColor: "white", cursor: "pointer", fontFamily: "'Poppins', sans-serif" }}>Cancel</button>
+              <button onClick={confirmCancellation} style={{ flex: 1, padding: "12px", borderRadius: "10px", border: "none", backgroundColor: "#ff4d4d", color: "white", cursor: "pointer", fontFamily: "'Poppins', sans-serif" }}>Confirm</button>
             </div>
           </div>
         </div>
       )}
 
-      <div style={{ width: sidebarWidth, backgroundColor: "#001166", height: "100vh", color: "white", padding: "20px 15px", position: "fixed", transition: "width 0.3s ease", zIndex: 1000, display: "flex", flexDirection: "column", boxSizing: "border-box" }}>
-        <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: "40px" }}>
-          {!isCollapsed && <h2 style={{ fontSize: "28px", fontWeight: "800", margin: 0 }}>OraVista</h2>}
-          <div onClick={() => setIsCollapsed(!isCollapsed)} style={{ cursor: "pointer" }}>{isCollapsed ? <Menu size={24} /> : <X size={24} />}</div>
-        </div>
-        <nav style={{ flexGrow: 1 }}>
-          <div style={getNavItemStyle("/dashboard")} onClick={() => navigate("/dashboard")}><LayoutDashboard size={20} /> {!isCollapsed && "Dashboard"}</div>
-          <div style={getNavItemStyle("/profile")} onClick={() => navigate("/profile")}><User size={20} /> {!isCollapsed && "Profile"}</div>
-          <div style={getNavItemStyle("/booking")} onClick={() => navigate("/booking")}><CalendarHeart size={20} /> {!isCollapsed && "Book an Appointment"}</div>
-          <div style={getNavItemStyle("/appointments")} onClick={() => navigate("/appointments")}><History size={20} /> {!isCollapsed && "My Appointments"}</div>
-          <div style={getNavItemStyle("/records")} onClick={() => navigate("/records")}><FileText size={20} /> {!isCollapsed && "Records"}</div>
-        </nav>
-        <div style={{ borderTop: "1px solid rgba(255,255,255,0.2)", paddingTop: "10px" }}>
-          <div style={getNavItemStyle("/settings")} onClick={() => navigate("/settings")}><Settings size={20} /> {!isCollapsed && "Settings"}</div>
-          <div style={{ ...getNavItemStyle("/logout"), color: "#ff4d4d" }} onClick={handleLogout}><LogOut size={20} /> {!isCollapsed && "Logout"}</div>
-        </div>
-      </div>
+      {/* Mobile backdrop */}
+      {isMobile && isMobileOpen && (
+        <div onClick={() => setIsMobileOpen(false)} style={{ position: "fixed", inset: 0, backgroundColor: "rgba(0,0,0,0.4)", zIndex: 1500 }} />
+      )}
 
-      <div style={{ marginLeft: sidebarWidth, width: `calc(100% - ${sidebarWidth})`, transition: "margin-left 0.3s ease" }}>
-        <div style={{ padding: "60px 80px" }}>
-          <h1 style={{ color: "#001166", fontSize: "48px", fontWeight: "800", marginBottom: "10px" }}>My Appointments</h1>
-          <p style={{ color: "#001166", fontWeight: "600", marginBottom: "40px" }}>Welcome, {userData.firstName}!</p>
+      {/* Desktop Sidebar */}
+      {!isMobile && (
+        <div style={{
+          width: sidebarWidth, backgroundColor: "#001166", height: "100vh", color: "white",
+          padding: "20px 15px", position: "fixed", transition: "width 0.3s ease",
+          zIndex: 1000, display: "flex", flexDirection: "column", boxSizing: "border-box", overflow: "hidden",
+        }}>
+          <SidebarContent />
+        </div>
+      )}
 
-          <div style={{ display: "flex", gap: "15px", marginBottom: "35px", alignItems: "center" }}>
-            <div style={{ position: "relative", width: "300px" }}>
-              <Search size={20} style={{ position: "absolute", left: "15px", top: "12px", color: "#666" }} />
-              <input type="text" placeholder="Search..." value={searchTerm} onChange={(e) => setSearchTerm(e.target.value)} style={{ width: "100%", padding: "12px 15px 12px 45px", borderRadius: "30px", border: "none", backgroundColor: "#e8ebf5", fontSize: "16px", outline: "none", boxSizing: "border-box" }} />
+      {/* Mobile Sidebar Drawer */}
+      {isMobile && (
+        <div style={{
+          width: "260px", backgroundColor: "#001166", height: "100vh", color: "white",
+          padding: "20px 15px", position: "fixed", left: isMobileOpen ? 0 : "-260px",
+          top: 0, transition: "left 0.3s ease", zIndex: 2000,
+          display: "flex", flexDirection: "column", boxSizing: "border-box", overflowY: "auto",
+        }}>
+          <SidebarContent />
+        </div>
+      )}
+
+      {/* Main Content */}
+      <div style={{
+        marginLeft: isMobile ? 0 : sidebarWidth,
+        width: isMobile ? "100%" : `calc(100% - ${sidebarWidth})`,
+        transition: "margin-left 0.3s ease",
+        boxSizing: "border-box",
+      }}>
+
+        {/* Mobile Top Bar */}
+        {isMobile && (
+          <div style={{ display: "flex", alignItems: "center", padding: "15px 20px", backgroundColor: "#001166", color: "white", position: "sticky", top: 0, zIndex: 100 }}>
+            <div onClick={() => setIsMobileOpen(true)} style={{ cursor: "pointer", marginRight: "15px" }}>
+              <Menu size={24} />
+            </div>
+            <h2 style={{ fontSize: "22px", fontWeight: "800", margin: 0 }}>OraVista</h2>
+          </div>
+        )}
+
+        <div style={{ padding: isMobile ? "20px 16px" : "60px 80px" }}>
+          <h1 style={{ color: "#001166", fontSize: isMobile ? "28px" : "48px", fontWeight: "800", marginBottom: "6px" }}>My Appointments</h1>
+          <p style={{ color: "#001166", fontWeight: "600", marginBottom: isMobile ? "20px" : "40px" }}>Welcome, {userData.firstName}!</p>
+
+          {/* Filters Row */}
+          <div style={{ display: "flex", flexWrap: "wrap", gap: "12px", marginBottom: "24px", alignItems: "center" }}>
+            {/* Search */}
+            <div style={{ position: "relative", flex: isMobile ? "1 1 100%" : "0 0 280px", minWidth: isMobile ? "100%" : "200px" }}>
+              <Search size={18} style={{ position: "absolute", left: "14px", top: "13px", color: "#666" }} />
+              <input
+                type="text"
+                placeholder="Search..."
+                value={searchTerm}
+                onChange={(e) => setSearchTerm(e.target.value)}
+                style={{ width: "100%", padding: "12px 15px 12px 42px", borderRadius: "30px", border: "none", backgroundColor: "#e8ebf5", fontSize: "14px", outline: "none", boxSizing: "border-box", fontFamily: "'Poppins', sans-serif" }}
+              />
             </div>
 
-            <div style={{ position: "relative" }}>
-              <select value={selectedDentist} onChange={(e) => setSelectedDentist(e.target.value)} style={{ appearance: "none", backgroundColor: "#e8ebf5", border: "none", padding: "12px 40px 12px 20px", borderRadius: "10px", color: "#001166", fontWeight: "600", cursor: "pointer", fontSize: "14px", minWidth: "160px" }}>
+            {/* Dentist filter */}
+            <div style={{ position: "relative", flex: isMobile ? "1 1 calc(50% - 6px)" : "0 0 auto" }}>
+              <select
+                value={selectedDentist}
+                onChange={(e) => setSelectedDentist(e.target.value)}
+                style={{ appearance: "none", backgroundColor: "#e8ebf5", border: "none", padding: "12px 36px 12px 16px", borderRadius: "10px", color: "#001166", fontWeight: "600", cursor: "pointer", fontSize: "13px", width: "100%", fontFamily: "'Poppins', sans-serif" }}
+              >
                 <option value="">All Dentists</option>
                 {dentistsList.map(d => <option key={d} value={d}>{d}</option>)}
               </select>
-              <ChevronDown size={18} style={{ position: "absolute", right: "15px", top: "12px", pointerEvents: "none", color: "#001166" }} />
+              <ChevronDown size={16} style={{ position: "absolute", right: "12px", top: "14px", pointerEvents: "none", color: "#001166" }} />
             </div>
 
-            <div style={{ position: "relative" }}>
-              <select value={selectedStatus} onChange={(e) => setSelectedStatus(e.target.value)} style={{ appearance: "none", backgroundColor: "#e8ebf5", border: "none", padding: "12px 40px 12px 20px", borderRadius: "10px", color: "#001166", fontWeight: "600", cursor: "pointer", fontSize: "14px", minWidth: "160px" }}>
+            {/* Status filter */}
+            <div style={{ position: "relative", flex: isMobile ? "1 1 calc(50% - 6px)" : "0 0 auto" }}>
+              <select
+                value={selectedStatus}
+                onChange={(e) => setSelectedStatus(e.target.value)}
+                style={{ appearance: "none", backgroundColor: "#e8ebf5", border: "none", padding: "12px 36px 12px 16px", borderRadius: "10px", color: "#001166", fontWeight: "600", cursor: "pointer", fontSize: "13px", width: "100%", fontFamily: "'Poppins', sans-serif" }}
+              >
                 <option value="">All Statuses</option>
                 {statusList.map(s => <option key={s} value={s}>{s}</option>)}
               </select>
-              <ChevronDown size={18} style={{ position: "absolute", right: "15px", top: "12px", pointerEvents: "none", color: "#001166" }} />
+              <ChevronDown size={16} style={{ position: "absolute", right: "12px", top: "14px", pointerEvents: "none", color: "#001166" }} />
             </div>
 
+            {/* Edit/Apply button */}
             {isEditing ? (
               <button
                 onClick={handleApplyClick}
-                style={{ backgroundColor: "#28a745", border: "none", padding: "12px 35px", borderRadius: "10px", color: "white", fontWeight: "700", cursor: "pointer", marginLeft: "auto", display: "flex", alignItems: "center", gap: "8px" }}
+                style={{ backgroundColor: "#28a745", border: "none", padding: "12px 28px", borderRadius: "10px", color: "white", fontWeight: "700", cursor: "pointer", display: "flex", alignItems: "center", gap: "8px", fontFamily: "'Poppins', sans-serif", marginLeft: isMobile ? 0 : "auto", width: isMobile ? "100%" : "auto", justifyContent: "center" }}
               >
-                <Save size={18} /> Apply
+                <Save size={16} /> Apply
               </button>
             ) : (
               <button
                 onClick={handleEditClick}
-                style={{ backgroundColor: "#001166", border: "none", padding: "12px 35px", borderRadius: "10px", color: "white", fontWeight: "700", cursor: "pointer", marginLeft: "auto", display: "flex", alignItems: "center", gap: "8px" }}
+                style={{ backgroundColor: "#001166", border: "none", padding: "12px 28px", borderRadius: "10px", color: "white", fontWeight: "700", cursor: "pointer", display: "flex", alignItems: "center", gap: "8px", fontFamily: "'Poppins', sans-serif", marginLeft: isMobile ? 0 : "auto", width: isMobile ? "100%" : "auto", justifyContent: "center" }}
               >
-                <Pencil size={18} /> Edit
+                <Pencil size={16} /> Edit
               </button>
             )}
           </div>
 
-          <div style={{ backgroundColor: "#e8ebf5", borderRadius: "30px", padding: "40px" }}>
-            {/* UPDATED: Added Price Column to the Header Grid */}
-            <div style={{ display: "grid", gridTemplateColumns: "1.5fr 1.5fr 1.5fr 1fr 1fr", padding: "0 20px 15px 20px", color: "#001166", fontWeight: "800", borderBottom: "2px dashed #001166", marginBottom: "20px" }}>
-              <div>Date</div>
-              <div>Service</div>
-              <div>Dentist</div>
-              <div>Base Price</div>
-              <div style={{ textAlign: "center" }}>Status</div>
-            </div>
+          {/* Appointments Table */}
+          <div style={{ backgroundColor: "#e8ebf5", borderRadius: "24px", padding: isMobile ? "16px 12px" : "40px" }}>
+
+            {/* Desktop Table Header */}
+            {!isMobile && (
+              <div style={{ display: "grid", gridTemplateColumns: "1.5fr 1.5fr 1.5fr 1fr 1fr", padding: "0 20px 15px 20px", color: "#001166", fontWeight: "800", borderBottom: "2px dashed #001166", marginBottom: "20px" }}>
+                <div>Date</div>
+                <div>Service</div>
+                <div>Dentist</div>
+                <div>Base Price</div>
+                <div style={{ textAlign: "center" }}>Status</div>
+              </div>
+            )}
 
             <div style={{ display: "flex", flexDirection: "column", gap: "12px" }}>
               {filteredAppointments.length > 0 ? (
                 filteredAppointments.map((appt) => (
-                  // UPDATED: Added Price Display to the Row Grid
-                  <div key={appt.id} style={{ display: "grid", gridTemplateColumns: "1.5fr 1.5fr 1.5fr 1fr 1fr", backgroundColor: "white", padding: "22px 20px", borderRadius: "15px", alignItems: "center" }}>
-                    <div style={{ color: "#001166", fontWeight: "600" }}>{new Date(appt.appointment_date).toLocaleDateString('en-US', { month: 'long', day: 'numeric', year: 'numeric' })}</div>
-                    <div style={{ color: "#001166" }}>{appt.service_type}</div>
-                    <div style={{ color: "#001166" }}>{appt.dentist_name}</div>
-                    <div style={{ color: "#28a745", fontWeight: "700" }}>₱{appt.amount ? parseFloat(appt.amount).toLocaleString() : "0"}</div>
-                    <div style={{ textAlign: "center" }}>
-                      <span
-                        onClick={() => handleStatusClick(appt)}
-                        style={getStatusStyle(appt.status)}
-                      >
-                        {appt.status}
-                      </span>
+                  isMobile ? (
+                    /* Mobile Card Layout */
+                    <div key={appt.id} style={{ backgroundColor: "white", padding: "16px", borderRadius: "14px" }}>
+                      <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start", marginBottom: "10px" }}>
+                        <div>
+                          <div style={{ color: "#001166", fontWeight: "700", fontSize: "14px" }}>
+                            {new Date(appt.appointment_date).toLocaleDateString("en-US", { month: "long", day: "numeric", year: "numeric" })}
+                          </div>
+                          <div style={{ color: "#333", fontSize: "13px", marginTop: "2px" }}>{appt.service_type}</div>
+                        </div>
+                        <span onClick={() => handleStatusClick(appt)} style={getStatusStyle(appt.status)}>
+                          {appt.status}
+                        </span>
+                      </div>
+                      <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
+                        <div style={{ color: "#555", fontSize: "13px" }}>{appt.dentist_name}</div>
+                        <div style={{ color: "#28a745", fontWeight: "700", fontSize: "14px" }}>
+                          ₱{appt.amount ? parseFloat(appt.amount).toLocaleString() : "0"}
+                        </div>
+                      </div>
                     </div>
-                  </div>
+                  ) : (
+                    /* Desktop Row Layout */
+                    <div key={appt.id} style={{ display: "grid", gridTemplateColumns: "1.5fr 1.5fr 1.5fr 1fr 1fr", backgroundColor: "white", padding: "22px 20px", borderRadius: "15px", alignItems: "center" }}>
+                      <div style={{ color: "#001166", fontWeight: "600" }}>
+                        {new Date(appt.appointment_date).toLocaleDateString("en-US", { month: "long", day: "numeric", year: "numeric" })}
+                      </div>
+                      <div style={{ color: "#001166" }}>{appt.service_type}</div>
+                      <div style={{ color: "#001166" }}>{appt.dentist_name}</div>
+                      <div style={{ color: "#28a745", fontWeight: "700" }}>₱{appt.amount ? parseFloat(appt.amount).toLocaleString() : "0"}</div>
+                      <div style={{ textAlign: "center" }}>
+                        <span onClick={() => handleStatusClick(appt)} style={getStatusStyle(appt.status)}>
+                          {appt.status}
+                        </span>
+                      </div>
+                    </div>
+                  )
                 ))
               ) : (
-                <div style={{ textAlign: "center", padding: "80px 0", color: "#001166" }}>
-                  <Calendar size={60} style={{ opacity: 0.2, marginBottom: "15px" }} />
-                  <p style={{ fontSize: "18px", fontWeight: "600" }}>No appointments found.</p>
+                <div style={{ textAlign: "center", padding: "60px 0", color: "#001166" }}>
+                  <Calendar size={50} style={{ opacity: 0.2, marginBottom: "15px" }} />
+                  <p style={{ fontSize: "16px", fontWeight: "600" }}>No appointments found.</p>
                 </div>
               )}
             </div>

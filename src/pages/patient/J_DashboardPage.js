@@ -3,7 +3,7 @@ import { useNavigate, useLocation } from "react-router-dom";
 import {
   Search, Mail, Bell, Menu, X, LayoutDashboard, User,
   CalendarHeart, History, FileText, Settings, LogOut,
-  CreditCard, ChevronDown, ChevronUp
+  CreditCard, ChevronUp
 } from "lucide-react";
 
 const dentalFacts = [
