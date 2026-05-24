@@ -116,16 +116,16 @@ function DentistSettings() {
     <AdminLayout>
       <div style={styles.container}>
         {/* HEADER */}
-        <header style={styles.header}>
-          <div style={styles.searchBox}>
+        <header style={styles.header} className="dashboard-page-header">
+          <div style={styles.searchBox} className="header-search-box">
             <Search size={18} color="rgba(255,255,255,0.6)" />
             <input type="text" placeholder="Search settings..." style={styles.searchInput} />
           </div>
-          <div style={styles.headerActions}>
+          <div style={styles.headerActions} className="header-actions">
             <Bell size={20} color="white" />
             <MessageSquare size={20} color="white" />
-            <div style={styles.profile}>
-              <div style={styles.profileText}>
+            <div style={styles.profile} className="header-profile">
+              <div style={styles.profileText} className="header-profile-text">
                 <p style={styles.userName}>Dr. {profileData.lastName}</p>
                 <p style={styles.userRole}>Dentist</p>
               </div>
@@ -135,13 +135,13 @@ function DentistSettings() {
         </header>
 
         {/* CONTENT AREA */}
-        <div style={styles.content}>
+        <div style={styles.content} className="settings-content">
           <div style={styles.titleSection}>
             <h1 style={styles.pageTitle}>Settings</h1>
             <p style={styles.pageSubtitle}>Manage your profile and account security</p>
           </div>
 
-          <div style={styles.mainGrid}>
+          <div style={styles.mainGrid} className="settings-grid">
             {/* LEFT COLUMN */}
             <div style={styles.leftCol}>
               <div style={styles.formCard}>
@@ -150,7 +150,7 @@ function DentistSettings() {
                   <h3 style={styles.cardTitle}>Account Settings</h3>
                 </div>
 
-                <div style={{ display: 'flex', gap: '15px', marginBottom: '20px' }}>
+                <div className="settings-form-row" style={{ display: 'flex', gap: '15px', marginBottom: '20px' }}>
                   <div style={{ flex: 1 }}>
                     <label style={styles.label}>First Name</label>
                     <input
