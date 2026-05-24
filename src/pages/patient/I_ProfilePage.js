@@ -67,7 +67,7 @@ function ProfilePage() {
       });
       // Load saved profile picture from backend path
       if (user.profile_picture) {
-        setProfilePreview(`http://localhost:5000/${user.profile_picture}`);
+        setProfilePreview(`https://oravista-server-temporary-756513026425.asia-southeast1.run.app/${user.profile_picture}`);
       }
     }
   }, []);
@@ -132,7 +132,7 @@ function ProfilePage() {
       formData.append('userId', user.id);
 
       try {
-        const response = await fetch("http://localhost:5000/api/upload-profile-picture", {
+        const response = await fetch("https://oravista-server-temporary-756513026425.asia-southeast1.run.app/api/upload-profile-picture", {
           method: "POST",
           body: formData, // Sending FormData instead of JSON
         });
@@ -145,7 +145,7 @@ function ProfilePage() {
           localStorage.setItem("user", JSON.stringify(updatedUser));
 
           // Set the final preview to the actual server path
-          setProfilePreview(`http://localhost:5000/${data.imagePath}`);
+          setProfilePreview(`https://oravista-server-temporary-756513026425.asia-southeast1.run.app/${data.imagePath}`);
         } else {
           alert(data.message || "Failed to upload image.");
         }
@@ -167,7 +167,7 @@ function ProfilePage() {
 
     // Reset preview back to original state if discarded
     const user = JSON.parse(localStorage.getItem("user"));
-    setProfilePreview(user?.profile_picture ? `http://localhost:5000/${user.profile_picture}` : null);
+    setProfilePreview(user?.profile_picture ? `https://oravista-server-temporary-756513026425.asia-southeast1.run.app/${user.profile_picture}` : null);
   };
 
   const handleSaveClick = () => {
@@ -194,7 +194,7 @@ function ProfilePage() {
   const handleConfirmSave = async () => {
     const user = JSON.parse(localStorage.getItem("user"));
     try {
-      const response = await fetch("http://localhost:5000/api/update-profile", {
+      const response = await fetch("https://oravista-server-temporary-756513026425.asia-southeast1.run.app/api/update-profile", {
         method: "PUT",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ id: user.id, ...userData }),

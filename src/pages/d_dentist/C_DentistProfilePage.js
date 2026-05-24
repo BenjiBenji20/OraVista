@@ -19,7 +19,7 @@ function DentistProfile() {
         if (!dentistId) return;
 
         // Fetching dentist-specific data from your backend
-        const response = await fetch(`http://localhost:5000/api/dentist-profile/${dentistId}`);
+        const response = await fetch(`https://oravista-server-temporary-756513026425.asia-southeast1.run.app/api/dentist-profile/${dentistId}`);
         const data = await response.json();
 
         setDentistData(data.profile);

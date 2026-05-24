@@ -33,8 +33,8 @@ function RecordsPage() {
     setIsDataLoading(true);
     try {
       const [analyticsRes, riskRes] = await Promise.all([
-        fetch(`https://oravista-ai-engine-temporary-754963692967.asia-southeast1.run.app/api/patient/get/${userId}/analytics`),
-        fetch(`https://oravista-ai-engine-temporary-754963692967.asia-southeast1.run.app/api/patient/get/${userId}/oral-health-risk`)
+        fetch(`https://oravista-ai-engine-temporary-756513026425.asia-southeast1.run.app/api/patient/get/${userId}/analytics`),
+        fetch(`https://oravista-ai-engine-temporary-756513026425.asia-southeast1.run.app/api/patient/get/${userId}/oral-health-risk`)
       ]);
       if (analyticsRes.ok) setAnalyticsData(await analyticsRes.json());
       if (riskRes.ok) setRiskData(await riskRes.json());
@@ -164,8 +164,8 @@ function RecordsPage() {
 
     try {
       const [analyticsRes, riskRes] = await Promise.all([
-        fetch(`https://oravista-ai-engine-temporary-754963692967.asia-southeast1.run.app/api/patient/get/${userData.id}/analytics`),
-        fetch(`https://oravista-ai-engine-temporary-754963692967.asia-southeast1.run.app/api/patient/get/${userData.id}/oral-health-risk`)
+        fetch(`https://oravista-ai-engine-temporary-756513026425.asia-southeast1.run.app/api/patient/get/${userData.id}/analytics`),
+        fetch(`https://oravista-ai-engine-temporary-756513026425.asia-southeast1.run.app/api/patient/get/${userData.id}/oral-health-risk`)
       ]);
 
       let aData = {};
@@ -417,7 +417,7 @@ function RecordsPage() {
                         {new Date(record.upload_date).toLocaleDateString("en-US", { year: "numeric", month: "long", day: "numeric" })}
                       </td>
                       <td style={{ padding: "15px", textAlign: "center" }}>
-                        <a href={`http://localhost:5000/${record.file_path}`} target="_blank" rel="noreferrer"
+                        <a href={`https://oravista-server-temporary-756513026425.asia-southeast1.run.app/${record.file_path}`} target="_blank" rel="noreferrer"
                           style={{ display: "inline-flex", alignItems: "center", gap: "5px", color: "#001166", fontWeight: "700", textDecoration: "none" }}>
                           View <ExternalLink size={16} />
                         </a>

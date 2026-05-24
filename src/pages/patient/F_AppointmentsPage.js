@@ -54,7 +54,7 @@ function AppointmentsPage() {
 
   const fetchAppointments = useCallback(async (userId) => {
     try {
-      const response = await fetch(`http://localhost:5000/api/user-appointments/${userId}`);
+      const response = await fetch(`https://oravista-server-temporary-756513026425.asia-southeast1.run.app/api/user-appointments/${userId}`);
       if (response.ok) {
         const data = await response.json();
         const mappedData = data.map(appt => ({ ...appt, status: appt.status || "Pending" }));
@@ -110,7 +110,7 @@ function AppointmentsPage() {
 
     try {
       await Promise.all(modifiedAppointments.map(appt =>
-        fetch("http://localhost:5000/api/update-appointment-status", {
+        fetch("https://oravista-server-temporary-756513026425.asia-southeast1.run.app/api/update-appointment-status", {
           method: "PUT",
           headers: { "Content-Type": "application/json" },
           body: JSON.stringify({

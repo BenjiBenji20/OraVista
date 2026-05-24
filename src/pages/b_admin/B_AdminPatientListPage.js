@@ -24,7 +24,7 @@ function AdminPatientList() {
   useEffect(() => {
     const fetchPatients = async () => {
       try {
-        const response = await fetch('http://localhost:5000/api/patients');
+        const response = await fetch('https://oravista-server-temporary-756513026425.asia-southeast1.run.app/api/patients');
         const data = await response.json();
 
         if (Array.isArray(data)) {
@@ -68,9 +68,9 @@ function AdminPatientList() {
     setPatientMedical(null);
     try {
       const [recordsRes, historyRes, patientsRes] = await Promise.all([
-        fetch(`http://localhost:5000/api/patient-records/${patient.dbId}`),
-        fetch(`http://localhost:5000/api/user-appointments/${patient.dbId}`),
-        fetch(`http://localhost:5000/api/patients`)
+        fetch(`https://oravista-server-temporary-756513026425.asia-southeast1.run.app/api/patient-records/${patient.dbId}`),
+        fetch(`https://oravista-server-temporary-756513026425.asia-southeast1.run.app/api/user-appointments/${patient.dbId}`),
+        fetch(`https://oravista-server-temporary-756513026425.asia-southeast1.run.app/api/patients`)
       ]);
 
       if (recordsRes.ok) {

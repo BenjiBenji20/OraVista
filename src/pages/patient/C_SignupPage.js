@@ -122,7 +122,7 @@ function SignupPage() {
     };
 
     try {
-      const response = await fetch("http://localhost:5000/api/signup", {
+      const response = await fetch("https://oravista-server-temporary-756513026425.asia-southeast1.run.app/api/signup", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify(payload), // Send payload with branch

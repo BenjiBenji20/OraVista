@@ -1,9 +1,9 @@
 import React, { useState, useEffect, useCallback } from 'react';
 import AdminLayout from '../../components/AdminLayout';
 import {
-  Search, Bell, MessageSquare, User, X,
+  User, X,
   TrendingUp, ChevronRight, BrainCircuit,
-  CalendarX, ActivitySquare, Stethoscope, Users
+  CalendarX, ActivitySquare, Users
 } from 'lucide-react';
 
 
@@ -14,7 +14,6 @@ function DentistAnalyticsPage() {
   const [treatmentOutcomes, setTreatmentOutcomes] = useState([]);
   const [isOutcomesLoading, setIsOutcomesLoading] = useState(true);
   const [currentRiskIndex, setCurrentRiskIndex] = useState(0);
-  const [currentOutcomeIndex, setCurrentOutcomeIndex] = useState(0);
 
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [modalData, setModalData] = useState(null);
@@ -41,7 +40,7 @@ function DentistAnalyticsPage() {
 
       // GET request to our new dynamic endpoint
       const response = await fetch(
-        `https://oravista-ai-engine-temporary-754963692967.asia-southeast1.run.app/api/dentist/dashboard/predict-risk-queue/${dentistId}`
+        `https://oravista-ai-engine-temporary-756513026425.asia-southeast1.run.app/api/dentist/dashboard/predict-risk-queue/${dentistId}`
       );
 
       if (response.ok) {
@@ -69,12 +68,12 @@ function DentistAnalyticsPage() {
       }
 
       // Fetch the analytics data just like Review Record
-      const analyticsRes = await fetch(`https://oravista-ai-engine-temporary-754963692967.asia-southeast1.run.app/api/patient/get/${rawId}/analytics`);
+      const analyticsRes = await fetch(`https://oravista-ai-engine-temporary-756513026425.asia-southeast1.run.app/api/patient/get/${rawId}/analytics`);
       if (!analyticsRes.ok) throw new Error("Failed to fetch analytics");
       const analyticsData = await analyticsRes.json();
 
       // Send the POST request to generate the treatment outcome prediction
-      const predictRes = await fetch("https://oravista-ai-engine-temporary-754963692967.asia-southeast1.run.app/api/dentist/dashboard/predict-treatment-outcome", {
+      const predictRes = await fetch("https://oravista-ai-engine-temporary-756513026425.asia-southeast1.run.app/api/dentist/dashboard/predict-treatment-outcome", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify(analyticsData)
@@ -109,7 +108,7 @@ function DentistAnalyticsPage() {
         }
       }
 
-      const response = await fetch(`https://oravista-ai-engine-temporary-754963692967.asia-southeast1.run.app/api/patient/get/${rawId}/analytics`);
+      const response = await fetch(`https://oravista-ai-engine-temporary-756513026425.asia-southeast1.run.app/api/patient/get/${rawId}/analytics`);
       if (response.ok) {
         const data = await response.json();
         setModalData(data);
@@ -128,7 +127,7 @@ function DentistAnalyticsPage() {
     setModalData(null);
 
     try {
-      const response = await fetch(`https://oravista-ai-engine-temporary-754963692967.asia-southeast1.run.app/api/dentist/dashboard/${outcome.patient_id}/predict-treatment-outcome/${outcome.id}`);
+      const response = await fetch(`https://oravista-ai-engine-temporary-756513026425.asia-southeast1.run.app/api/dentist/dashboard/${outcome.patient_id}/predict-treatment-outcome/${outcome.id}`);
       if (response.ok) {
         const data = await response.json();
         setModalData(data);
@@ -143,7 +142,7 @@ function DentistAnalyticsPage() {
   const fetchRiskStratification = useCallback(async (branchName) => {
     setIsStratLoading(true);
     try {
-      const response = await fetch("https://oravista-ai-engine-temporary-754963692967.asia-southeast1.run.app/api/dentist/dashboard/risk-stratification", {
+      const response = await fetch("https://oravista-ai-engine-temporary-756513026425.asia-southeast1.run.app/api/dentist/dashboard/risk-stratification", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ branch: branchName, timeframe_days: 30 })
@@ -163,7 +162,7 @@ function DentistAnalyticsPage() {
     if (!riskStratification || !riskStratification.id) return;
     setStratPatientsModal({ isOpen: true, riskLevel, patients: [], loading: true });
     try {
-      const response = await fetch(`https://oravista-ai-engine-temporary-754963692967.asia-southeast1.run.app/api/dentist/dashboard/risk-stratification/${riskStratification.id}/patients?risk_level=${riskLevel}`);
+      const response = await fetch(`https://oravista-ai-engine-temporary-756513026425.asia-southeast1.run.app/api/dentist/dashboard/risk-stratification/${riskStratification.id}/patients?risk_level=${riskLevel}`);
       if (response.ok) {
         const data = await response.json();
         setStratPatientsModal(prev => ({ ...prev, patients: data, loading: false }));
@@ -183,7 +182,7 @@ function DentistAnalyticsPage() {
   const fetchNoShowQueue = useCallback(async (branchName) => {
     setIsNoShowLoading(true);
     try {
-      const response = await fetch(`https://oravista-ai-engine-temporary-754963692967.asia-southeast1.run.app/api/dentist/dashboard/no-show-queue?branch=${encodeURIComponent(branchName)}`);
+      const response = await fetch(`https://oravista-ai-engine-temporary-756513026425.asia-southeast1.run.app/api/dentist/dashboard/no-show-queue?branch=${encodeURIComponent(branchName)}`);
       if (response.ok) {
         const data = await response.json();
         setNoShowPredictions(data);
@@ -198,7 +197,7 @@ function DentistAnalyticsPage() {
   const handlePredictNoShow = async (appointmentId) => {
     setPredictingAppts(prev => ({ ...prev, [appointmentId]: true }));
     try {
-      const response = await fetch(`https://oravista-ai-engine-temporary-754963692967.asia-southeast1.run.app/api/dentist/dashboard/predict-no-show/${appointmentId}`, {
+      const response = await fetch(`https://oravista-ai-engine-temporary-756513026425.asia-southeast1.run.app/api/dentist/dashboard/predict-no-show/${appointmentId}`, {
         method: "POST",
         headers: { "Content-Type": "application/json" }
       });

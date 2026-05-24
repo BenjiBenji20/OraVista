@@ -3,8 +3,8 @@ import AdminLayout from '../../components/AdminLayout';
 import { Search, Bell, MessageSquare, User, ZoomIn, RotateCw, UploadCloud, CheckCircle, X, Activity } from 'lucide-react';
 
 // Global API Base Endpoints
-const NODE_API_BASE = "http://localhost:5000";
-const FASTAPI_API_BASE = "https://cautious-funicular-g4x9r6gg757399x9-8080.app.github.dev";
+const NODE_API_BASE = "https://oravista-server-temporary-756513026425.asia-southeast1.run.app";
+const FASTAPI_API_BASE = "https://oravista-ai-engine-temporary-756513026425.asia-southeast1.run.app";
 
 function DentistDiagnostics() {
   // State Management
@@ -562,7 +562,7 @@ function DentistDiagnostics() {
                       <div style={styles.patientAvatar}>
                         {patient.profile_picture ? (
                           <img
-                            src={`http://localhost:5000/${patient.profile_picture}`}
+                            src={`https://oravista-server-temporary-756513026425.asia-southeast1.run.app/${patient.profile_picture}`}
                             alt=""
                             style={styles.avatarImg}
                           />
