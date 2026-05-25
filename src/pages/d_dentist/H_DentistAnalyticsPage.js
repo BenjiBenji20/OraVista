@@ -671,9 +671,9 @@ document.head.appendChild(styleSheet);
 
                   {/* Right Column: Clinical Notes */}
                   <div className="col-right">
+                  <span style={styles.actionLabel}>Clinical Notes:</span>
                     {diagnosticFindings.clinical_notes && (
                       <div>
-                        <span style={styles.actionLabel}>Clinical Notes:</span>
                         <div 
                           className="clinical-notes-scrollbar"
                           style={{
@@ -692,8 +692,9 @@ document.head.appendChild(styleSheet);
                           {diagnosticFindings.clinical_notes}
                         </div>
                       </div>
+                    )} {(
+                      <div className='clinical-notes-scrollbar' style={{ fontSize: '13px', color: '#666', margin: '5px 0 0 0' }}>No clinical notes available.</div>
                     )}
-
                     {/* Scan date / metadata */}
                     <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', borderTop: '1px solid #eee', paddingTop: '12px', marginTop: '15px' }}>
                       <span style={{ fontSize: '11px', color: '#888' }}>
