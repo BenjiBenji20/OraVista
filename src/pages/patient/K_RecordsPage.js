@@ -42,8 +42,8 @@ function RecordsPage() {
     setIsDataLoading(true);
     try {
       const [analyticsRes, riskRes] = await Promise.all([
-        fetch(`https://oravista-ai-engine-temporary-756513026425.asia-southeast1.run.app/api/patient/get/${userId}/analytics`),
-        fetch(`https://oravista-ai-engine-temporary-756513026425.asia-southeast1.run.app/api/patient/get/${userId}/oral-health-risk`)
+        fetch(`https://oravista-ai-engine-474976105474.asia-southeast1.run.app/api/patient/get/${userId}/analytics`),
+        fetch(`https://oravista-ai-engine-474976105474.asia-southeast1.run.app/api/patient/get/${userId}/oral-health-risk`)
       ]);
       if (analyticsRes.ok) setAnalyticsData(await analyticsRes.json());
       if (riskRes.ok) setRiskData(await riskRes.json());
@@ -93,8 +93,8 @@ function RecordsPage() {
     setIsDownloadingReport(true);
     try {
       const [analyticsRes, riskRes] = await Promise.all([
-        fetch(`https://oravista-ai-engine-temporary-756513026425.asia-southeast1.run.app/api/patient/get/${userData.id}/analytics`),
-        fetch(`https://oravista-ai-engine-temporary-756513026425.asia-southeast1.run.app/api/patient/get/${userData.id}/oral-health-risk`)
+        fetch(`https://oravista-ai-engine-474976105474.asia-southeast1.run.app/api/patient/get/${userData.id}/analytics`),
+        fetch(`https://oravista-ai-engine-474976105474.asia-southeast1.run.app/api/patient/get/${userData.id}/oral-health-risk`)
       ]);
       let aData = {};
       let rData = {};

@@ -167,7 +167,7 @@ function BookingPage() {
     setIsRefreshing(true);
     try {
       const response = await fetch(
-        `https://oravista-server-temporary-756513026425.asia-southeast1.run.app/api/appointments/check-availability?date=${bookingData.date}&dentist=${encodeURIComponent(bookingData.dentist)}`
+        `https://oravista-server-474976105474.asia-southeast1.run.app/api/appointments/check-availability?date=${bookingData.date}&dentist=${encodeURIComponent(bookingData.dentist)}`
       );
       const data = await response.json();
       const allOccupiedMinutes = [];
@@ -208,7 +208,7 @@ function BookingPage() {
       amount: selectedServicePrice
     };
     try {
-      const response = await fetch("https://oravista-server-temporary-756513026425.asia-southeast1.run.app/api/book-appointment", {
+      const response = await fetch("https://oravista-server-474976105474.asia-southeast1.run.app/api/book-appointment", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify(appointmentData),

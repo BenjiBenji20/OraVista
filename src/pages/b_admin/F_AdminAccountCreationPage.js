@@ -41,7 +41,7 @@ function AdminAccountCreation() {
 
     try {
       // UPDATED: Pointing to the new Admin Create User endpoint
-      const response = await fetch('https://oravista-server-temporary-756513026425.asia-southeast1.run.app/api/admin/create-user', {
+      const response = await fetch('https://oravista-server-474976105474.asia-southeast1.run.app/api/admin/create-user', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({

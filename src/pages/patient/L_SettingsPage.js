@@ -129,7 +129,7 @@ function SettingsPage() {
     setIsOtpLoading(true);
     setOtpMessage("");
     try {
-      const response = await fetch("https://oravista-server-temporary-756513026425.asia-southeast1.run.app/api/send-otp", {
+      const response = await fetch("https://oravista-server-474976105474.asia-southeast1.run.app/api/send-otp", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ email: userData.email, action: "change_password" }),

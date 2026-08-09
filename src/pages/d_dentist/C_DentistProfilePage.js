@@ -17,7 +17,7 @@ function DentistProfile() {
 
         if (!dentistId) return;
 
-        const response = await fetch(`https://oravista-server-temporary-756513026425.asia-southeast1.run.app/api/dentist-profile/${dentistId}`);
+        const response = await fetch(`https://oravista-server-474976105474.asia-southeast1.run.app/api/dentist-profile/${dentistId}`);
         const data = await response.json();
 
         setDentistData(data.profile);
